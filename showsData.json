@@ -60,8 +60,7 @@
         "url": "https://v.qq.com/x/cover/mzc00200x8zylq0/c4102tnbp6u.html",
         "label": "Nơi chiếu tiếng Trung"
       }
-    ],
-    "rating": 3
+    ]
   },
   {
     "chinese": "有秘密的我们3",
@@ -88,8 +87,8 @@
   },
   {
     "chinese": "偏爱之恋2",
-    "english": "Love Wins All 2",
-    "vietnamese": "Tình Yêu Thiên Vị 2",
+    "english": "Love Wins All S2",
+    "vietnamese": "Tình Yêu Thiên Vị S2",
     "status": "upcoming",
     "platform": "Youku",
     "image": "https://i.vgy.me/72YnB9.png",
@@ -161,7 +160,10 @@
     "time": "Tháng 8",
     "tags": [
       "normal"
-    ]
+    ],
+    "country": "china",
+    "image": "https://i.vgy.me/0Ip0gr.jpg",
+    "description": "Chưa rõ thông tin"
   },
   {
     "chinese": "当爱情再次降临",
@@ -209,25 +211,26 @@
   },
   {
     "chinese": "有你的恋歌3",
-    "english": "Love Song With You 3",
-    "vietnamese": "Bản Tình Ca Có Em 3",
+    "english": "Song For You 3",
+    "vietnamese": "Bản Tình Ca Dành Cho Em S3",
     "status": "upcoming",
     "platform": "Mango TV",
-    "time": "",
     "tags": [
       "normal"
-    ]
+    ],
+    "country": "china"
   },
   {
     "chinese": "恋爱特别邀请2",
-    "english": "Special Love Invitation 2",
-    "vietnamese": "Lời Mời Yêu Đương Đặc Biệt 2",
+    "english": "Special Love Invitation S2",
+    "vietnamese": "Lời Mời Đặc Biệt Của Tình Yêu S2",
     "status": "upcoming",
     "platform": "Mango TV",
-    "time": "",
     "tags": [
       "normal"
-    ]
+    ],
+    "country": "china",
+    "description": "Người tham gia: Gồm 8 nam thanh nữ tú độc thân. \nNgười chứng kiến đặc biệt: Mỗi khách mời sẽ dẫn theo một người hiểu rõ gu tình cảm của mình nhất (như anh chị em ruột hoặc bạn thân) cùng đến Tây Tạng.\nVai trò: Những người đồng hành này sẽ đóng vai trò làm \"huấn luyện viên tình yêu\", đưa ra lời khuyên và giúp khách mời tìm kiếm mảnh ghép phù hợp trong kế hoạch hẹn hò 10 ngày."
   },
   {
     "chinese": "喜欢你我也是6",
@@ -243,64 +246,9 @@
     "description": "Tên Anh chính thức trên iQIYI quốc tế: Yes, I Do. Đây là dating reality theo mô hình người chơi sống chung, quan sát tín hiệu và lựa chọn người mình thích qua các hoạt động hằng ngày. Tên tiếng Việt nên dịch theo nghĩa \"Em/Anh cũng thích bạn\" thay vì \"Love You Too\" vì tên Anh chính thức không dùng cụm đó."
   },
   {
-    "chinese": "摇着尾巴说爱你",
-    "english": "Wagging Tail to Say I Love You",
-    "vietnamese": "Vẫy Đuôi Nói Yêu Em",
-    "status": "upcoming",
-    "platform": "iQiyi",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "女神配对计划2",
-    "english": "Goddess Matchmaking Project 2",
-    "vietnamese": "Kế Hoạch Ghép Đôi Nữ Thần 2",
-    "status": "upcoming",
-    "platform": "Bilibili",
-    "time": "Tháng 9",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "钻石恋爱计划",
-    "english": "Diamond Love Project",
-    "vietnamese": "Kế Hoạch Yêu Đương Kim Cương",
-    "status": "upcoming",
-    "platform": "Bilibili",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "悸动的DNA",
-    "english": "Throbbing DNA / Heart-Fluttering DNA",
-    "vietnamese": "DNA Rung Động",
-    "status": "upcoming",
-    "platform": "TBA",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
     "chinese": "恋爱咖啡屋",
     "english": "Love Cafe",
     "vietnamese": "Quán Cà Phê Tình Yêu",
-    "status": "upcoming",
-    "platform": "TBA",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "恋爱吧·李花季",
-    "english": "Let's Love, Plum Blossom Season",
-    "vietnamese": "Yêu Đi, Mùa Hoa Lý / Yêu Đi, Mùa Mận Chín",
     "status": "upcoming",
     "platform": "TBA",
     "time": "",
@@ -358,70 +306,44 @@
     "image": "https://i.vgy.me/rmQXuw.jpg"
   },
   {
-    "chinese": "恋恋桃花源",
-    "english": "Peach Blossom Land of Love",
-    "vietnamese": "Đào Hoa Nguyên Yêu Đương",
-    "status": "airing",
-    "platform": "Bilibili",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "对你不仅仅 is 喜欢",
-    "english": "More Than Just Liking You",
-    "vietnamese": "Đối Với Cậu Không Chỉ Là Thích",
-    "status": "airing",
-    "platform": "Bilibili",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
     "chinese": "爱的流动态",
-    "english": "Flowing State of Love",
-    "vietnamese": "Dòng Chảy Tình Yêu / Trạng Thái Dòng Chảy Của Tình Yêu",
+    "english": "Fluid Love",
+    "vietnamese": "Dòng Chảy Tình Yêu",
     "status": "airing",
     "platform": "Bilibili",
-    "time": "",
     "tags": [
       "normal"
-    ]
-  },
-  {
-    "chinese": "go for her",
-    "english": "Go For Her",
-    "vietnamese": "Go For Her",
-    "status": "airing",
-    "platform": "Bilibili",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
+    ],
+    "country": "china",
+    "image": "https://i.vgy.me/hfem7A.jpg",
+    "description": "Show lesbian GL",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://youtube.com/playlist?list=PLxMWQgRUlODaMvk_TXLAn7GmIrIG2XpRD&si=ZiYlmOLaXDyC-PNY",
+        "label": "Sub auto Youtube"
+      }
+    ],
+    "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLxMWQgRUlODaMvk_TXLAn7GmIrIG2XpRD&si=ZiYlmOLaXDyC-PNY"
   },
   {
     "chinese": "灿烂的我们",
-    "english": "Brilliant Us",
+    "english": "I See You",
     "vietnamese": "Chúng Ta Rực Rỡ",
     "status": "airing",
     "platform": "Bilibili",
-    "time": "",
     "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "如果我们",
-    "english": "If We",
-    "vietnamese": "Nếu Như Chúng Ta",
-    "status": "airing",
-    "platform": "Bilibili",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
+      "all-female"
+    ],
+    "country": "china",
+    "image": "https://i.vgy.me/TGuxpg.png",
+    "description": "Đây không phải là trò đoán xem “ai sẽ ở bên ai mãi mãi”, cũng không phải một cuộc “thi đấu tình cảm” thắng – thua rõ ràng.\nMà là câu chuyện về một nhóm cô gái, trong khoảng thời gian hữu hạn, cố gắng dùng tất cả sự dịu dàng và chân thành để lưu giữ ánh sáng của nhau.\nKhi “I See You” dần trở thành “I See Us”, mọi sự rực rỡ, những vết gợn, cùng tất cả cảm xúc chưa thể gọi tên đều có thể được đặt xuống… và được đón nhận.\nLà thứ cảm giác không cần nói ra, nhưng luôn tồn tại:\n“Mình cũng vậy, không sao đâu.”",
+    "chineseWatchUrls": [
+      {
+        "url": "https://www.youtube.com/@%E7%81%BF%E7%83%82%E7%9A%84%E6%88%91%E4%BB%AC",
+        "label": "Youtube - Tiếng Trung"
+      }
+    ],
+    "chineseWatchUrl": "https://www.youtube.com/@%E7%81%BF%E7%83%82%E7%9A%84%E6%88%91%E4%BB%AC"
   },
   {
     "chinese": "势均力敌的我们 1-2季",
@@ -466,7 +388,8 @@
         "label": "Yêu phim - Sub chuẩn"
       }
     ],
-    "vietnameseWatchUrl": "https://yeuphim.biz/hay-noi-anh-yeu-em-luc-hoang-hon-686"
+    "vietnameseWatchUrl": "https://yeuphim.biz/hay-noi-anh-yeu-em-luc-hoang-hon-686",
+    "rating": 3
   },
   {
     "chinese": "好友好有爱 1-3季",
@@ -494,17 +417,6 @@
     "rating": 3
   },
   {
-    "chinese": "旅行之恋",
-    "english": "Travel Love / Love on Journey",
-    "vietnamese": "Tình Yêu Du Lịch / Tình Yêu Đi Phượt",
-    "status": "completed",
-    "platform": "Tencent Video",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
     "chinese": "有秘密的我们 1-2季",
     "english": "Secrets in Love Seasons 1-2",
     "vietnamese": "Giữa chúng ta có bí mật (Mùa 1-2)",
@@ -526,26 +438,25 @@
     "image": "https://i.vgy.me/LTRsXJ.png"
   },
   {
-    "chinese": "心动的信号 1-8季",
-    "english": "Heart Signal Seasons 1-8",
-    "vietnamese": "Tín Hiệu Con Tim / Tín Hiệu Rung Động (Mùa 1-8)",
-    "status": "completed",
-    "platform": "Tencent Video",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
     "chinese": "恋恋不忘的我们",
     "english": "Unforgettable Us",
-    "vietnamese": "Chúng Ta Không Quên Nhau / Chúng Ta Mãi Không Quên",
+    "vietnamese": "MỐI TÌNH KHÓ QUÊN",
     "status": "completed",
     "platform": "Tencent Video",
-    "time": "",
     "tags": [
       "normal"
-    ]
+    ],
+    "rating": 3,
+    "country": "china",
+    "image": "https://i.vgy.me/nkSbqx.png",
+    "description": "Chúng Ta Không Quên Nhau / Chúng Ta Mãi Không Quên (Unforgettable Us) là show hẹn hò thực tế đã phát sóng trọn bộ trên Tencent Video. Dựa trên tên gốc \"恋恋不忘的我们\", chương trình nhiều khả năng xoay quanh hành trình người độc thân gặp gỡ, trò chuyện, tham gia nhiệm vụ kết nối và kiểm tra mức độ phù hợp qua các buổi hẹn. Phần tên tiếng Anh/Việt đã được chuẩn hóa theo hướng dễ tìm kiếm, ưu tiên tên nền tảng/YouTube nếu có, còn những show mới hoặc ít nguồn quốc tế được dịch nghĩa tự nhiên từ tiếng Trung.",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://yeuphim.biz/moi-tinh-kho-quen-2722",
+        "label": "Yêu phim - Sub chuẩn"
+      }
+    ],
+    "vietnameseWatchUrl": "https://yeuphim.biz/moi-tinh-kho-quen-2722"
   },
   {
     "chinese": "半熟恋人 1-4季",
@@ -575,17 +486,6 @@
     ],
     "vietnameseWatchUrl": "https://rophim1.vip/phim/nguoi-yeu-mot-nua-than-thuoc-phan-4",
     "rating": 5
-  },
-  {
-    "chinese": "非日常恋爱",
-    "english": "Extraordinary Love / Non-Daily Romance",
-    "vietnamese": "Tình Yêu Phi Thường / Tình Yêu Không Thường Nhật",
-    "status": "completed",
-    "platform": "Tencent Video",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
   },
   {
     "chinese": "有你的恋歌1",
@@ -633,103 +533,24 @@
     "platform_en": "Tencent Video"
   },
   {
-    "chinese": "心动吧！恋习生",
-    "english": "Heartbeat! Love Trainee",
-    "vietnamese": "Rung Động Đi! Thực Tập Sinh Tình Yêu",
-    "status": "completed",
-    "platform": "Tencent Video",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
     "chinese": "我们的恋爱合约",
-    "english": "Our Love Contract",
-    "vietnamese": "Hợp Đồng Yêu Đương Của Chúng Ta",
+    "english": "Love Contract",
+    "vietnamese": "Hợp Đồng Tình Yêu",
     "status": "completed",
     "platform": "Tencent Video",
-    "time": "",
     "tags": [
       "normal"
-    ]
-  },
-  {
-    "chinese": "遇见友情人",
-    "english": "Meeting Friends / Meet My Friends",
-    "vietnamese": "Gặp Gỡ Bạn Thân",
-    "status": "completed",
-    "platform": "Tencent Video",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "灿烂的前行",
-    "english": "Brilliant Journey / Go Ahead",
-    "vietnamese": "Hành Trình Rực Rỡ / Tiến Về Phía Trước Rực Rỡ",
-    "status": "completed",
-    "platform": "Tencent Video",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "遇见你真好",
-    "english": "Nice to Meet You",
-    "vietnamese": "Gặp Được Em Thật Tốt / Gặp Được Bạn Thật Tốt",
-    "status": "completed",
-    "platform": "Tencent Video",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "玫瑰之旅",
-    "english": "Rose Journey / Trip of Roses",
-    "vietnamese": "Hành Trình Hoa Hồng",
-    "status": "completed",
-    "platform": "Tencent Video",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "牵手爱情村",
-    "english": "Holding Hands in Love Village",
-    "vietnamese": "Nắm Tay Ở Làng Tình Yêu",
-    "status": "completed",
-    "platform": "Tencent Video",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "浪漫满屋",
-    "english": "Full House",
-    "vietnamese": "Ngôi Nhà Hạnh Phúc",
-    "status": "completed",
-    "platform": "Tencent Video",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "完美邂逅",
-    "english": "Perfect Encounter",
-    "vietnamese": "Cuộc Gặp Gỡ Hoàn Hảo",
-    "status": "completed",
-    "platform": "Tencent Video",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
+    ],
+    "country": "china",
+    "image": "https://i.vgy.me/T8OXls.jpg",
+    "description": "Bản hợp đồng này quy định rõ các quy tắc ứng xử và nhiệm vụ bắt buộc mà họ phải thực hiện cùng nhau mỗi ngày (ví dụ: tương tác bắt buộc, thực hiện thử thách đôi, hẹn hò theo kịch bản quy định...). Từ những ràng buộc mang tính \"thủ tục\" ban đầu này, các cặp đôi sẽ dần thiết lập mối quan hệ thực tế để xem liệu \"lửa gần rơm lâu ngày có bén\" hay không",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://youtube.com/playlist?list=PLyzma10V340H1X5ANmGTDpE_m9w-_cepJ&si=BuqmI4q855_k0auQ",
+        "label": "Sub auto Youtube"
+      }
+    ],
+    "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLyzma10V340H1X5ANmGTDpE_m9w-_cepJ&si=BuqmI4q855_k0auQ"
   },
   {
     "chinese": "有你的恋歌2",
@@ -757,114 +578,53 @@
     "rating": 3
   },
   {
-    "chinese": "在恋爱开始之前",
-    "english": "Before Love Starts",
-    "vietnamese": "Trước Khi Tình Yêu Bắt Đầu",
-    "status": "completed",
-    "platform": "Mango TV",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
     "chinese": "逃离朝九晚五的恋爱",
-    "english": "Escaping 9-to-5 Love",
-    "vietnamese": "Trốn Khỏi Tình Yêu Công Sở (Trốn Khỏi Tình Yêu 9 Đến 5)",
+    "english": "Love's chance",
+    "vietnamese": "Love's chance",
     "status": "completed",
     "platform": "Mango TV",
-    "time": "",
     "tags": [
       "normal"
-    ]
+    ],
+    "rating": 3,
+    "country": "china",
+    "image": "https://i.vgy.me/ByxTdX.jpg",
+    "description": "Show nhắm vào nhóm người trẻ đi làm, dùng bối cảnh thoát khỏi nhịp \"giờ hành chính\" để tạo không gian hẹn hò ngoài áp lực công sở. Nội dung thường hấp dẫn ở các mâu thuẫn rất đời: thiếu thời gian, ưu tiên sự nghiệp, khoảng cách thành phố và tiêu chuẩn thực tế khi chọn người yêu.",
+    "chineseWatchUrls": [
+      {
+        "url": "https://w.mgtv.com/b/792166/23619460.html?fpa=1413&fpos=6",
+        "label": "Mangotv"
+      }
+    ],
+    "chineseWatchUrl": "https://w.mgtv.com/b/792166/23619460.html?fpa=1413&fpos=6",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://dailymotion.com/playlist/xah0i2",
+        "label": "Dailymotion"
+      }
+    ],
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xah0i2"
   },
   {
     "chinese": "恋爱特别邀请",
     "english": "Special Love Invitation",
-    "vietnamese": "Lời Mời Yêu Đương Đặc Biệt",
+    "vietnamese": "Lời Mời Đặc Biệt Của Tình Yêu",
     "status": "completed",
     "platform": "Mango TV",
-    "time": "",
     "tags": [
       "normal"
-    ]
-  },
-  {
-    "chinese": "再次心动 1-2季",
-    "english": "Once More Seasons 1-2",
-    "vietnamese": "Lại Rung Động (Mùa 1-2)",
-    "status": "completed",
-    "platform": "Mango TV",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "真爱智上",
-    "english": "Love and Wisdom / Real Love Above Intelligence",
-    "vietnamese": "Trí Tuệ Tình Yêu / Chân Ái Thượng Trí",
-    "status": "completed",
-    "platform": "Mango TV",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "春日迟迟再出发",
-    "english": "See You Again",
-    "vietnamese": "Gặp Lại Nhau / Xuân Muộn Lại Lên Đường",
-    "status": "completed",
-    "platform": "Mango TV",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "闪耀吧！体育生",
-    "english": "Shine! Sports Students",
-    "vietnamese": "Tỏa Sáng Đi! Sinh Viên Thể Thao",
-    "status": "completed",
-    "platform": "Mango TV",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "做朋友也没关系",
-    "english": "It's Okay to Be Friends",
-    "vietnamese": "Làm Bạn Cũng Không Sao",
-    "status": "completed",
-    "platform": "Mango TV",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "恋梦空间 1-2季",
-    "english": "Love Space Seasons 1-2 / Lian Meng Kong Jian",
-    "vietnamese": "Không Gian Tình Yêu (Mùa 1-2)",
-    "status": "completed",
-    "platform": "Mango TV",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "真心大冒险",
-    "english": "Adventure of Sincerity",
-    "vietnamese": "Cuộc Phiêu Lưu Của Lòng Chân Thành",
-    "status": "completed",
-    "platform": "Mango TV",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
+    ],
+    "rating": 3,
+    "country": "china",
+    "image": "https://i.vgy.me/1VSaLA.jpg",
+    "description": "Người tham gia: Gồm 8 nam thanh nữ tú độc thân. \nNgười chứng kiến đặc biệt: Mỗi khách mời sẽ dẫn theo một người hiểu rõ gu tình cảm của mình nhất (như anh chị em ruột hoặc bạn thân) cùng đến Tây Tạng.\nVai trò: Những người đồng hành này sẽ đóng vai trò làm \"huấn luyện viên tình yêu\", đưa ra lời khuyên và giúp khách mời tìm kiếm mảnh ghép phù hợp trong kế hoạch hẹn hò 10 ngày.",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://youtube.com/playlist?list=PLUM8x224JrX_J3Pu4AwFNndMaNv-aUPNA&si=tXdGKJX5steaQRS-",
+        "label": "Sub auto Youtube"
+      }
+    ],
+    "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLUM8x224JrX_J3Pu4AwFNndMaNv-aUPNA&si=tXdGKJX5steaQRS-"
   },
   {
     "chinese": "怦然心动20岁 1-5季",
@@ -905,25 +665,44 @@
   },
   {
     "chinese": "偏爱之恋",
-    "english": "Preference of Love",
+    "english": "Love Wins All 2",
     "vietnamese": "Tình Yêu Thiên Vị",
     "status": "completed",
     "platform": "Youku",
-    "time": "",
     "tags": [
       "normal"
-    ]
+    ],
+    "country": "china",
+    "description": "Tình Yêu Thiên Vị – nơi những chàng trai cô gái trẻ trung vừa phải sinh tồn nơi hoang dã, vừa bước vào cuộc chơi tình cảm đầy kịch tính. Liệu họ sẽ chọn bánh mì hay hoa hồng?",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://rophim1.vip/phim/tinh-yeu-thien-vi",
+        "label": "Rophim - Sub chuẩn"
+      }
+    ],
+    "vietnameseWatchUrl": "https://rophim1.vip/phim/tinh-yeu-thien-vi",
+    "image": "https://i.vgy.me/72YnB9.png",
+    "rating": 5
   },
   {
     "chinese": "未知的心跳",
-    "english": "Unknown Heartbeat",
+    "english": "Flipped X",
     "vietnamese": "Nhịp Tim Chưa Biết",
     "status": "completed",
     "platform": "Youku",
-    "time": "",
     "tags": [
       "normal"
-    ]
+    ],
+    "country": "china",
+    "image": "https://i.vgy.me/kS6pnK.png",
+    "description": "Chương trình quy tụ những nam thanh nữ tú độc thân cùng sống chung trong \"Nhà chung nhịp tim\". Trải qua các tập phim, họ cùng nhau mở \"hộp mù điện ảnh\", hẹn hò ngẫu nhiên và dần tìm thấy người phù hợp",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://www.youtube.com/hashtag/%E6%9C%AA%E7%9F%A5%E7%9A%84%E5%BF%83%E8%B7%B3",
+        "label": "Sub auto Youtube"
+      }
+    ],
+    "vietnameseWatchUrl": "https://www.youtube.com/hashtag/%E6%9C%AA%E7%9F%A5%E7%9A%84%E5%BF%83%E8%B7%B3"
   },
   {
     "chinese": "我们恋爱吧 1-6季",
@@ -975,43 +754,65 @@
     "vietnamese": "Tôi Chưa Từng Yêu Đương",
     "status": "completed",
     "platform": "Youku",
-    "time": "",
     "tags": [
       "normal"
-    ]
+    ],
+    "rating": 5,
+    "country": "china",
+    "image": "https://i.vgy.me/YrOvEJ.png",
+    "description": "Nhưng chàng trai cô gái độc thân từ trong trứng tập yêu",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://ok.ru/dk?st.cmd=searchResult&st.mode=Movie&st.query=t%C3%B4i%20ch%C6%B0a%20t%E1%BB%ABng%20y%C3%AAu%20%C4%91%C6%B0%C6%A1ng&st.grmode=Groups",
+        "label": "Ok.ru - Sub chuẩn nhưng phải tự chọn tập"
+      },
+      {
+        "url": "https://youtube.com/playlist?list=PLB_lie3fxsalvgjahrFD6Ez4br_lSVZd8&si=OxQs9i5YWKsT9kDO",
+        "label": "Sub auto Youtube"
+      }
+    ],
+    "vietnameseWatchUrl": "https://ok.ru/dk?st.cmd=searchResult&st.mode=Movie&st.query=t%C3%B4i%20ch%C6%B0a%20t%E1%BB%ABng%20y%C3%AAu%20%C4%91%C6%B0%C6%A1ng&st.grmode=Groups"
   },
   {
     "chinese": "同一屋檐下",
     "english": "Under the Same Roof",
-    "vietnamese": "Dưới Cùng Một Mái Nhà",
+    "vietnamese": "Chung một mái nhà",
     "status": "completed",
     "platform": "Youku",
-    "time": "",
     "tags": [
       "normal"
-    ]
+    ],
+    "country": "china",
+    "image": "https://i.vgy.me/Vphfj6.png",
+    "description": "Tập trung vào những điều kiện sống và hoàn cảnh sống khác nhau của giới trẻ thành thị trong xã hội ngày nay.",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://youtube.com/playlist?list=PLATwx1z00Hscwq2iTN50NQRP584NnGBxL&si=LjYBurNgJrcWvWAm",
+        "label": "Sub auto Youtube"
+      }
+    ],
+    "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLATwx1z00Hscwq2iTN50NQRP584NnGBxL&si=LjYBurNgJrcWvWAm"
   },
   {
     "chinese": "一起探恋爱",
-    "english": "Let's Explore Love Together",
+    "english": "Love Discovery Club",
     "vietnamese": "Cùng Nhau Khám Phá Tình Yêu",
     "status": "completed",
     "platform": "Youku",
-    "time": "",
     "tags": [
       "normal"
-    ]
-  },
-  {
-    "chinese": "美女与极品",
-    "english": "Beauty and the Beast / Beauties and the Extremes",
-    "vietnamese": "Mỹ Nhân Và Cực Phẩm",
-    "status": "completed",
-    "platform": "Youku",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
+    ],
+    "rating": 4,
+    "country": "china",
+    "image": "https://i.vgy.me/DBQF9x.png",
+    "description": "Đây là một chương trình thực tế về tình yêu sân khấu trực tiếp. Kinh nghiệm kịch bản là một trò chơi, nhưng tình yêu không phải là một trò chơi! Ở đây, chỉ bằng cách trao trái tim, bạn mới có thể tìm thấy tình yêu đích thực của mình!",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://youtube.com/playlist?list=PLB_lie3fxsakAlzyiqDQoP90EP4qMgiA2&si=FrAL173KsksBUM73",
+        "label": "Sub auto Youtube"
+      }
+    ],
+    "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLB_lie3fxsakAlzyiqDQoP90EP4qMgiA2&si=FrAL173KsksBUM73"
   },
   {
     "chinese": "연애남매",
@@ -1077,157 +878,64 @@
     "rating": 5
   },
   {
-    "chinese": "机智的恋爱",
-    "english": "The Secret X",
-    "vietnamese": "Ẩn Số Tình Yêu / Tình Yêu Mưu Trí",
-    "status": "completed",
-    "platform": "iQiyi",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "恋爱等高线",
-    "english": "Love Contour",
-    "vietnamese": "Đường Đồng Mức Tình Yêu",
-    "status": "completed",
-    "platform": "Bilibili",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "女神配对计划",
-    "english": "Goddess Matchmaking Project",
-    "vietnamese": "Kế Hoạch Ghép Đôi Nữ Thần",
-    "status": "completed",
-    "platform": "Bilibili",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "恋爱Staycation",
-    "english": "Love Staycation",
-    "vietnamese": "Kỳ Nghỉ Yêu Đương / Luyện Ái Staycation",
-    "status": "completed",
-    "platform": "Bilibili",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
     "chinese": "恋爱，重修中",
-    "english": "Love Retake / Love Repairing",
-    "vietnamese": "Tình Yêu Đang Học Lại / Trùng Tu Tình Yêu",
+    "english": "Love Begin Again",
+    "vietnamese": "Yêu lại lần nữa",
     "status": "completed",
-    "platform": "Bilibili",
-    "time": "",
+    "platform": "SET TV",
     "tags": [
       "normal"
-    ]
-  },
-  {
-    "chinese": "我们练爱吧 1-3季",
-    "english": "We Practice Love Seasons 1-3",
-    "vietnamese": "Chúng Ta Tập Yêu Đi (Mùa 1-3)",
-    "status": "completed",
-    "platform": "Bilibili",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
+    ],
+    "country": "china",
+    "image": "https://i.vgy.me/FW6dkz.png",
+    "description": "Gồm 10 nam nữ độc thân đóng vai là các \"học sinh học lại môn tình yêu\". Họ cùng quay trở lại khuôn viên trường học và chuyển vào sống chung tại ký túc xá mang tên \"LOVE STAY\" trong vòng 10 ngày.\nCác thành viên trải qua các buổi hẹn hò giấu mặt (blind date), tham gia trò chơi, gửi thư nặc danh cho người mình rung động và thẳng thắn bộc bạch về những sai lầm hay góc khuất trong các mối tình quá khứ",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://youtube.com/playlist?list=PL8ZqkzK2I5RQ3XKHG-8kmTchg1IiO6hKf&si=0qvN-QCWwRFYGYED",
+        "label": "Sub auto Youtube"
+      }
+    ],
+    "vietnameseWatchUrl": "https://youtube.com/playlist?list=PL8ZqkzK2I5RQ3XKHG-8kmTchg1IiO6hKf&si=0qvN-QCWwRFYGYED"
   },
   {
     "chinese": "漂洋过海的我们",
-    "english": "We Crossed the Oceans to Meet",
+    "english": "We Are Meant To Meet",
     "vietnamese": "Chúng Ta Vượt Đại Dương Tìm Nhau",
     "status": "completed",
     "platform": "Bilibili",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "解救牡丹村",
-    "english": "Rescuing Peony Village / Saving Peony Village",
-    "vietnamese": "Giải Cứu Làng Mẫu Đơn",
-    "status": "completed",
-    "platform": "Bilibili",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
-  },
-  {
-    "chinese": "90婚介所 第2季",
-    "english": "90s Matchmaking Agency Season 2",
-    "vietnamese": "Tiệm Mai Mối Thế Hệ 90 Mùa 2",
-    "status": "completed",
-    "platform": "Bilibili",
     "tags": [
       "normal"
     ],
-    "rating": 1,
     "country": "china",
-    "description": "Tiệm Mai Mối Thế Hệ 90 Mùa 2 (90s Matchmaking Agency Season 2) là show hẹn hò thực tế đã phát sóng trọn bộ trên Bilibili. Dựa trên tên gốc \"90婚介所 第2季\", chương trình nhiều khả năng xoay quanh hành trình người độc thân gặp gỡ, trò chuyện, tham gia nhiệm vụ kết nối và kiểm tra mức độ phù hợp qua các buổi hẹn. Phần tên tiếng Anh/Việt đã được chuẩn hóa theo hướng dễ tìm kiếm, ưu tiên tên nền tảng/YouTube nếu có, còn những show mới hoặc ít nguồn quốc tế được dịch nghĩa tự nhiên từ tiếng Trung.",
-    "chineseWatchUrls": [
+    "image": "https://i.vgy.me/dNZFsR.png",
+    "description": "Chương trình tập hợp 6 du học sinh Trung Quốc tại Mỹ chưa từng quen biết nhau trước đó. Họ cùng chuyển vào sống chung tại một ngôi nhà chung mang tên \"Biệt thự Biển Ngạn\" (彼岸别墅) trong vòng 10 ngày.",
+    "vietnameseWatchUrls": [
       {
-        "url": "https://www.iyf.tv/play/G8glt92wPxC",
-        "label": "Iyf - Tiếng Trung"
+        "url": "https://youtube.com/playlist?list=PL9Ay-oitSPcxVGHS_pMg5Cfmc-DGviP1C&si=ENg4UJF4UXO5Civp",
+        "label": "Sub auto Youtube"
       }
     ],
-    "chineseWatchUrl": "https://www.iyf.tv/play/G8glt92wPxC",
-    "image": "https://i.vgy.me/3tKNWW.png"
-  },
-  {
-    "chinese": "轰隆隆隆遇见你",
-    "english": "Rumble Meet You",
-    "vietnamese": "Ầm Ầm Gặp Được Bạn",
-    "status": "completed",
-    "platform": "Bilibili",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
+    "vietnameseWatchUrl": "https://youtube.com/playlist?list=PL9Ay-oitSPcxVGHS_pMg5Cfmc-DGviP1C&si=ENg4UJF4UXO5Civp"
   },
   {
     "chinese": "你是我心选的她",
-    "english": "You Are the One I Chose / You Are My Chosen She",
-    "vietnamese": "Cậu Là Người Tớ Chọn (Show Bách Hợp / GL)",
+    "english": "She X She Reality",
+    "vietnamese": "Cậu Là Người Tớ Chọn",
     "status": "completed",
     "platform": "Bilibili",
-    "time": "",
     "tags": [
       "all-female"
-    ]
-  },
-  {
-    "chinese": "好好的小岛",
-    "english": "Nice Island",
-    "vietnamese": "Hòn Đảo Tốt Lành / Đảo Nhỏ Yên Bình",
-    "status": "completed",
-    "platform": "Bilibili",
-    "time": "",
-    "tags": [
-      "all-female"
-    ]
-  },
-  {
-    "chinese": "恋爱女子宿舍",
-    "english": "Girls' Love Dormitory",
-    "vietnamese": "Ký Túc Xá Nữ Yêu Đương",
-    "status": "completed",
-    "platform": "Bilibili",
-    "time": "",
-    "tags": [
-      "all-female"
-    ]
+    ],
+    "country": "china",
+    "image": "https://i.vgy.me/Ss9LHK.jpg",
+    "description": "Show hẹn hò thực tế toàn nữ/GL đã phát sóng trọn bộ trên Bilibili. Nội dung tập trung vào cách các khách mời nữ làm quen, chọn người đồng hành, chia sẻ giới hạn cá nhân và xây dựng sự tin tưởng trong không gian sống chung hoặc nhiệm vụ hẹn hò. Tên Anh hiện chủ yếu là bản dịch nghĩa hoặc tên cộng đồng, vì vậy tên Việt giữ thêm chú thích GL để người xem tìm đúng nhóm show.",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://youtube.com/playlist?list=PLpXN9a1M9GegxDLmioN-jhSFTnHD2A50o&si=-2tWmzlJhxwccs59",
+        "label": "Sub auto Youtube"
+      }
+    ],
+    "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLpXN9a1M9GegxDLmioN-jhSFTnHD2A50o&si=-2tWmzlJhxwccs59"
   },
   {
     "chinese": "浪漫的竞争",
@@ -1235,78 +943,83 @@
     "vietnamese": "Cuộc Cạnh Tranh Lãng Mạn",
     "status": "completed",
     "platform": "Bilibili",
-    "time": "",
     "tags": [
       "all-female"
-    ]
+    ],
+    "country": "china",
+    "image": "https://i.vgy.me/uLTr3A.jpg",
+    "description": "là chương trình tạp kỹ thực tế ngắn tập đầu tiên tại Trung Quốc tập trung vào tình bạn nữ giới, được ghi hình tại Thái Lan với sự tham gia của dàn khách mời nữ như Hách Tịnh Di. Show mang thông điệp chữa lành, kết nối và tôn vinh phái đẹp thông qua các trải nghiệm du lịch, tâm sự.",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://youtube.com/playlist?list=PLD5NR0GwV8msZTaPhdgRgxUoop_hdWegI&si=0rsHbhdCpvEF27IG",
+        "label": "Chỉ có sub tiếng anh Youtube"
+      }
+    ],
+    "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLD5NR0GwV8msZTaPhdgRgxUoop_hdWegI&si=0rsHbhdCpvEF27IG"
   },
   {
     "chinese": "爱就拉上她",
-    "english": "Drag Her If You Love / Pull Her If You Love",
-    "vietnamese": "Yêu Thì Kéo Cô Ấy Theo / Yêu Thì Dắt Cô Ấy Đi",
+    "english": "Les Fall in 𝐇𝐄𝐑(OINE)",
+    "vietnamese": "Nữ chính của tôi",
     "status": "completed",
     "platform": "Bilibili",
-    "time": "",
     "tags": [
       "all-female"
-    ]
+    ],
+    "country": "china",
+    "image": "https://i.vgy.me/LKwZbS.jpg",
+    "description": "Les fall in HERoine là show hẹn hò dành cho lesbian của Đài Loan, 9 bạn không quen biết nhau sẽ ở cùng nhau 24/24 trong suốt 4 ngày, sau đó nếu có tình cảm với nhau thì tập cuối sẽ nắm tay ra về.",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://youtube.com/playlist?list=PLKEM1yuJ_2Ul7jC8b3eXZch17Jb9jeg2e&si=-LOkrYnB3o-CnVQO",
+        "label": "Sub auto Youtube"
+      }
+    ],
+    "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLKEM1yuJ_2Ul7jC8b3eXZch17Jb9jeg2e&si=-LOkrYnB3o-CnVQO"
   },
   {
     "chinese": "仔仔一堂 1-2季",
-    "english": "Boyscation Seasons 1-2",
-    "vietnamese": "Boyscation / Tể Tể Nhất Đường (Mùa 1-2)",
+    "english": "Boyscation Too Seasons 1-2",
+    "vietnamese": "Boyscation Too (Mùa 1-2)",
     "country": "hongkong",
     "status": "completed",
     "platform": "TVB",
-    "time": "",
     "tags": [
       "all-male"
-    ]
-  },
-  {
-    "chinese": "男生男生配",
-    "english": "Boys Like Boys",
-    "vietnamese": "Con Trai Và Con Trai / Nam Sinh Nam Sinh Phối",
-    "country": "taiwan",
-    "status": "completed",
-    "platform": "GagaOOLala",
-    "time": "",
-    "tags": [
-      "all-male"
-    ]
-  },
-  {
-    "chinese": "约会吧！男孩",
-    "english": "Let's Date, Boys",
-    "vietnamese": "Hẹn Hò Đi, Chàng Trai!",
-    "status": "completed",
-    "platform": "Bilibili",
-    "time": "",
-    "tags": [
-      "all-male"
-    ]
+    ],
+    "image": "https://i.vgy.me/l4VepX.jpg",
+    "description": "\"Boyscation Too\" là một chương trình truyền hình thực tế hẹn hò do Hồng Kông sản xuất, dành cho nam giới đồng tính. Đây cũng là mùa thứ hai của chương trình truyền hình thực tế \"Boyscation Too\" của đài TVB Hồng Kông. Được dẫn dắt bởi Wong Yin-chi, chương trình phát sóng trên ViuTV Hồng Kông từ ngày 7 tháng 10 đến ngày 1 tháng 11 năm 2024, từ thứ Hai đến thứ Sáu lúc 22:30.",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://youtube.com/playlist?list=PLOBkSBZzsdmLxfN_mcIIiOEROE4IV2Ssm&si=3sPXRAmbg31_6pJ4",
+        "label": "Mùa 2 - Sub auto Youtube"
+      },
+      {
+        "url": "https://youtube.com/playlist?list=PLdXIknoSRTztMD-8Zuojc0U471ZrLQZhb&si=PtR7fYvecP7_rrrU",
+        "label": "Mùa 1 - Sub auto Youtube"
+      }
+    ],
+    "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLOBkSBZzsdmLxfN_mcIIiOEROE4IV2Ssm&si=3sPXRAmbg31_6pJ4"
   },
   {
     "chinese": "恋爱Casting",
     "english": "Love Casting",
-    "vietnamese": "Luyện Ái Casting / Casting Yêu Đương",
+    "vietnamese": "Luyện Ái Casting",
     "status": "completed",
     "platform": "iQiyi",
-    "time": "",
     "tags": [
       "all-male"
-    ]
-  },
-  {
-    "chinese": "迟到的恋人",
-    "english": "Late Lovers",
-    "vietnamese": "Người Yêu Đến Muộn / Trễ Hẹn Tình Yêu",
-    "status": "completed",
-    "platform": "Migu Video",
-    "time": "",
-    "tags": [
-      "normal"
-    ]
+    ],
+    "country": "china",
+    "image": "https://i.vgy.me/nCMOZy.jpg",
+    "description": "Show hẹn hò thực tế toàn nam/BL đã phát sóng trọn bộ trên iQiyi. Nội dung thường nhấn vào đời sống chung, buổi hẹn một-một, câu chuyện coming out, kỳ vọng quan hệ lâu dài và cách các khách mời nam xử lý rung động công khai trước máy quay.",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://www.youtube.com/hashtag/%E6%88%80%E6%84%9Bcasting",
+        "label": "Sub auto Youtube"
+      }
+    ],
+    "vietnameseWatchUrl": "https://www.youtube.com/hashtag/%E6%88%80%E6%84%9Bcasting"
   },
   {
     "chinese": "友間合租屋",
@@ -1428,5 +1141,89 @@
     "rating": 5,
     "description": "Ba cặp đôi đang cân nhắc chia tay đã đến đảo Jeju để suy ngẫm về mối quan hệ của mình và tìm lại cảm giác rung động. Họ đổi bạn đời và đi hẹn hò. Một tuần sau, khi chuyến đi kết thúc, họ có thể tìm thấy lại cảm giác rung động mà họ hằng mong ước. Nhưng liệu người bên cạnh họ có còn là người như trước chuyến đi? Change Days là một chương trình truyền hình thực tế hẹn hò lãng mạn, pha chút ngọt ngào xen lẫn cay đắng về những mối quan hệ chân thực.",
     "image": "https://i.vgy.me/hs4jbZ.png"
+  },
+  {
+    "chinese": "잘 빠지는 연애",
+    "english": "Love Diet",
+    "vietnamese": "Love Diet",
+    "status": "completed",
+    "platform": "Tving",
+    "image": "https://i.vgy.me/G2NtGF.png",
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xapn0g",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://dailymotion.com/playlist/xapn0g",
+        "label": "Dailymotion"
+      }
+    ],
+    "tags": [
+      "normal"
+    ],
+    "country": "china",
+    "rating": 2,
+    "description": "Show hẹn hò giảm cân. Sẽ ra sao nếu những người đang muốn giảm cân mà vẫn có thể hẹn hò. Show hướng đến những người tự ti về cân nặng của mình, giúp họ vừa giảm cân mà vẫn có cơ hội yêu đương."
+  },
+  {
+    "chinese": "再次心動 2",
+    "english": "Once more S2",
+    "vietnamese": "Rung động lần nữa S2",
+    "status": "completed",
+    "platform": "Mangotv",
+    "image": "https://i.vgy.me/rsI9J3.jpg",
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xa0hbc",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://dailymotion.com/playlist/xa0hbc",
+        "label": "Dailymotion"
+      }
+    ],
+    "tags": [
+      "normal"
+    ],
+    "country": "china",
+    "rating": 3,
+    "description": "Show dành cho những người gặp vấn đề trong tình yêu như tự ti, ly hôn..."
+  },
+  {
+    "chinese": "非日常恋爱",
+    "english": "Unordinary Love",
+    "vietnamese": "Tình yêu phi thường",
+    "status": "completed",
+    "platform": "Tencent Video",
+    "image": "https://i.vgy.me/Bm0eVz.jpg",
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/x9p5pw",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://dailymotion.com/playlist/x9p5pw",
+        "label": "Dailymotion"
+      }
+    ],
+    "tags": [
+      "normal"
+    ],
+    "country": "china",
+    "rating": 3,
+    "description": "là một chương trình truyền hình thực tế hẹn hò dựa trên quan sát xã hội do Tencent Video ra mắt năm 2025. Chương trình tập trung vào nhóm người \"gặp khó khăn trong chuyện tình cảm\", những người không giỏi hẹn hò, và thúc đẩy sự phát triển của các mối quan hệ thực sự giữa các khách mời trong những tình huống không thường ngày thông qua một cơ chế đặc biệt."
+  },
+  {
+    "chinese": "돌싱글즈 시즌7",
+    "english": "Divorced Singles / Love after Divorce S7",
+    "vietnamese": "Tình yêu sau ly hôn S7",
+    "status": "completed",
+    "platform": "MBN",
+    "image": "https://i.vgy.me/OIkd4Z.png",
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xa0hb2",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://dailymotion.com/playlist/xa0hb2",
+        "label": "Dailymotion"
+      }
+    ],
+    "tags": [
+      "normal"
+    ],
+    "country": "korea",
+    "rating": 4,
+    "description": "Show dành cho những người đã ly hôn có con hoặc không. Có cơ hội tìm hiểu nhau."
   }
 ]
