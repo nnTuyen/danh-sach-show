@@ -1352,10 +1352,15 @@
       {
         "url": "https://rophim1.vip/phim/nhip-dap-trai-tim-phan-5",
         "label": "Rophim - Sub chuẩn"
+      },
+      {
+        "url": "https://yeuphim.biz/nhip-dap-trai-tim-phan-5-6413",
+        "label": "Yêu Phim - Sub chuẩn"
       }
     ],
     "vietnameseWatchUrl": "https://rophim1.vip/phim/nhip-dap-trai-tim-phan-5",
-    "rating": 5
+    "rating": 5,
+    "platform": "ChanelA"
   },
   {
     "chinese": "心动的信号 1-8",
@@ -1399,7 +1404,8 @@
     "country": "korea",
     "rating": 5,
     "description": "Cuộc sống chung của những chàng trai và cô gái trẻ bắt đầu tại Signal House, nơi tràn ngập những kỳ vọng tươi đẹp về tình yêu và sự lãng mạn. Những \"nhà tiên tri\" với kinh nghiệm dày dặn trong hẹn hò và tình yêu sẽ tìm kiếm những người yêu tiềm năng tại Signal House. Trò chơi tình yêu hồi hộp nhất bắt đầu từ đây.",
-    "image": "https://i.vgy.me/dB0YnK.png"
+    "image": "https://i.vgy.me/dB0YnK.png",
+    "platform": "ChanelA"
   },
   {
     "chinese": "체인지 데이즈",
