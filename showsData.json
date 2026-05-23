@@ -1741,7 +1741,7 @@
     "english": "Girls' Dorm",
     "vietnamese": "Ký túc xá tình yêu nữ",
     "status": "completed",
-    "platform": "Youtube",
+    "platform": "藍狐獴 BlueMeerkat",
     "image": "https://i.vgy.me/nRUEad.png",
     "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLBbKmZMfG3A7dnz_xDl1Ah-t8dCIK_LCw&si=4BxGmquwMAoVsMrr",
     "vietnameseWatchUrls": [
@@ -1755,7 +1755,8 @@
     ],
     "country": "taiwan",
     "description": "Show lesbian Đài Loan",
-    "year": "2026"
+    "year": "2026",
+    "rating": 3
   },
   {
     "chinese": "러브캐처 인 서울",
@@ -1852,5 +1853,222 @@
     "rating": 5,
     "description": "Mới quay về trạng thái độc thân và sẵn sàng giao lưu, những người đàn ông và phụ nữ đã ly hôn đến Làng Dolsing để hẹn hò, chung sống và một lần nữa tìm kiếm tình yêu",
     "year": "2023"
+  },
+  {
+    "chinese": "T누난 내게 여자야",
+    "english": "Noona Is A Woman To Me",
+    "vietnamese": "Phi Công Trẻ Theo Đuổi Tình Yêu",
+    "status": "completed",
+    "platform": "Viu",
+    "image": "https://i.vgy.me/NFrEBw.png",
+    "vietnameseWatchUrl": "https://www.yeuphimhan.net/2025/11/phi-cong-tre-theo-duoi-tinh-yeu.html",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://www.yeuphimhan.net/2025/11/phi-cong-tre-theo-duoi-tinh-yeu.html",
+        "label": "Yêu phim hàn - Sub chuẩn"
+      },
+      {
+        "url": "https://rophim1.vip/phim/phi-cong-tre-theo-duoi-tinh-yeu",
+        "label": "Rophim - Sub chuẩn"
+      }
+    ],
+    "tags": [
+      "normal"
+    ],
+    "country": "korea",
+    "rating": 4,
+    "description": "Những chàng phi công trẻ trong công cuộc tán tỉnh các chị gái hơn tuổi, hứa hẹn mang tới 1 luồng gió mới cho show hẹn hò mới nhất này.",
+    "year": "2025"
+  },
+  {
+    "chinese": "舊愛新戀",
+    "english": "Ex-Love, New Love",
+    "vietnamese": "Tình Cũ Duyên Mới",
+    "status": "completed",
+    "platform": "藍狐獴 BlueMeerkat",
+    "image": "https://i.vgy.me/7jm29o.png",
+    "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLBbKmZMfG3A61elDQKljudhlIk4Riii-L&si=-NpjScYf-LAD93P2",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://youtube.com/playlist?list=PLBbKmZMfG3A61elDQKljudhlIk4Riii-L&si=-NpjScYf-LAD93P2",
+        "label": "Sub auto Youtube"
+      }
+    ],
+    "tags": [
+      "normal"
+    ],
+    "country": "taiwan",
+    "description": "Tương tự show exchange / Transit love. Liệu các cặp đôi sẽ tiếp tục yêu nhau hay chia tay tìm duyên mới.",
+    "year": "2024",
+    "rating": 3
+  },
+  {
+    "chinese": "戀愛室友",
+    "english": "Love Roommate S1-3",
+    "vietnamese": "Bạn Cùng Phòng Yêu Đương S1-3",
+    "status": "completed",
+    "platform": "藍狐獴 BlueMeerkat",
+    "image": "https://i.vgy.me/UGI0Ot.png",
+    "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLBbKmZMfG3A42TmwTGVRoCe4R2bD6xydF&si=z4wNEWlVw6f5pMgv",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://youtube.com/playlist?list=PLBbKmZMfG3A42TmwTGVRoCe4R2bD6xydF&si=z4wNEWlVw6f5pMgv",
+        "label": "Mùa 3 - Sub auto Youtube"
+      },
+      {
+        "url": "https://youtube.com/playlist?list=PLBbKmZMfG3A5IXjEn562RLJSFvRehRab-&si=TuRmMzvbIADOyz6B",
+        "label": "Mùa 2 - Sub auto Youtube"
+      },
+      {
+        "url": "https://youtube.com/playlist?list=PLBbKmZMfG3A7AY0_RIQZlpO5tbO-tDIlN&si=Mdm47qniCD5KNX9P",
+        "label": "Mùa 1 - Sub auto Youtube"
+      }
+    ],
+    "tags": [
+      "normal"
+    ],
+    "country": "taiwan",
+    "description": "Giống show Bạn thân yêu thương khi người tham gia sẽ mang theo bạn khác giới. Họ sẽ trải qua những thử thách để xem tình bạn đó sẽ mãi là tình bạn hay tình yêu.",
+    "year": "2024",
+    "rating": 3
+  },
+  {
+    "chinese": "全職戀人",
+    "english": "Full-Time Lovers",
+    "vietnamese": "Người Yêu Toàn Thời Gian",
+    "status": "completed",
+    "platform": "藍狐獴 BlueMeerkat",
+    "image": "https://i.vgy.me/7dsam9.png",
+    "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLBbKmZMfG3A4FQdPzdZ2YfH3xaDBs99-B&si=c3wcqPMUjDvrjbue",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://youtube.com/playlist?list=PLBbKmZMfG3A4FQdPzdZ2YfH3xaDBs99-B&si=c3wcqPMUjDvrjbue",
+        "label": "Sub auto Youtube"
+      }
+    ],
+    "tags": [
+      "normal"
+    ],
+    "country": "taiwan",
+    "rating": 2,
+    "description": "Đây là show hẹn hò dành riêng cho những người đã đi làm (giới văn phòng). Chương trình tập trung khai thác chủ đề \"Tình yêu công sở\" (Office Romance).",
+    "year": "2024"
+  },
+  {
+    "chinese": "戀愛女子宿舍2",
+    "english": "Girls' Dorm S2",
+    "vietnamese": "Ký túc xá tình yêu nữ S2",
+    "status": "airing",
+    "platform": "藍狐獴 BlueMeerkat",
+    "image": "https://i.vgy.me/hNlgjM.png",
+    "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLBbKmZMfG3A44XBjwSrdxNYUVHL1rXj_p&si=tk-MQrQAGwH6TIHp",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://youtube.com/playlist?list=PLBbKmZMfG3A44XBjwSrdxNYUVHL1rXj_p&si=tk-MQrQAGwH6TIHp",
+        "label": "Sub auto Youtube"
+      }
+    ],
+    "tags": [
+      "all-female"
+    ],
+    "country": "taiwan",
+    "rating": 4,
+    "description": "Show hẹn hò Lesbian GL Đài Loan",
+    "year": "2026"
+  },
+  {
+    "chinese": "LOVE (X)",
+    "english": "LOVE (X)",
+    "vietnamese": "LOVE (X)",
+    "status": "completed",
+    "platform": "Netflix",
+    "image": "https://i.vgy.me/ueCmcO.png",
+    "vietnameseWatchUrl": "https://yeuphim.biz/love-x-1168",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://yeuphim.biz/love-x-1168",
+        "label": "Yêu Phim - Sub chuẩn"
+      },
+      {
+        "url": "https://mamphim.site/phim/love-x.86BafHvu",
+        "label": "Mâm phim -Sub chuẩn"
+      }
+    ],
+    "tags": [
+      "normal"
+    ],
+    "country": "thailand",
+    "description": "Đây là chương trình truyền hình thực tế hẹn hò đột phá và đầy cảm hứng được sản xuất tại Thái Lan, nơi 12 người đàn ông và phụ nữ độc thân sống cùng nhau trên đảo Koh Samui, tách biệt khỏi thế giới bên ngoài, theo đuổi tình yêu bất tận. Thông qua các trò chơi cạnh tranh, họ giành được những cuộc hẹn hò và vật dụng sinh tồn. Cuối cùng, họ sẽ đưa ra quyết định cuối cùng về việc họ muốn tiếp tục gặp ai sau chương trình. \"X\" tượng trưng cho những điều chưa biết, những con đường giao nhau và những khả năng vô hạn - hãy cùng nhau tìm kiếm \"X\" trong mơ của bạn!",
+    "year": "2025"
+  },
+  {
+    "chinese": "스킵",
+    "english": "The Skip Dating",
+    "vietnamese": "Hẹn Hò Thần Tốc",
+    "status": "completed",
+    "platform": "Tvn",
+    "image": "https://i.vgy.me/fSFPTc.png",
+    "vietnameseWatchUrl": "https://mamphim.site/phim/hen-ho-than-toc.DG7acpZb",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://mamphim.site/phim/hen-ho-than-toc.DG7acpZb",
+        "label": "Mâm phim - Sub chuẩn"
+      }
+    ],
+    "tags": [
+      "normal"
+    ],
+    "country": "korea",
+    "rating": 3,
+    "description": "Trong thời hiện đại bận rộn này, không có đủ thời gian để tìm một người bạn đời lãng mạn. Đối với họ, MC Yoo Jae-seok, Jeon So-min và Nucksal sắp xếp một buổi hẹn hò xem mắt 4:4 nhanh chóng và thú vị. Người tham gia nhấn nút trái tim hoặc nút bỏ qua tùy theo cảm nhận của họ. Đó là một công việc tình yêu nhanh chóng và thú vị.",
+    "year": "2023"
+  },
+  {
+    "chinese": "Love Transit",
+    "english": "Love Transit",
+    "vietnamese": "Quá Cảnh Tình Yêu",
+    "status": "completed",
+    "platform": "Prime Video",
+    "image": "https://i.vgy.me/smK88P.png",
+    "vietnameseWatchUrl": "https://mamphim.site/phim/qua-canh-tinh-yeu.56EgPXFV",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://mamphim.site/phim/qua-canh-tinh-yeu.56EgPXFV",
+        "label": "Mâm phim - Sub chuẩn"
+      },
+      {
+        "url": "https://rophim1.vip/phim/qua-canh-tinh-yeu",
+        "label": "Rophim - Sub chuẩn"
+      }
+    ],
+    "tags": [
+      "normal"
+    ],
+    "country": "japan",
+    "rating": 4,
+    "description": "Đoàn tụ? Một tình yêu mới? Bạn sẽ chọn cái nào? Năm cặp người yêu cũ sống cùng nhau trong một khách sạn sang trọng trong một tháng Hocance. Một bộ phim tài liệu tình yêu thực tế và trưởng thành.",
+    "year": "2023"
+  },
+  {
+    "chinese": "T커플팰리스2",
+    "english": "Couple Palace",
+    "vietnamese": "Show mới",
+    "status": "completed",
+    "platform": "Tving",
+    "image": "https://i.vgy.me/ejkeV5.png",
+    "vietnameseWatchUrl": "https://rumble.com/playlists/YG2FUYzUBjI",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://rumble.com/playlists/YG2FUYzUBjI",
+        "label": "Mùa 2 - Rumble - auto sub"
+      }
+    ],
+    "tags": [
+      "normal"
+    ],
+    "country": "korea",
+    "rating": 4,
+    "description": "100 người cùng bắt đầu cuộc sàng lọc lựa chọn đối tượng để kết hôn",
+    "year": "2025"
   }
 ]
