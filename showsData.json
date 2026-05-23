@@ -812,7 +812,8 @@
       }
     ],
     "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLATwx1z00Hscwq2iTN50NQRP584NnGBxL&si=LjYBurNgJrcWvWAm",
-    "year": "2021"
+    "year": "2021",
+    "rating": 3
   },
   {
     "chinese": "一起探恋爱",
@@ -1539,7 +1540,8 @@
     ],
     "country": "korea",
     "description": "Một chương trình hẹn hò “có một không hai” khi chính các ngôi sao vào vai mai mối, giới thiệu bạn bè thật của mình để tìm kiếm tình yêu. Hãy cùng chứng kiến những khoảnh khắc ngượng ngùng, những cú “thả thính” bất ngờ và những tín hiệu tình cảm lẫn lộn khiến cả người trong cuộc lẫn khán giả phải thót tim. Liệu bạn có hẹn hò với… bạn của tôi?",
-    "year": "2025"
+    "year": "2025",
+    "rating": 3
   },
   {
     "chinese": "너의연애",
@@ -1672,7 +1674,7 @@
       "normal"
     ],
     "country": "korea",
-    "rating": 4,
+    "rating": 3,
     "description": "Phiên bản mở rộng của show I am solo. Tại đây sẽ xuất hiện những người đã tham gia show i am solo mà chưa kết đôi được và nhưng người mới.",
     "year": "2026"
   },
@@ -1832,7 +1834,7 @@
     "chinese": "돌싱글즈 시즌4",
     "english": "Divorced Singles / Love after Divorce S4",
     "vietnamese": "Tình yêu sau ly hôn S4",
-    "status": "upcoming",
+    "status": "completed",
     "platform": "MBN",
     "image": "https://i.vgy.me/q8ZK9W.png",
     "vietnameseWatchUrl": "https://rophim1.vip/phim/tinh-yeu-sau-ly-hon-phan-4",
@@ -1999,7 +2001,8 @@
     ],
     "country": "thailand",
     "description": "Đây là chương trình truyền hình thực tế hẹn hò đột phá và đầy cảm hứng được sản xuất tại Thái Lan, nơi 12 người đàn ông và phụ nữ độc thân sống cùng nhau trên đảo Koh Samui, tách biệt khỏi thế giới bên ngoài, theo đuổi tình yêu bất tận. Thông qua các trò chơi cạnh tranh, họ giành được những cuộc hẹn hò và vật dụng sinh tồn. Cuối cùng, họ sẽ đưa ra quyết định cuối cùng về việc họ muốn tiếp tục gặp ai sau chương trình. \"X\" tượng trưng cho những điều chưa biết, những con đường giao nhau và những khả năng vô hạn - hãy cùng nhau tìm kiếm \"X\" trong mơ của bạn!",
-    "year": "2025"
+    "year": "2025",
+    "rating": 4
   },
   {
     "chinese": "스킵",
