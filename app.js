@@ -581,6 +581,15 @@
       return show.image || show.poster || show.posterUrl || "";
     }
 
+    function getShowYear(show) {
+      const directYear = show.year || show.releaseYear || show.airYear || show.premiereYear;
+      if (directYear) return String(directYear);
+
+      const text = [show.time, show.releaseDate, show.airDate, show.premiereDate].filter(Boolean).join(" ");
+      const match = text.match(/\b(19|20)\d{2}\b/);
+      return match ? match[0] : "";
+    }
+
     function getEffectiveShows() {
       return getAllShowsRaw().map((show, index) => ({
         ...getShowWithUserData(show),
@@ -943,7 +952,7 @@
               <div class="settings-show-form-inner">
                 <div class="settings-form-grid">
                   ${settingsStarRating(show._index, getShowRating(show))}
-                  ${settingsInput(show._index, "chinese", "Tên gốc tiếng Trung", show.chinese)}
+                  ${settingsInput(show._index, "chinese", "Tên gốc", show.chinese)}
                   ${settingsInput(show._index, "english", "Tên tiếng Anh", show.english)}
                   ${settingsInput(show._index, "vietnamese", "Tên tiếng Việt", show.vietnamese)}
                   ${settingsSelect(show._index, "country", "Quốc gia / Vùng", getShowCountry(show), COUNTRY_OPTIONS.map(option => [option.code, `${option.flag} ${option.label}`]))}
@@ -952,6 +961,7 @@
                     ["airing", "Đang chiếu"],
                     ["completed", "Đã kết thúc"]
                   ])}
+                  ${settingsInput(show._index, "year", "Năm phát hành", getShowYear(show))}
                   ${settingsInput(show._index, "platform", "Nhà phát hành / Nền tảng", show.platform || "")}
                   ${settingsInput(show._index, "time", "Thời gian/Lịch chiếu", show.time || "")}
                   ${settingsInput(show._index, "tags", "Tags", tagToString(show.tags))}
@@ -1399,11 +1409,14 @@
       }
 
       const timeHtml = show.time ? `<span class="time-note"><i class="fa-solid fa-clock"></i> ${show.time}</span>` : "";
+      const year = getShowYear(show);
+      const yearHtml = year ? `<span class="badge badge-year"><i class="fa-regular fa-calendar"></i> ${escapeHtml(year)}</span>` : "";
 
       document.getElementById("modal-badges-el").innerHTML = `
         ${renderCountryBadge(show)}
         <span class="badge badge-status ${show.status}">${statusText}</span>
         <span class="badge badge-plat ${getPlatformClass(show.platform)}">${show.platform}</span>
+        ${yearHtml}
         ${tagBadgeHtml}
         ${timeHtml}
       `;
@@ -1547,16 +1560,13 @@
         }
 
         const timeHtml = show.time ? `<span class="time-note"><i class="fa-solid fa-clock"></i> ${show.time}</span>` : "";
+        const year = getShowYear(show);
+        const yearHtml = year ? `<span class="badge badge-year"><i class="fa-regular fa-calendar"></i> ${escapeHtml(year)}</span>` : "";
         const ratingHtml = renderInteractiveStarRating(originalIndex, getShowRating(show));
         const thumbUrl = getShowImage(show);
         const thumbHtml = thumbUrl
           ? `<img src="${escapeHtml(thumbUrl)}" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy">`
           : `<i class="fa-regular fa-image card-thumb-placeholder"></i>`;
-
-        // Escaped quotes helper for onclick handlers
-        const cleanZh = show.chinese.replace(/'/g, "\\'");
-        const cleanEn = show.english.replace(/'/g, "\\'");
-        const cleanVi = show.vietnamese.replace(/'/g, "\\'");
 
         card.innerHTML = `
           <div>
@@ -1568,6 +1578,7 @@
                     ${renderCountryBadge(show)}
                     <span class="badge badge-status ${show.status}">${statusText}</span>
                     <span class="badge badge-plat ${getPlatformClass(show.platform)}">${escapeHtml(show.platform)}</span>
+                    ${yearHtml}
                     ${tagBadgeHtml}
                   </div>
                   ${timeHtml}
@@ -1576,36 +1587,9 @@
               </div>
             </div>
 
-            <div class="card-body">
-              <div class="name-row">
-                <div class="name-content">
-                  <div class="name-label">Tên gốc tiếng Trung</div>
-                  <div class="name-value zh">${escapeHtml(show.chinese)}</div>
-                </div>
-                <button class="copy-btn" onclick="copyToClipboard('${cleanZh}', this, 'Đã copy tên gốc')" title="Sao chép tên Trung Quốc">
-                  <i class="fa-regular fa-copy"></i>
-                </button>
-              </div>
-
-              <div class="name-row">
-                <div class="name-content">
-                  <div class="name-label">Tên Tiếng Anh</div>
-                  <div class="name-value">${show.english}</div>
-                </div>
-                <button class="copy-btn" onclick="copyToClipboard('${cleanEn}', this, 'Đã copy tên Anh')" title="Sao chép tên tiếng Anh">
-                  <i class="fa-regular fa-copy"></i>
-                </button>
-              </div>
-
-              <div class="name-row">
-                <div class="name-content">
-                  <div class="name-label">Tên Tiếng Việt</div>
-                  <div class="name-value">${show.vietnamese}</div>
-                </div>
-                <button class="copy-btn" onclick="copyToClipboard('${cleanVi}', this, 'Đã copy tên Việt')" title="Sao chép tên tiếng Việt">
-                  <i class="fa-regular fa-copy"></i>
-                </button>
-              </div>
+            <div class="card-compact-title">
+              <div class="card-title-main">${escapeHtml(show.vietnamese || show.english || show.chinese)}</div>
+              <div class="card-title-sub">${escapeHtml(show.english || show.chinese)}</div>
             </div>
           </div>
           
