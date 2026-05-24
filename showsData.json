@@ -2081,14 +2081,27 @@
     "english": "Mind the Noona Gap / Noona Is A Woman To Me S2",
     "vietnamese": "Phi Công Trẻ Theo Đuổi Tình Yêu S2",
     "status": "upcoming",
-    "platform": "Kocowa",
-    "time": "Chiều nay or ngày mai",
+    "platform": "KBS",
+    "time": "19h Chủ Nhật",
     "image": "https://i.vgy.me/xYlvxm.jpg",
     "tags": [
       "normal"
     ],
     "country": "korea",
     "rating": 5,
-    "description": "Mùa 2 của show các chàng trai trẻ tuổi theo đuổi các chị lớn."
+    "description": "Mùa 2 của show các chàng trai trẻ tuổi theo đuổi các chị lớn.",
+    "year": "2026",
+    "detailNotes": "Nữ 1 - Ji Seung\nNữ 2 - Ji Hye\nNữ 3 - Yu Jin\nNữ 4 - Ju Hee\n\nNam 1 - Si Won\nNam 2 - Jun Han\nNam 3 - Jin Woo\nNam 4 - Yun So",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://rumble.com/playlists/InQGo0XUjC8",
+        "label": "Rumble - Sub auto"
+      },
+      {
+        "url": "https://www.bilibili.tv/vi/video/4799651169442816",
+        "label": "Bilibili - Sub auto"
+      }
+    ],
+    "vietnameseWatchUrl": "https://rumble.com/playlists/InQGo0XUjC8"
   }
 ]
