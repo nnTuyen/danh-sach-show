@@ -5,8 +5,8 @@
     "vietnamese": "Người Yêu Một Nửa Thân Thuộc 5",
     "status": "upcoming",
     "platform": "Tencent Video",
-    "time": "Tháng 6",
-    "image": "https://i.vgy.me/H1PCYZ.jpg",
+    "time": "1 Tháng 6",
+    "image": "https://i.vgy.me/IClfIW.jpg",
     "chineseWatchUrl": "https://v.qq.com/x/cover/mzc00200x8zylq0/c4102tnbp6u.html",
     "tags": [
       "normal"
@@ -18,7 +18,9 @@
         "url": "https://v.qq.com/x/cover/mzc00200x8zylq0/c4102tnbp6u.html",
         "label": "Nơi chiếu tiếng Trung"
       }
-    ]
+    ],
+    "rating": 5,
+    "year": "2026"
   },
   {
     "chinese": "心动的信号9",
@@ -2073,5 +2075,20 @@
     "rating": 4,
     "description": "100 người cùng bắt đầu cuộc sàng lọc lựa chọn đối tượng để kết hôn",
     "year": "2025"
+  },
+  {
+    "chinese": "T누난 내게 여자야 2",
+    "english": "Mind the Noona Gap / Noona Is A Woman To Me S2",
+    "vietnamese": "Phi Công Trẻ Theo Đuổi Tình Yêu S2",
+    "status": "upcoming",
+    "platform": "Kocowa",
+    "time": "Chiều nay or ngày mai",
+    "image": "https://i.vgy.me/xYlvxm.jpg",
+    "tags": [
+      "normal"
+    ],
+    "country": "korea",
+    "rating": 5,
+    "description": "Mùa 2 của show các chàng trai trẻ tuổi theo đuổi các chị lớn."
   }
 ]
