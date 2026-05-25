@@ -276,7 +276,7 @@
     "vietnamese": "Tỏa Sáng Vì Yêu",
     "status": "airing",
     "platform": "Mango TV",
-    "time": "T2 hàng tuần",
+    "time": "18h T2",
     "tags": [
       "normal"
     ],
@@ -1087,7 +1087,7 @@
     "status": "airing",
     "platform_zh": "Chưa rõ",
     "platform_en": "ChanelA",
-    "time": "10h Tối T4",
+    "time": "12h Tối T4",
     "image": "https://i.vgy.me/UHrgSZ.png",
     "tags": [
       "normal"
@@ -1656,7 +1656,8 @@
     "country": "korea",
     "rating": 4,
     "description": "Show hẹn hò nổi tiếng bên Hàn, có tỷ lệ thành đôi ngoài đời thực rất cao. Đồng thời cũng thành công khi có rất nhiều cặp đôi đã đám cưới.",
-    "year": "2026"
+    "year": "2026",
+    "time": "15h T5 Hàng tuần"
   },
   {
     "chinese": "나는 SOLO 그 후 사랑은 계속된다",
@@ -1678,7 +1679,8 @@
     "country": "korea",
     "rating": 3,
     "description": "Phiên bản mở rộng của show I am solo. Tại đây sẽ xuất hiện những người đã tham gia show i am solo mà chưa kết đôi được và nhưng người mới.",
-    "year": "2026"
+    "year": "2026",
+    "time": "15h T6 Hàng tuần"
   },
   {
     "chinese": "신들린 연애",
@@ -1742,7 +1744,7 @@
   },
   {
     "chinese": "戀愛女子宿舍",
-    "english": "Girls' Dorm",
+    "english": "Lesbian love house",
     "vietnamese": "Ký túc xá tình yêu nữ",
     "status": "completed",
     "platform": "藍狐獴 BlueMeerkat",
@@ -1960,7 +1962,7 @@
   },
   {
     "chinese": "戀愛女子宿舍2",
-    "english": "Girls' Dorm S2",
+    "english": "Lesbian love house S2",
     "vietnamese": "Ký túc xá tình yêu nữ S2",
     "status": "airing",
     "platform": "藍狐獴 BlueMeerkat",
@@ -1978,7 +1980,8 @@
     "country": "taiwan",
     "rating": 4,
     "description": "Show hẹn hò Lesbian GL Đài Loan",
-    "year": "2026"
+    "year": "2026",
+    "time": "20h Chủ Nhật"
   },
   {
     "chinese": "LOVE (X)",
