@@ -2002,7 +2002,7 @@
   display: flex;
   align-items: center;
   z-index: 1000;
-  pointer-events: auto;
+  pointer-events: none; /* Nhường click cho nội dung bên dưới khi thanh tìm kiếm đang đóng */
 }
 
 .floating-search-btn {
@@ -2021,6 +2021,7 @@
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   outline: none;
+  pointer-events: auto; /* Cho phép click vào nút */
 }
 
 .floating-search-btn:hover {
@@ -2045,9 +2046,10 @@
   margin-left: 0;
   padding: 0;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  pointer-events: auto; /* Cho phép click nhập liệu */
 }
 
-/* Khi kích hoạt mở thanh tìm kiếm */
+/* Khi kích hoạt mở thanh tìm kiếm trên Desktop */
 .floating-search-wrapper.open .floating-search-input-box {
   width: 280px;
   opacity: 1;
@@ -2088,10 +2090,16 @@
   color: #ef4444;
 }
 
-/* Đảm bảo nút scroll top không đè lên khi hiển thị */
+/* Cấu hình đáp ứng giao diện di động (Mobile Responsive) */
 @media (max-width: 768px) {
   .floating-search-wrapper {
     left: 1rem;
+    right: 1rem; /* Cho phép giãn rộng hết chiều ngang di động */
     bottom: 4.8rem;
+    width: auto;
+  }
+  .floating-search-wrapper.open .floating-search-input-box {
+    flex: 1;
+    width: auto; /* Co giãn mượt mà, không bị tràn màn hình điện thoại */
   }
 }
