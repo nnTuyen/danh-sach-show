@@ -1,5 +1,11 @@
 // Full dataset of shows translated to English and Vietnamese
     let showsData = [];
+    
+    // Các biến phục vụ tính năng tải trang cuộn vô hạn (Lazy Loading DOM)
+    let activeFilteredShows = [];
+    let showsRenderedCount = 0;
+    const SHOWS_PER_PAGE = 12; // Số lượng show hiển thị mỗi lần cuộn
+    let sentinelObserver = null;
 
     // Remove Vietnamese accents / diacritics for better searching
     function removeVietnameseTones(str) {
@@ -24,92 +30,7 @@
 
     // Custom descriptions database mapping based on show names
     function getShowDescription(show) {
-      const name = show.chinese || "";
-      const plat = show.platform;
-      const status = show.status;
-      let statusStr = status === "upcoming" ? "sắp phát sóng" : (status === "airing" ? "đang phát sóng" : "đã phát sóng trọn bộ");
-
-      if (name.includes("心动的信号")) {
-        return `Tên Anh đối chiếu: Heart Signal. Đây là series hẹn hò quan sát nổi tiếng của Tencent Video, phát triển từ format Heart Signal Hàn Quốc: nhóm nam nữ độc thân sống trong "nhà tín hiệu", tương tác đời thường và gửi tín hiệu tình cảm ẩn danh. Điểm mạnh của show là phần suy luận của ban quan sát, các tuyến cảm xúc chậm rãi và dữ liệu hành vi nhỏ như ánh mắt, tin nhắn, lựa chọn chỗ ngồi.`;
-      }
-      if (name.includes("半熟恋人")) {
-        return `Giới thiệu "Người Yêu Một Nửa Thân Thuộc Mùa 5" là một chương trình truyền hình thực tế tập trung vào công việc và cuộc sống thực của những người ở độ tuổi cuối 30 và đầu 40. Một nhóm những cá nhân năng động ở độ tuổi cuối 30, tràn đầy những trải nghiệm sống phong phú và đa dạng, xuất hiện trong chương trình. Một số người là những người tiên phong trong sự nghiệp, trong khi những người khác là những người theo đuổi đam mê một cách tận tâm. Trải qua những thử thách của thời gian, họ vẫn giữ được sự hiểu biết sáng suốt về cuộc sống mà không bao giờ đánh mất khát khao chân thành về tình yêu. Cuối cùng, chương trình khắc họa một bức tranh đa dạng về các mối quan hệ của những người ở độ tuổi cuối 30 và đầu 40, thoát khỏi những ràng buộc về tuổi tác và các chuẩn mực truyền thống - tình yêu không có hình thức cố định; nơi trái tim dẫn lối, đó là nơi cuộc hành trình kết thúc.`;
-	  }
-      if (name.includes("势均力敌的我们")) {
-        return `Tên Anh đã ưu tiên theo YouTube/Tencent: Live and Love. Chương trình đặt các khách mời có cá tính và năng lực tương đối "ngang tài ngang sức" vào môi trường hẹn hò giàu cạnh tranh, nơi lựa chọn tình cảm đi cùng thử thách, quan sát phản ứng và tương tác nhóm. Tên Việt giữ nghĩa "môn đăng hộ đối/ngang tài ngang sức" để phản ánh đúng hàm ý gốc của 势均力敌.`;
-      }
-      if (name.includes("有秘密的我们")) {
-        return `Tên Anh đã ưu tiên theo YouTube/Tencent: Secrets in Love. Điểm nhận diện của show là mỗi khách mời bước vào hành trình hẹn hò với một bí mật, một bối cảnh cá nhân hoặc một điều chưa nói rõ; quá trình tìm hiểu vì vậy vừa có yếu tố lãng mạn vừa có yếu tố giải mã. Tên Việt nên dùng "Bí Mật Trong Tình Yêu" thay vì dịch sát "Chúng Ta Có Bí Mật" để tự nhiên hơn.`;
-      }
-      if (name.includes("好友好有爱")) {
-        return `Show khai thác ranh giới giữa tình bạn thân và khả năng tiến tới tình yêu. Các cặp hoặc nhóm bạn bước vào môi trường hẹn hò để kiểm tra xem sự thân thiết lâu năm là thói quen, sự phụ thuộc hay thật sự có tín hiệu lãng mạn. Tên Anh hiện chưa thấy một chuẩn quốc tế ổn định như Heart Signal hay Love Actually, nên giữ bản dịch dễ hiểu "Best Friends' Love" và bổ sung nghĩa "friends to lovers" trong mô tả.`;
-      }
-      if (name.includes("日落时分说爱你")) {
-        return `Show hướng tới không khí lãng mạn, chậm rãi và trưởng thành hơn, lấy hình ảnh "nói yêu lúc hoàng hôn" làm điểm tựa cảm xúc. Nội dung phù hợp nhóm khán giả thích dating show thiên về trò chuyện, quan sát lựa chọn của người tham gia và những khoảnh khắc bày tỏ tình cảm trực tiếp. Tên Anh "Say I Love You at Sunset" là bản dịch sát nghĩa, chưa thấy tên quốc tế phổ biến hơn.`;
-      }
-      if (name.includes("我们与恋ares的距离") || name.includes("我们与恋爱的距离")) {
-        return `Giới thiệu chương trình: Chương trình tập trung vào xu hướng xã hội "mối quan hệ phụ nữ lớn tuổi - đàn ông trẻ tuổi" và mời 10 khách mời nam và nữ ở các giai đoạn cuộc sống khác nhau cùng chuyển đến "Ngôi nhà Tình yêu" để bắt đầu một "thí nghiệm xã hội về tình yêu" kéo dài 10 ngày. Họ sẽ gặp gỡ và làm quen với nhau mà không bị ràng buộc bởi các định kiến ​​xã hội (như tuổi tác/giới tính/hoàn cảnh gia đình/nghề nghiệp/thu nhập), và bắt đầu một hành trình tìm kiếm tình yêu dựa hoàn toàn vào trực giác và sự yêu thích lẫn nhau!`;
-        }
-      if (name.includes("怦然心动20岁")) {
-        return `Tên Anh đối chiếu: Twinkle Love. Đây là show hẹn hò thanh xuân của Youku, ghi lại hành trình du lịch và trưởng thành của các bạn trẻ quanh tuổi 20. Format nổi bật ở không khí mùa hè, chuyến đi tập thể, lời nhắn rung động và cảm giác "tốt nghiệp trước khi bước vào đời". Tên Việt "Rung Động Tuổi 20" bám sát nghĩa gốc và đúng tinh thần show.`;
-      }
-      if (name.includes("我们恋爱吧")) {
-        return `Tên Anh đối chiếu: Let's Fall In Love; một số cộng đồng quốc tế cũng gọi là Relationship. Show đưa các nam nữ độc thân vào hành trình sống chung hoặc du lịch ngắn ngày, kết hợp hẹn hò, nhiệm vụ tương tác và ban quan sát phân tích tâm lý. Tên Việt "Chúng Ta Yêu Nhau Đi" là bản dịch sát, dễ tìm và dễ hiểu.`;
-      }
-      if (name.includes("喜欢你我也是")) {
-        return `Tên Anh chính thức trên iQIYI quốc tế: Yes, I Do. Đây là dating reality theo mô hình người chơi sống chung, quan sát tín hiệu và lựa chọn người mình thích qua các hoạt động hằng ngày. Tên tiếng Việt nên dịch theo nghĩa "Em/Anh cũng thích bạn" thay vì "Love You Too" vì tên Anh chính thức không dùng cụm đó.`;
-      }
-      if (name.includes("没谈过恋爱的我")) {
-        return `Tên Anh phổ biến trên cộng đồng/nguồn phụ đề: So in Love. Format đặc biệt ở chỗ khách mời là những người gần như chưa từng yêu hoặc thiếu kinh nghiệm tình cảm, vì vậy câu chuyện xoay quanh lần đầu học cách bày tỏ, đặt ranh giới và nhận diện tín hiệu. Tên Việt "Tôi Chưa Từng Yêu Đương" là bản dịch rõ nghĩa nhất.`;
-      }
-      if (name.includes("机智的恋爱")) {
-        return `Tên Anh thường dùng: The Secret X. Đây là phiên bản Trung Quốc mang hơi hướng Love Catcher: người chơi vừa hẹn hò vừa phải đọc vị động cơ của nhau, khiến lựa chọn tình cảm đi kèm yếu tố suy luận và chiến thuật. Tên Việt "Ẩn Số Tình Yêu" truyền tải đúng chữ X/bí mật hơn so với dịch sát "Tình Yêu Mưu Trí".`;
-      }
-      if (name.includes("春日迟迟再出发")) {
-        return `Tên Anh đối chiếu: See You Again. Đây là show chữa lành của Mango TV dành cho những người từng trải qua đổ vỡ tình cảm hoặc hôn nhân, cùng đi qua một hành trình để nhìn lại quá khứ và thử mở lòng lần nữa. Tên Việt có thể dùng "Gặp Lại Nhau" cho tự nhiên, kèm "Xuân Muộn Lại Lên Đường" để giữ nghĩa gốc.`;
-      }
-      if (name.includes("再次心动")) {
-        return `Tên Anh phổ biến: Once More. Show xoay quanh những người muốn thử rung động lại sau giai đoạn đổ vỡ, do dự hoặc mất niềm tin vào tình yêu. Mô tả tiếng Việt nên nhấn vào yếu tố "lại rung động" thay vì chỉ dịch chữ "heartbeat again".`;
-      }
-      if (name.includes("恋爱兄妹")) {
-        return `Tên Anh đối chiếu: My Sibling's Romance. Đây là show Hàn Quốc được phát hành với tên Trung, nơi anh chị em ruột cùng tham gia hành trình hẹn hò và thường phải che giấu quan hệ gia đình trong giai đoạn đầu. Sức hút đến từ sự giao thoa giữa tình thân, sự bảo vệ của anh chị em và lựa chọn tình cảm cá nhân.`;
-      }
-      if (name.includes("仔仔一堂")) {
-        return `Tên Anh chính thức/phổ biến: Boyscation. Đây là show hẹn hò đồng tính nam của Hồng Kông, quy tụ các chàng trai độc thân cùng sống chung, trò chuyện về bản dạng, gia đình, định kiến xã hội và nhu cầu được yêu công khai. Tên Việt nên ghi rõ BL/nam-nam để người xem nhận diện đúng nhóm khách mời.`;
-      }
-      if (name.includes("男生男生配")) {
-        return `Tên Anh chính thức/phổ biến: Boys Like Boys. Show hẹn hò nam-nam của Đài Loan, tập trung vào quá trình các chàng trai sống chung, chọn buổi hẹn và chia sẻ câu chuyện cá nhân. Không khí nhẹ hơn các show cạnh tranh, nhấn vào sự thành thật, tự nhận diện và cảm giác được nhìn thấy trong cộng đồng LGBTQ+.`;
-      }
-      if (name.includes("逃离朝九晚五的恋爱")) {
-        return `Show nhắm vào nhóm người trẻ đi làm, dùng bối cảnh thoát khỏi nhịp "9-to-5" để tạo không gian hẹn hò ngoài áp lực công sở. Nội dung thường hấp dẫn ở các mâu thuẫn rất đời: thiếu thời gian, ưu tiên sự nghiệp, khoảng cách thành phố và tiêu chuẩn thực tế khi chọn người yêu.`;
-      }
-      if (name.includes("偏爱之恋")) {
-        return `Show tập trung vào khái niệm "thiên vị" trong tình yêu: khi một người không chỉ được chọn vì phù hợp, mà còn vì trở thành ngoại lệ đặc biệt trong mắt đối phương. Tên Anh "Preference of Love" là bản dịch sát nghĩa, còn tên Việt "Tình Yêu Thiên Vị" giữ đúng sắc thái gốc.`;
-      }
-      if (name.includes("女神配对计划")) {
-        return `Show ghép đôi theo hướng hình tượng hóa các khách mời nữ là "nữ thần", đặt trọng tâm vào lựa chọn, sức hút cá nhân và phản ứng của những người theo đuổi. Tên Anh "Goddess Matchmaking Project" và tên Việt "Kế Hoạch Ghép Đôi Nữ Thần" đều là bản dịch sát, phù hợp để tìm kiếm.`;
-      }
-      if (name.includes("恋爱特别邀请")) {
-        return `Show dùng ý tưởng "lời mời đặc biệt" để đưa người chơi vào các tình huống hẹn hò được sắp đặt có chủ đích. Điểm đáng xem là ai chủ động gửi lời mời, ai chấp nhận, và phản ứng của người còn lại khi tình cảm được kéo ra khỏi vùng an toàn.`;
-      }
-      if (name.includes("有你的恋歌")) {
-        return `Show kết hợp chất liệu âm nhạc/tình ca với hành trình hẹn hò, tạo bầu không khí mềm hơn các chương trình suy luận tín hiệu. Tên Anh "Love Song With You" và tên Việt "Bản Tình Ca Có Em" là cặp tên dịch tự nhiên, giữ đúng hình ảnh 恋歌 trong tên gốc.`;
-      }
-      if (name.includes("恋爱Staycation")) {
-        return `Show khai thác mô hình staycation: khách mời không cần đi xa mà cùng ở trong không gian nghỉ dưỡng ngắn ngày để quan sát nhịp sống, thói quen và cách tương tác tự nhiên. Tên Việt nên giữ "Staycation" hoặc dịch là "Kỳ Nghỉ Yêu Đương" để không làm mất format.`;
-      }
-      if (name.includes("我们练爱吧")) {
-        return `Tên gốc dùng chữ 练爱, nhấn vào việc "luyện tập yêu" hơn là tuyên bố yêu ngay. Show phù hợp nhóm người xem thích quá trình học giao tiếp, thử hẹn hò, điều chỉnh kỳ vọng và trưởng thành qua tương tác. Tên Việt "Chúng Ta Tập Yêu Đi" phản ánh đúng sắc thái này.`;
-      }
-
-      if (show.tags.includes("all-female")) {
-        return `Show hẹn hò thực tế toàn nữ/GL ${statusStr} trên ${plat}. Nội dung tập trung vào cách các khách mời nữ làm quen, chọn người đồng hành, chia sẻ giới hạn cá nhân và xây dựng sự tin tưởng trong không gian sống chung hoặc nhiệm vụ hẹn hò. Tên Anh hiện chủ yếu là bản dịch nghĩa hoặc tên cộng đồng, vì vậy tên Việt giữ thêm chú thích GL để người xem tìm đúng nhóm show.`;
-      }
-      if (show.tags.includes("all-male")) {
-        return `Show hẹn hò thực tế toàn nam/BL ${statusStr} trên ${plat}. Nội dung thường nhấn vào đời sống chung, buổi hẹn một-một, câu chuyện coming out, kỳ vọng quan hệ lâu dài và cách các khách mời nam xử lý rung động công khai trước máy quay. Tên Việt giữ chú thích BL để phân biệt với các show nam nữ thông thường.`;
-      }
-      
-      return `${show.vietnamese} (${show.english}) là show hẹn hò thực tế ${statusStr} trên ${plat}. Dựa trên tên gốc "${show.chinese}", chương trình nhiều khả năng xoay quanh hành trình người độc thân gặp gỡ, trò chuyện, tham gia nhiệm vụ kết nối và kiểm tra mức độ phù hợp qua các buổi hẹn. Phần tên tiếng Anh/Việt đã được chuẩn hóa theo hướng dễ tìm kiếm, ưu tiên tên nền tảng/YouTube nếu có, còn những show mới hoặc ít nguồn quốc tế được dịch nghĩa tự nhiên từ tiếng Trung.`;
+      return "";
     }
 
     // Active state tracker for filters
@@ -485,6 +406,7 @@
       return nameA.localeCompare(nameB, "vi");
     }
 
+    // Trả về số sao đánh giá
     function renderStarDisplay(rating) {
       const stars = getShowRating({ rating });
       if (!stars) return "";
@@ -704,47 +626,12 @@
         .replace(/'/g, "&#039;");
     }
 
-    function renderAdminDetailDisplay(show) {
-      const displayEl = document.getElementById("admin-detail-display");
-      const items = [];
-
-      if (show.episodeProgress) {
-        items.push(`
-          <div class="admin-detail-item">
-            <span class="admin-detail-item-label">Đang chiếu đến tập</span>
-            <div class="admin-detail-item-value">${escapeHtml(show.episodeProgress)}</div>
-          </div>
-        `);
-      }
-      if (show.airingNote) {
-        items.push(`
-          <div class="admin-detail-item">
-            <span class="admin-detail-item-label">Ghi chú phát sóng</span>
-            <div class="admin-detail-item-value">${escapeHtml(show.airingNote)}</div>
-          </div>
-        `);
-      }
-      if (show.detailNotes) {
-        items.push(`
-          <div class="admin-detail-item">
-            <span class="admin-detail-item-label">Ghi chú chi tiết khác</span>
-            <div class="admin-detail-item-value">${escapeHtml(show.detailNotes)}</div>
-          </div>
-        `);
-      }
-
-      displayEl.innerHTML = items.length
-        ? items.join("")
-        : '<p class="admin-detail-empty">Chưa có thông tin chi tiết. Mở <strong>Cài đặt chung</strong> để chỉnh sửa.</p>';
-    }
-
     function applyUserEditableFields(show) {
       const description = show.description && show.description.trim() ? show.description.trim() : getShowDescription(show);
       const detailsHtml = renderDetailUpdates(show);
       document.getElementById("modal-desc-el").innerHTML = `${escapeHtml(description)}${detailsHtml}`;
       renderShowPoster(show);
       renderShowLinks(show);
-      renderAdminDetailDisplay(show);
     }
 
     function renderDetailUpdates(show) {
@@ -811,6 +698,7 @@
       return "Đã xong";
     }
 
+    // Chuyển tags thành chuỗi string
     function tagToString(tags) {
       return Array.isArray(tags) ? tags.join(",") : (tags || "normal");
     }
@@ -835,7 +723,6 @@
         show.time,
         show.episodeProgress,
         show.airingNote,
-        show.coupleUpdates,
         show.detailNotes,
         show.description || getShowDescription(show),
         statusLabel(show.status),
@@ -964,14 +851,18 @@
                   ${settingsInput(show._index, "year", "Năm phát hành", getShowYear(show))}
                   ${settingsInput(show._index, "platform", "Nhà phát hành / Nền tảng", show.platform || "")}
                   ${settingsInput(show._index, "time", "Thời gian/Lịch chiếu", show.time || "")}
-                  ${settingsInput(show._index, "tags", "Tags", tagToString(show.tags))}
+                  ${settingsSelect(show._index, "tags", "Chủ đề / Tags", Array.isArray(show.tags) ? (show.tags[0] || "normal") : (show.tags || "normal"), [
+                    ["normal", "Bình thường"],
+                    ["all-female", "Lesbian (GL)"],
+                    ["all-male", "Gay (BL)"],
+                    ["other", "Khác (Không phải show hẹn hò)"]
+                  ])}
                   ${settingsInput(show._index, "image", "Link hình ảnh", getShowImage(show), "span-2")}
                   ${settingsWatchLinksGroup(show._index, "chinese", getChineseWatchLinks(show), "Link xem tiếng Trung")}
                   ${settingsWatchLinksGroup(show._index, "vietnamese", getVietnameseWatchLinks(show), "Link xem tiếng Việt")}
                   ${settingsInput(show._index, "episodeProgress", "Đang chiếu đến tập", show.episodeProgress || "")}
                   ${settingsInput(show._index, "airingNote", "Ghi chú phát sóng", show.airingNote || "", "span-2")}
                   ${settingsTextarea(show._index, "description", "Mô tả show", show.description || getShowDescription(show), "span-3")}
-                  ${settingsTextarea(show._index, "coupleUpdates", "Tình hình các cặp đôi sau show", show.coupleUpdates || "", "span-3")}
                   ${settingsTextarea(show._index, "detailNotes", "Ghi chú chi tiết khác", show.detailNotes || "", "span-3")}
                 </div>
                 <div class="settings-show-actions">
@@ -1377,12 +1268,8 @@
       const show = getShowWithUserData(resolved.baseShow);
       const modal = document.getElementById("show-modal");
       const container = document.getElementById("modal-container-el");
-      const adminSection = document.querySelector(".modal-admin-section");
-      const adminToggle = document.getElementById("admin-toggle-btn");
       const linksCard = document.getElementById("modal-links-card");
       const linksToggle = document.getElementById("modal-links-toggle");
-      adminSection.classList.remove("open");
-      adminToggle.setAttribute("aria-expanded", "false");
       linksCard.classList.remove("open");
       linksToggle.setAttribute("aria-expanded", "false");
       
@@ -1403,9 +1290,11 @@
       
       let tagBadgeHtml = "";
       if (show.tags.includes("all-female")) {
-        tagBadgeHtml = `<span class="badge badge-tag"><i class="fa-solid fa-venus-double"></i> Toàn Nữ (GL)</span>`;
+        tagBadgeHtml = `<span class="badge badge-tag"><i class="fa-solid fa-venus-double"></i> Lesbian (GL)</span>`;
       } else if (show.tags.includes("all-male")) {
-        tagBadgeHtml = `<span class="badge badge-tag"><i class="fa-solid fa-mars-double"></i> Toàn Nam (BL)</span>`;
+        tagBadgeHtml = `<span class="badge badge-tag"><i class="fa-solid fa-mars-double"></i> Gay (BL)</span>`;
+      } else if (show.tags.includes("other")) {
+        tagBadgeHtml = `<span class="badge badge-tag" style="background: rgba(100, 116, 139, 0.2); color: #94a3b8; border-color: rgba(100, 116, 139, 0.3);"><i class="fa-solid fa-ellipsis"></i> Khác (Không phải show hẹn hò)</span>`;
       }
 
       const timeHtml = show.time ? `<span class="time-note"><i class="fa-solid fa-clock"></i> ${show.time}</span>` : "";
@@ -1442,6 +1331,115 @@
       document.body.style.overflow = ""; // Re-enable background scrolling
     }
 
+    // Khởi tạo Infinite Scroll: Hàm tải thêm show vào giao diện
+    function loadMoreShows() {
+      const grid = document.getElementById("show-cards-grid");
+      
+      // Xóa cảm biến cũ trước khi tải các phần tử mới
+      const oldSentinel = document.getElementById("shows-sentinel");
+      if (oldSentinel) oldSentinel.remove();
+      
+      const start = showsRenderedCount;
+      const end = Math.min(start + SHOWS_PER_PAGE, activeFilteredShows.length);
+      
+      if (start >= activeFilteredShows.length) return;
+      
+      const chunk = activeFilteredShows.slice(start, end);
+      
+      chunk.forEach(show => {
+        const card = document.createElement("div");
+        card.className = "show-card";
+        card.setAttribute("data-plat", getPlatformClass(show.platform));
+
+        const originalIndex = show._index;
+
+        let statusText = "Đã xong";
+        if (show.status === "upcoming") statusText = "Sắp chiếu";
+        if (show.status === "airing") statusText = "Đang chiếu";
+
+        let tagBadgeHtml = "";
+        if (show.tags.includes("all-female")) {
+          tagBadgeHtml = `<span class="badge badge-tag"><i class="fa-solid fa-venus-double"></i> Lesbian (GL)</span>`;
+        } else if (show.tags.includes("all-male")) {
+          tagBadgeHtml = `<span class="badge badge-tag"><i class="fa-solid fa-mars-double"></i> Gay (BL)</span>`;
+        } else if (show.tags.includes("other")) {
+          tagBadgeHtml = `<span class="badge badge-tag" style="background: rgba(100, 116, 139, 0.2); color: #94a3b8; border-color: rgba(100, 116, 139, 0.3);"><i class="fa-solid fa-ellipsis"></i> Khác</span>`;
+        }
+
+        const timeHtml = show.time ? `<span class="time-note"><i class="fa-solid fa-clock"></i> ${show.time}</span>` : "";
+        const year = getShowYear(show);
+        const yearHtml = year ? `<span class="badge badge-year"><i class="fa-regular fa-calendar"></i> ${escapeHtml(year)}</span>` : "";
+        const ratingHtml = renderInteractiveStarRating(originalIndex, getShowRating(show));
+        const thumbUrl = getShowImage(show);
+        const thumbHtml = thumbUrl
+          ? `<img src="${escapeHtml(thumbUrl)}" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy">`
+          : `<i class="fa-regular fa-image card-thumb-placeholder"></i>`;
+
+        card.innerHTML = `
+          <div>
+            <div class="card-top-row">
+              <div class="card-thumb">${thumbHtml}</div>
+              <div class="card-top-info">
+                <div class="card-header">
+                  <div class="badges">
+                    ${renderCountryBadge(show)}
+                    <span class="badge badge-status ${show.status}">${statusText}</span>
+                    <span class="badge badge-plat ${getPlatformClass(show.platform)}">${escapeHtml(show.platform)}</span>
+                    ${yearHtml}
+                    ${tagBadgeHtml}
+                  </div>
+                  ${timeHtml}
+                  ${ratingHtml}
+                </div>
+              </div>
+            </div>
+
+            <div class="card-compact-title">
+              <div class="card-title-main">${escapeHtml(show.vietnamese || show.english || show.chinese)}</div>
+              <div class="card-title-sub">${escapeHtml(show.english || show.chinese)}</div>
+            </div>
+          </div>
+          
+          <button class="open-modal-btn" onclick="openShowModal(${originalIndex})" title="Mở cửa sổ chi tiết tiêu điểm show">
+            <i class="fa-solid fa-up-right-from-square"></i> Xem chi tiết & Tiêu điểm
+          </button>
+        `;
+        
+        grid.appendChild(card);
+      });
+      
+      showsRenderedCount = end;
+      
+      // Nếu vẫn còn show để hiển thị, gắn cảm biến (sentinel) ở cuối danh sách
+      if (showsRenderedCount < activeFilteredShows.length) {
+        const sentinel = document.createElement("div");
+        sentinel.id = "shows-sentinel";
+        sentinel.style.height = "20px";
+        sentinel.style.width = "100%";
+        sentinel.style.gridColumn = "1 / -1"; // Đảm bảo chiếm trọn lưới grid
+        grid.appendChild(sentinel);
+        
+        setupSentinelObserver(sentinel);
+      }
+    }
+
+    // Thiết lập Observer phát hiện cảm biến khi người dùng lăn chuột
+    function setupSentinelObserver(sentinel) {
+      if (sentinelObserver) {
+        sentinelObserver.disconnect();
+      }
+      
+      sentinelObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          loadMoreShows();
+        }
+      }, {
+        rootMargin: "300px" // Bắt đầu dựng show mới trước khi lăn hẳn xuống đáy 300px
+      });
+      
+      sentinelObserver.observe(sentinel);
+    }
+
     // Filter and Render Shows
     function renderShows() {
       const grid = document.getElementById("show-cards-grid");
@@ -1461,13 +1459,16 @@
 
         // Tag Filter
         if (currentFilters.tag !== "all") {
-          if (currentFilters.tag === "normal" && ((show.tags || []).includes("all-female") || (show.tags || []).includes("all-male"))) {
+          if (currentFilters.tag === "normal" && ((show.tags || []).includes("all-female") || (show.tags || []).includes("all-male") || (show.tags || []).includes("other"))) {
             return false;
           }
           if (currentFilters.tag === "all-female" && !(show.tags || []).includes("all-female")) {
             return false;
           }
           if (currentFilters.tag === "all-male" && !(show.tags || []).includes("all-male")) {
+            return false;
+          }
+          if (currentFilters.tag === "other" && !(show.tags || []).includes("other")) {
             return false;
           }
         }
@@ -1537,69 +1538,12 @@
         return;
       }
 
-      // Generate HTML for each show card
-      filtered.forEach(show => {
-        const card = document.createElement("div");
-        card.className = "show-card";
-        card.setAttribute("data-plat", getPlatformClass(show.platform));
-
-        // Get index in main dataset
-        const originalIndex = show._index;
-
-        // Status label mapping
-        let statusText = "Đã xong";
-        if (show.status === "upcoming") statusText = "Sắp chiếu";
-        if (show.status === "airing") statusText = "Đang chiếu";
-
-        // Specialized badge if present
-        let tagBadgeHtml = "";
-        if (show.tags.includes("all-female")) {
-          tagBadgeHtml = `<span class="badge badge-tag"><i class="fa-solid fa-venus-double"></i> Toàn Nữ (GL)</span>`;
-        } else if (show.tags.includes("all-male")) {
-          tagBadgeHtml = `<span class="badge badge-tag"><i class="fa-solid fa-mars-double"></i> Toàn Nam (BL)</span>`;
-        }
-
-        const timeHtml = show.time ? `<span class="time-note"><i class="fa-solid fa-clock"></i> ${show.time}</span>` : "";
-        const year = getShowYear(show);
-        const yearHtml = year ? `<span class="badge badge-year"><i class="fa-regular fa-calendar"></i> ${escapeHtml(year)}</span>` : "";
-        const ratingHtml = renderInteractiveStarRating(originalIndex, getShowRating(show));
-        const thumbUrl = getShowImage(show);
-        const thumbHtml = thumbUrl
-          ? `<img src="${escapeHtml(thumbUrl)}" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy">`
-          : `<i class="fa-regular fa-image card-thumb-placeholder"></i>`;
-
-        card.innerHTML = `
-          <div>
-            <div class="card-top-row">
-              <div class="card-thumb">${thumbHtml}</div>
-              <div class="card-top-info">
-                <div class="card-header">
-                  <div class="badges">
-                    ${renderCountryBadge(show)}
-                    <span class="badge badge-status ${show.status}">${statusText}</span>
-                    <span class="badge badge-plat ${getPlatformClass(show.platform)}">${escapeHtml(show.platform)}</span>
-                    ${yearHtml}
-                    ${tagBadgeHtml}
-                  </div>
-                  ${timeHtml}
-                  ${ratingHtml}
-                </div>
-              </div>
-            </div>
-
-            <div class="card-compact-title">
-              <div class="card-title-main">${escapeHtml(show.vietnamese || show.english || show.chinese)}</div>
-              <div class="card-title-sub">${escapeHtml(show.english || show.chinese)}</div>
-            </div>
-          </div>
-          
-          <button class="open-modal-btn" onclick="openShowModal(${originalIndex})" title="Mở cửa sổ chi tiết tiêu điểm show">
-            <i class="fa-solid fa-up-right-from-square"></i> Xem chi tiết & Tiêu điểm
-          </button>
-        `;
-        
-        grid.appendChild(card);
-      });
+      // Lưu trữ mảng tìm kiếm và đặt lại số lượng hiển thị từ đầu
+      activeFilteredShows = filtered;
+      showsRenderedCount = 0;
+      
+      // Tải đợt show đầu tiên
+      loadMoreShows();
     }
 
     async function loadShowsData() {
@@ -1618,27 +1562,120 @@
     function initializeAppEvents() {
       updateStatistics();
       renderShows();
+      
       const searchBox = document.getElementById("search-box");
-      searchBox.addEventListener("input", (e) => { currentFilters.search = e.target.value; renderShows(); });
+      const floatingSearchBox = document.getElementById("floating-search-box");
+      const floatingSearchWrapper = document.getElementById("floating-search-wrapper");
+      const floatingSearchBtn = document.getElementById("floating-search-btn");
+      const floatingSearchClearBtn = document.getElementById("floating-search-clear-btn");
+
+      function updateSearchQuery(val) {
+        currentFilters.search = val;
+        searchBox.value = val;
+        floatingSearchBox.value = val;
+        renderShows();
+      }
+
+      searchBox.addEventListener("input", (e) => { 
+        updateSearchQuery(e.target.value);
+      });
+
+      floatingSearchBox.addEventListener("input", (e) => { 
+        updateSearchQuery(e.target.value);
+      });
+
+      floatingSearchBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isOpen = floatingSearchWrapper.classList.toggle("open");
+        if (isOpen) {
+          floatingSearchBox.focus();
+        }
+      });
+
+      floatingSearchClearBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        updateSearchQuery("");
+        floatingSearchBox.focus();
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!floatingSearchWrapper.contains(e.target)) {
+          floatingSearchWrapper.classList.remove("open");
+        }
+      });
+      
       const settingsSearchBox = document.getElementById("settings-search-box");
-      settingsSearchBox?.addEventListener("input", (e) => { settingsSearchQuery = e.target.value; renderSettingsList(); });
+      settingsSearchBox?.addEventListener("input", (e) => { 
+        settingsSearchQuery = e.target.value; 
+        renderSettingsList(); 
+      });
+      
+      // Tối ưu INP cho Bộ lọc trạng thái
       const statusButtons = document.querySelectorAll("#status-filters .filter-btn");
-      statusButtons.forEach(btn => btn.addEventListener("click", () => { statusButtons.forEach(b => b.classList.remove("active")); btn.classList.add("active"); currentFilters.status = btn.getAttribute("data-status"); renderShows(); }));
+      statusButtons.forEach(btn => btn.addEventListener("click", () => { 
+        statusButtons.forEach(b => b.classList.remove("active")); 
+        btn.classList.add("active"); 
+        setTimeout(() => {
+          currentFilters.status = btn.getAttribute("data-status"); 
+          renderShows(); 
+        }, 0);
+      }));
+      
+      // Tối ưu INP cho Bộ lọc sắp xếp
       const sortButtons = document.querySelectorAll("#sort-controls .filter-btn");
-      sortButtons.forEach(btn => btn.addEventListener("click", () => { sortButtons.forEach(b => b.classList.remove("active")); btn.classList.add("active"); currentFilters.sort = btn.getAttribute("data-sort"); renderShows(); }));
+      sortButtons.forEach(btn => btn.addEventListener("click", () => { 
+        sortButtons.forEach(b => b.classList.remove("active")); 
+        btn.classList.add("active"); 
+        setTimeout(() => {
+          currentFilters.sort = btn.getAttribute("data-sort"); 
+          renderShows(); 
+        }, 0);
+      }));
+      
+      // Tối ưu INP cho Bộ lọc quốc gia
       const countryButtons = document.querySelectorAll("#country-filters .filter-btn");
-      countryButtons.forEach(btn => btn.addEventListener("click", () => { countryButtons.forEach(b => b.classList.remove("active")); btn.classList.add("active"); currentFilters.country = btn.getAttribute("data-country"); renderShows(); }));
+      countryButtons.forEach(btn => btn.addEventListener("click", () => { 
+        countryButtons.forEach(b => b.classList.remove("active")); 
+        btn.classList.add("active"); 
+        setTimeout(() => {
+          currentFilters.country = btn.getAttribute("data-country"); 
+          renderShows(); 
+        }, 0);
+      }));
+      
+      // Tối ưu INP cho Bộ lọc tag (Nguyên nhân chính được báo cáo từ Cloudflare)
       const tagButtons = document.querySelectorAll("#tag-filters .filter-btn");
-      tagButtons.forEach(btn => btn.addEventListener("click", () => { tagButtons.forEach(b => b.classList.remove("active")); btn.classList.add("active"); currentFilters.tag = btn.getAttribute("data-tag"); renderShows(); }));
-      document.getElementById("admin-toggle-btn").addEventListener("click", () => { const section = document.querySelector(".modal-admin-section"); const isOpen = section.classList.toggle("open"); document.getElementById("admin-toggle-btn").setAttribute("aria-expanded", String(isOpen)); });
-      document.getElementById("modal-links-toggle").addEventListener("click", () => { const linksCard = document.getElementById("modal-links-card"); const isOpen = linksCard.classList.toggle("open"); document.getElementById("modal-links-toggle").setAttribute("aria-expanded", String(isOpen)); });
+      tagButtons.forEach(btn => btn.addEventListener("click", () => { 
+        tagButtons.forEach(b => b.classList.remove("active")); 
+        btn.classList.add("active"); 
+        setTimeout(() => {
+          currentFilters.tag = btn.getAttribute("data-tag"); 
+          renderShows(); 
+        }, 0);
+      }));
+      
+      document.getElementById("modal-links-toggle").addEventListener("click", () => { 
+        const linksCard = document.getElementById("modal-links-card"); 
+        const isOpen = linksCard.classList.toggle("open"); 
+        document.getElementById("modal-links-toggle").setAttribute("aria-expanded", String(isOpen)); 
+      });
+      
       const scrollBtn = document.getElementById("scroll-btn");
-      window.addEventListener("scroll", () => { if (window.scrollY > 300) scrollBtn.classList.add("visible"); else scrollBtn.classList.remove("visible"); });
+      window.addEventListener("scroll", () => { 
+        if (window.scrollY > 300) scrollBtn.classList.add("visible"); 
+        else scrollBtn.classList.remove("visible"); 
+      });
       scrollBtn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+      
       const modal = document.getElementById("show-modal");
-      modal.addEventListener("click", (e) => { if (e.target === modal) closeShowModal(); });
+      modal.addEventListener("click", (e) => { 
+        if (e.target === modal) closeShowModal(); 
+      });
+      
       const settingsModal = document.getElementById("settings-modal");
-      settingsModal.addEventListener("click", (e) => { if (e.target === settingsModal) closeSettingsModal(); });
+      settingsModal.addEventListener("click", (e) => { 
+        if (e.target === settingsModal) closeSettingsModal(); 
+      });
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
