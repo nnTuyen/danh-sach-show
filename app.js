@@ -6,6 +6,7 @@
     let showsRenderedCount = 0;
     const SHOWS_PER_PAGE = 12; // Số lượng show hiển thị mỗi lần cuộn
     let sentinelObserver = null;
+    let searchTimeout = null; // Quản lý debounce tìm kiếm tránh lag phím
 
     // Remove Vietnamese accents / diacritics for better searching
     function removeVietnameseTones(str) {
@@ -493,6 +494,71 @@
       } else {
         showToast(`Đã xóa đánh giá của "${showName}"`);
       }
+    }
+
+    // Tối ưu hóa hiệu năng mở Modal hiển thị chi tiết (INP)
+    function openShowModal(index) {
+      currentModalIndex = index;
+      const resolved = resolveShowIndex(index);
+      if (!resolved) return;
+      const show = getShowWithUserData(resolved.baseShow);
+      const modal = document.getElementById("show-modal");
+      
+      // Bước 1: Trả về phản hồi kích hoạt modal lập tức cho trình duyệt vẽ hình
+      modal.classList.add("active");
+      document.body.style.overflow = "hidden";
+      
+      // Bước 2: Chuyển toàn bộ việc dựng các cấu trúc HTML nặng sang luồng bất đồng bộ tiếp theo
+      setTimeout(() => {
+        const container = document.getElementById("modal-container-el");
+        const linksCard = document.getElementById("modal-links-card");
+        const linksToggle = document.getElementById("modal-links-toggle");
+        linksCard.classList.remove("open");
+        linksToggle.setAttribute("aria-expanded", "false");
+        
+        container.setAttribute("data-plat", getPlatformClass(show.platform));
+        
+        document.getElementById("modal-title-el").innerText = show.vietnamese;
+        document.getElementById("modal-zh-el").innerText = show.chinese;
+        document.getElementById("modal-en-el").innerText = show.english;
+        document.getElementById("modal-vi-el").innerText = show.vietnamese;
+        applyUserEditableFields(show);
+        
+        let statusText = "Đã xong";
+        if (show.status === "upcoming") statusText = "Sắp chiếu";
+        if (show.status === "airing") statusText = "Đang chiếu";
+        
+        let tagBadgeHtml = "";
+        if (show.tags.includes("all-female")) {
+          tagBadgeHtml = `<span class="badge badge-tag"><i class="fa-solid fa-venus-double"></i> Lesbian (GL)</span>`;
+        } else if (show.tags.includes("all-male")) {
+          tagBadgeHtml = `<span class="badge badge-tag"><i class="fa-solid fa-mars-double"></i> Gay (BL)</span>`;
+        } else if (show.tags.includes("other")) {
+          tagBadgeHtml = `<span class="badge badge-tag" style="background: rgba(100, 116, 139, 0.2); color: #94a3b8; border-color: rgba(100, 116, 139, 0.3);"><i class="fa-solid fa-ellipsis"></i> Khác (Không phải show hẹn hò)</span>`;
+        }
+
+        const timeHtml = show.time ? `<span class="time-note"><i class="fa-solid fa-clock"></i> ${show.time}</span>` : "";
+        const year = getShowYear(show);
+        const yearHtml = year ? `<span class="badge badge-year"><i class="fa-regular fa-calendar"></i> ${escapeHtml(year)}</span>` : "";
+
+        document.getElementById("modal-badges-el").innerHTML = `
+          ${renderCountryBadge(show)}
+          <span class="badge badge-status ${show.status}">${statusText}</span>
+          <span class="badge badge-plat ${getPlatformClass(show.platform)}">${show.platform}</span>
+          ${yearHtml}
+          ${tagBadgeHtml}
+          ${timeHtml}
+        `;
+        document.getElementById("modal-rating-slot").innerHTML = renderInteractiveStarRating(index, getShowRating(show));
+        
+        const btnZh = document.getElementById("modal-copy-zh-btn");
+        const btnEn = document.getElementById("modal-copy-en-btn");
+        const btnVi = document.getElementById("modal-copy-vi-btn");
+
+        btnZh.onclick = (e) => copyToClipboard(show.chinese, btnZh, "Đã copy tên gốc");
+        btnEn.onclick = (e) => copyToClipboard(show.english, btnEn, "Đã copy tên Anh");
+        btnVi.onclick = (e) => copyToClipboard(show.vietnamese, btnVi, "Đã copy tên Việt");
+      }, 0);
     }
 
     function getShowWithUserData(show) {
@@ -1260,69 +1326,69 @@
       linksEl.innerHTML = html;
     }
 
-    // Modal Control Logic
+    // Modal Control Logic (vẫn mở nhanh nhưng phân chia dựng DOM bất đồng bộ)
     function openShowModal(index) {
       currentModalIndex = index;
       const resolved = resolveShowIndex(index);
       if (!resolved) return;
       const show = getShowWithUserData(resolved.baseShow);
       const modal = document.getElementById("show-modal");
-      const container = document.getElementById("modal-container-el");
-      const linksCard = document.getElementById("modal-links-card");
-      const linksToggle = document.getElementById("modal-links-toggle");
-      linksCard.classList.remove("open");
-      linksToggle.setAttribute("aria-expanded", "false");
       
-      // Set platform class for dynamic colors
-      container.setAttribute("data-plat", getPlatformClass(show.platform));
-      
-      // Set values
-      document.getElementById("modal-title-el").innerText = show.vietnamese;
-      document.getElementById("modal-zh-el").innerText = show.chinese;
-      document.getElementById("modal-en-el").innerText = show.english;
-      document.getElementById("modal-vi-el").innerText = show.vietnamese;
-      applyUserEditableFields(show);
-      
-      // Render badges inside modal
-      let statusText = "Đã xong";
-      if (show.status === "upcoming") statusText = "Sắp chiếu";
-      if (show.status === "airing") statusText = "Đang chiếu";
-      
-      let tagBadgeHtml = "";
-      if (show.tags.includes("all-female")) {
-        tagBadgeHtml = `<span class="badge badge-tag"><i class="fa-solid fa-venus-double"></i> Lesbian (GL)</span>`;
-      } else if (show.tags.includes("all-male")) {
-        tagBadgeHtml = `<span class="badge badge-tag"><i class="fa-solid fa-mars-double"></i> Gay (BL)</span>`;
-      } else if (show.tags.includes("other")) {
-        tagBadgeHtml = `<span class="badge badge-tag" style="background: rgba(100, 116, 139, 0.2); color: #94a3b8; border-color: rgba(100, 116, 139, 0.3);"><i class="fa-solid fa-ellipsis"></i> Khác (Không phải show hẹn hò)</span>`;
-      }
-
-      const timeHtml = show.time ? `<span class="time-note"><i class="fa-solid fa-clock"></i> ${show.time}</span>` : "";
-      const year = getShowYear(show);
-      const yearHtml = year ? `<span class="badge badge-year"><i class="fa-regular fa-calendar"></i> ${escapeHtml(year)}</span>` : "";
-
-      document.getElementById("modal-badges-el").innerHTML = `
-        ${renderCountryBadge(show)}
-        <span class="badge badge-status ${show.status}">${statusText}</span>
-        <span class="badge badge-plat ${getPlatformClass(show.platform)}">${show.platform}</span>
-        ${yearHtml}
-        ${tagBadgeHtml}
-        ${timeHtml}
-      `;
-      document.getElementById("modal-rating-slot").innerHTML = renderInteractiveStarRating(index, getShowRating(show));
-      
-      // Attach click events to copy buttons inside modal
-      const btnZh = document.getElementById("modal-copy-zh-btn");
-      const btnEn = document.getElementById("modal-copy-en-btn");
-      const btnVi = document.getElementById("modal-copy-vi-btn");
-
-      btnZh.onclick = (e) => copyToClipboard(show.chinese, btnZh, "Đã copy tên gốc");
-      btnEn.onclick = (e) => copyToClipboard(show.english, btnEn, "Đã copy tên Anh");
-      btnVi.onclick = (e) => copyToClipboard(show.vietnamese, btnVi, "Đã copy tên Việt");
-
-      // Show modal with animation
+      // Mở modal ngay lập tức để tránh INP click chậm
       modal.classList.add("active");
-      document.body.style.overflow = "hidden"; // Disable background scrolling
+      document.body.style.overflow = "hidden";
+      
+      // Hoãn các tác vụ parse HTML nặng bằng setTimeout
+      setTimeout(() => {
+        const container = document.getElementById("modal-container-el");
+        const linksCard = document.getElementById("modal-links-card");
+        const linksToggle = document.getElementById("modal-links-toggle");
+        linksCard.classList.remove("open");
+        linksToggle.setAttribute("aria-expanded", "false");
+        
+        container.setAttribute("data-plat", getPlatformClass(show.platform));
+        
+        document.getElementById("modal-title-el").innerText = show.vietnamese;
+        document.getElementById("modal-zh-el").innerText = show.chinese;
+        document.getElementById("modal-en-el").innerText = show.english;
+        document.getElementById("modal-vi-el").innerText = show.vietnamese;
+        applyUserEditableFields(show);
+        
+        let statusText = "Đã xong";
+        if (show.status === "upcoming") statusText = "Sắp chiếu";
+        if (show.status === "airing") statusText = "Đang chiếu";
+        
+        let tagBadgeHtml = "";
+        if (show.tags.includes("all-female")) {
+          tagBadgeHtml = `<span class="badge badge-tag"><i class="fa-solid fa-venus-double"></i> Lesbian (GL)</span>`;
+        } else if (show.tags.includes("all-male")) {
+          tagBadgeHtml = `<span class="badge badge-tag"><i class="fa-solid fa-mars-double"></i> Gay (BL)</span>`;
+        } else if (show.tags.includes("other")) {
+          tagBadgeHtml = `<span class="badge badge-tag" style="background: rgba(100, 116, 139, 0.2); color: #94a3b8; border-color: rgba(100, 116, 139, 0.3);"><i class="fa-solid fa-ellipsis"></i> Khác (Không phải show hẹn hò)</span>`;
+        }
+
+        const timeHtml = show.time ? `<span class="time-note"><i class="fa-solid fa-clock"></i> ${show.time}</span>` : "";
+        const year = getShowYear(show);
+        const yearHtml = year ? `<span class="badge badge-year"><i class="fa-regular fa-calendar"></i> ${escapeHtml(year)}</span>` : "";
+
+        document.getElementById("modal-badges-el").innerHTML = `
+          ${renderCountryBadge(show)}
+          <span class="badge badge-status ${show.status}">${statusText}</span>
+          <span class="badge badge-plat ${getPlatformClass(show.platform)}">${show.platform}</span>
+          ${yearHtml}
+          ${tagBadgeHtml}
+          ${timeHtml}
+        `;
+        document.getElementById("modal-rating-slot").innerHTML = renderInteractiveStarRating(index, getShowRating(show));
+        
+        const btnZh = document.getElementById("modal-copy-zh-btn");
+        const btnEn = document.getElementById("modal-copy-en-btn");
+        const btnVi = document.getElementById("modal-copy-vi-btn");
+
+        btnZh.onclick = (e) => copyToClipboard(show.chinese, btnZh, "Đã copy tên gốc");
+        btnEn.onclick = (e) => copyToClipboard(show.english, btnEn, "Đã copy tên Anh");
+        btnVi.onclick = (e) => copyToClipboard(show.vietnamese, btnVi, "Đã copy tên Việt");
+      }, 0);
     }
 
     function closeShowModal() {
@@ -1335,7 +1401,6 @@
     function loadMoreShows() {
       const grid = document.getElementById("show-cards-grid");
       
-      // Xóa cảm biến cũ trước khi tải các phần tử mới
       const oldSentinel = document.getElementById("shows-sentinel");
       if (oldSentinel) oldSentinel.remove();
       
@@ -1569,11 +1634,18 @@
       const floatingSearchBtn = document.getElementById("floating-search-btn");
       const floatingSearchClearBtn = document.getElementById("floating-search-clear-btn");
 
+      // Tối ưu hóa INP tìm kiếm bằng giải pháp Debounce (Tránh giật khựng phím khi gõ nhanh)
       function updateSearchQuery(val) {
-        currentFilters.search = val;
+        // Cập nhật giá trị hiển thị lập tức để giao diện gõ chữ siêu mượt
         searchBox.value = val;
         floatingSearchBox.value = val;
-        renderShows();
+        currentFilters.search = val;
+
+        // Trì hoãn việc chạy bộ lọc nặng (Chờ người dùng dừng gõ 250ms)
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          renderShows();
+        }, 250);
       }
 
       searchBox.addEventListener("input", (e) => { 
