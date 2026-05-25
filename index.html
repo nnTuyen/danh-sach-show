@@ -100,6 +100,7 @@
             <button class="filter-btn" data-tag="normal">Bình thường</button>
             <button class="filter-btn" data-tag="all-female" title="Show hẹn hò bách hợp / GL"><i class="fa-solid fa-venus-double"></i> Les GL</button>
             <button class="filter-btn" data-tag="all-male" title="Show hẹn hò đam mỹ / BL"><i class="fa-solid fa-mars-double"></i> Gay BL</button>
+            <button class="filter-btn" data-tag="other" title="Chương trình/show khác"><i class="fa-solid fa-ellipsis"></i> Khác</button>
           </div>
         </div>
       </div>
@@ -189,20 +190,6 @@
         Mô tả nội dung chương trình...
       </div>
 
-      <div class="modal-admin-section">
-        <button class="admin-toggle" id="admin-toggle-btn" type="button" aria-expanded="false" aria-controls="admin-panel">
-          <span class="admin-toggle-title">
-            <i class="fa-solid fa-clipboard-list" style="color: var(--accent-color);"></i> Thông tin chi tiết
-          </span>
-          <i class="fa-solid fa-chevron-down"></i>
-        </button>
-        <div class="admin-panel" id="admin-panel">
-          <div class="admin-detail-display" id="admin-detail-display">
-            <!-- Hiển thị thông tin chi tiết đã lưu -->
-          </div>
-        </div>
-      </div>
-
       <div class="modal-actions">
         <button type="button" class="modal-action-btn edit" onclick="openSettingsForShowFromModal()">
           <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa
@@ -253,6 +240,17 @@
 
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toast-container"></div>
+
+  <!-- Floating Search Box -->
+  <div class="floating-search-wrapper" id="floating-search-wrapper">
+    <button class="floating-search-btn" id="floating-search-btn" title="Tìm nhanh">
+      <i class="fa-solid fa-magnifying-glass"></i>
+    </button>
+    <div class="floating-search-input-box" id="floating-search-input-box">
+      <input type="text" id="floating-search-box" placeholder="Tìm nhanh show...">
+      <button id="floating-search-clear-btn" title="Xóa tìm kiếm"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  </div>
 
   <!-- Scroll to Top Button -->
   <button class="scroll-top-btn" id="scroll-btn" title="Lên đầu trang">
