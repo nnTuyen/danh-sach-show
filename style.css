@@ -755,7 +755,7 @@
       background: rgba(255, 255, 255, 0.04);
       color: var(--text-main);
       text-decoration: none;
-      transition: all 0.2s ease;
+      transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
     .watch-link-item[href]:hover {
@@ -1011,7 +1011,7 @@
       font-size: 0.88rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
       margin-top: auto; /* Push to bottom of flex layout */
       outline: none;
     }
@@ -1246,7 +1246,6 @@
       flex: 1;
       min-width: 0;
     }
-
     /* Settings Button in Header */
     .header-actions {
       display: flex;
@@ -1267,7 +1266,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      transition: all 0.3s ease;
+      transition: transform 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     .settings-btn:hover {
@@ -2002,12 +2001,12 @@
 /* Floating Search Styles */
 .floating-search-wrapper {
   position: fixed;
-  bottom: 5.5rem; /* Sắp xếp ngay trên nút scroll-top (vốn ở bottom: 2rem) */
+  bottom: 5.5rem; /* Sáº¯p xáº¿p ngay trÃªn nÃºt scroll-top (vá»‘n á»Ÿ bottom: 2rem) */
   left: 2rem;
   display: flex;
   align-items: center;
   z-index: 1000;
-  pointer-events: none; /* Nhường click cho nội dung bên dưới khi thanh tìm kiếm đang đóng */
+  pointer-events: none; /* NhÆ°á»ng click cho ná»™i dung bÃªn dÆ°á»›i khi thanh tÃ¬m kiáº¿m Ä‘ang Ä‘Ã³ng */
 }
 
 .floating-search-btn {
@@ -2026,7 +2025,7 @@
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   outline: none;
-  pointer-events: auto; /* Cho phép click vào nút */
+  pointer-events: auto; /* Cho phÃ©p click vÃ o nÃºt */
 }
 
 .floating-search-btn:hover {
@@ -2047,14 +2046,14 @@
   width: 0;
   opacity: 0;
   overflow: hidden;
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   margin-left: 0;
   padding: 0;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  pointer-events: auto; /* Cho phép click nhập liệu */
+  pointer-events: auto; /* Cho phÃ©p click nháº­p liá»‡u */
 }
 
-/* Khi kích hoạt mở thanh tìm kiếm trên Desktop */
+/* Khi kÃ­ch hoáº¡t má»Ÿ thanh tÃ¬m kiáº¿m trÃªn Desktop */
 .floating-search-wrapper.open .floating-search-input-box {
   width: 280px;
   opacity: 1;
@@ -2095,16 +2094,16 @@
   color: #ef4444;
 }
 
-/* Cấu hình đáp ứng giao diện di động (Mobile Responsive) */
+/* Cáº¥u hÃ¬nh Ä‘Ã¡p á»©ng giao diá»‡n di Ä‘á»™ng (Mobile Responsive) */
 @media (max-width: 768px) {
   .floating-search-wrapper {
     left: 1rem;
-    right: 1rem; /* Cho phép giãn rộng hết chiều ngang di động */
+    right: 1rem; /* Cho phÃ©p giÃ£n rá»™ng háº¿t chiá»u ngang di Ä‘á»™ng */
     bottom: 4.8rem;
     width: auto;
   }
   .floating-search-wrapper.open .floating-search-input-box {
     flex: 1;
-    width: auto; /* Co giãn mượt mà, không bị tràn màn hình điện thoại */
+    width: auto; /* Co giÃ£n mÆ°á»£t mÃ , khÃ´ng bá»‹ trÃ n mÃ n hÃ¬nh Ä‘iá»‡n thoáº¡i */
   }
 }
