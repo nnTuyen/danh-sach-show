@@ -786,14 +786,18 @@ function openSettingsModal() {
   document.getElementById("settings-modal").classList.add("active");
   document.body.style.overflow = "hidden";
 
-  // Hiện spinner tải tạm thời để Next Paint mượt mà
+  // Đảm bảo hiển thị lại danh sách list (phòng trường hợp bị ẩn display: none từ lần đóng trước)
   const list = document.getElementById("settings-list");
-  list.innerHTML = `
-        <div style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);">
-          <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 0.75rem; color: var(--accent-color); display: block;"></i>
-          Đang chuẩn bị dữ liệu cài đặt...
-        </div>
-      `;
+  if (list) {
+    list.style.display = "";
+    // Hiện spinner tải tạm thời để Next Paint mượt mà
+    list.innerHTML = `
+          <div style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 0.75rem; color: var(--accent-color); display: block;"></i>
+            Đang chuẩn bị dữ liệu cài đặt...
+          </div>
+        `;
+  }
 
   // ===== PHẦN 2: Trì hoãn xử lý danh sách nặng =====
   setTimeout(() => {
@@ -804,8 +808,25 @@ function openSettingsModal() {
 }
 
 function closeSettingsModal() {
-  document.getElementById("settings-modal").classList.remove("active");
-  document.body.style.overflow = "";
+  const modal = document.getElementById("settings-modal");
+  modal.classList.remove("active");
+
+  const list = document.getElementById("settings-list");
+  if (list) {
+    // Ẩn LẬP TỨC danh sách form nặng nề bằng display: none.
+    // Lệnh này loại bỏ toàn bộ form khỏi cây dựng hình (Render Tree) ngay lập tức (0ms).
+    // Trong suốt 200ms chuyển động đóng, GPU chỉ phải vẽ một khối nền rỗng mờ dần -> cực nhẹ.
+    list.style.display = "none";
+  }
+
+  // Trì hoãn việc khôi phục thanh cuộn body và dọn dẹp DOM cho đến khi modal đã ẩn hoàn toàn (250ms)
+  setTimeout(() => {
+    document.body.style.overflow = "";
+    if (list) {
+      list.innerHTML = "";
+      list.style.display = ""; // Khôi phục lại thuộc tính display chuẩn bị cho lần mở sau
+    }
+  }, 250);
 }
 
 function toggleSettingsLock() {
@@ -1003,7 +1024,10 @@ function addNewShow() {
 
   const newIndex = getAllShowsRaw().length - 1;
   const newItem = document.querySelector(`[data-settings-index="${newIndex}"]`);
-  newItem?.classList.add("open");
+  // Gọi toggleSettingsShow để tự tạo form trống cho show mới ngay lập tức
+  if (newItem && !newItem.classList.contains("open")) {
+    toggleSettingsShow(newIndex);
+  }
   newItem?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   showToast("Đã thêm show mới. Điền thông tin và bấm Lưu show này.");
 }
@@ -1219,7 +1243,9 @@ function openSettingsForShow(index) {
 
   requestAnimationFrame(() => {
     const item = document.querySelector(`[data-settings-index="${index}"]`);
-    item?.classList.add("open");
+    if (item && !item.classList.contains("open")) {
+      toggleSettingsShow(index);
+    }
     item?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   });
 
@@ -1706,7 +1732,8 @@ function initializeAppEvents() {
   });
 
   document.addEventListener("click", (e) => {
-    if (!floatingSearchWrapper.contains(e.target)) {
+    // Chỉ kích hoạt tháo gỡ class khi thanh tìm kiếm thực sự đang mở
+    if (floatingSearchWrapper.classList.contains("open") && !floatingSearchWrapper.contains(e.target)) {
       floatingSearchWrapper.classList.remove("open");
     }
   });
