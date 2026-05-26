@@ -32,12 +32,26 @@
 }
 
 body {
-  background: var(--bg-gradient);
-  background-attachment: fixed;
   color: var(--text-main);
   min-height: 100vh;
   padding: 2rem 1.5rem;
   line-height: 1.5;
+  position: relative;
+  /* Thêm dòng này */
+}
+
+/* Tạo một lớp nền cố định riêng biệt */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-gradient);
+  z-index: -1;
+  will-change: transform;
+  /* Ép trình duyệt đưa lớp này vào GPU */
 }
 
 html {
@@ -417,16 +431,22 @@ header p {
 
 /* Show Card */
 .show-card {
-  background: var(--panel-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  /* Thay vì nền trong suốt + blur, dùng nền tối mờ không blur */
+  background: rgba(15, 23, 42, 0.9);
+  /* backdrop-filter: blur(12px);  <--- Hãy xóa hoặc comment dòng này đi */
+
   border: 1px solid var(--panel-border);
   border-radius: 1.25rem;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Thay transition: all bằng các thuộc tính cụ thể */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+
   position: relative;
   overflow: hidden;
   content-visibility: auto;
