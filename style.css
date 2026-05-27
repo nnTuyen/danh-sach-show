@@ -1422,12 +1422,20 @@ header p {
   font-size: 1.1rem;
 }
 
-/* Go to top button */
+/* ==========================================================================
+   TỐI ƯU HÓA HAI NÚT CUỘN TRANG & TÌM KIẾM NỔI (FLOAT ACTIONS)
+   ========================================================================== */
+
+/* 1. Nút quay lại đầu trang (Go to Top) */
 .scroll-top-btn {
   position: fixed;
   bottom: 2rem;
-  left: 2rem;
-  background: rgba(30, 41, 59, 0.7);
+  right: 2rem;
+  /* Di chuyển hoàn toàn sang góc Phải */
+  background: rgba(15, 23, 42, 0.6);
+  /* Nền tối mờ nhẹ nhàng */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--panel-border);
   width: 3rem;
   height: 3rem;
@@ -1437,15 +1445,16 @@ header p {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0;
   visibility: hidden;
-  z-index: 99;
+  z-index: 1000;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .scroll-top-btn.visible {
-  opacity: 1;
+  opacity: 0.7;
+  /* Hơi mờ khi ở trạng thái chờ để không che show */
   visibility: visible;
 }
 
@@ -1453,6 +1462,167 @@ header p {
   background: var(--accent-color);
   transform: translateY(-3px);
   box-shadow: 0 4px 20px var(--accent-glow);
+  opacity: 1;
+  /* Sáng rõ khi di chuột vào */
+}
+
+/* 2. Khung chứa thanh tìm kiếm nổi */
+.floating-search-wrapper {
+  position: fixed;
+  bottom: 5.5rem;
+  /* Đặt phía trên nút Go to Top chính xác 0.5rem */
+  right: 2rem;
+  /* Căn thẳng hàng lề phải tuyệt đối */
+  display: flex;
+  flex-direction: row-reverse;
+  /* Đảo hướng: Nút ở phải, ô tìm kiếm mở rộng sang trái */
+  align-items: center;
+  z-index: 1001;
+  pointer-events: none;
+}
+
+.floating-search-btn {
+  background: rgba(15, 23, 42, 0.6);
+  /* Nền tối mờ đồng nhất */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--panel-border);
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  outline: none;
+  pointer-events: auto;
+  opacity: 0.7;
+  /* Hơi mờ khi ở trạng thái chờ */
+}
+
+.floating-search-btn:hover {
+  background: var(--accent-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px var(--accent-glow);
+  opacity: 1;
+}
+
+.floating-search-input-box {
+  display: flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid var(--panel-border);
+  border-radius: 2rem;
+  height: 3rem;
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  /* Chuyển mượt mà các thuộc tính co giãn lề phải thay vì lề trái */
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    margin-right 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-right: 0;
+  padding: 0;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+}
+
+/* Khi kích hoạt mở thanh tìm kiếm */
+.floating-search-wrapper.open .floating-search-input-box {
+  width: 280px;
+  opacity: 1;
+  margin-right: 0.75rem;
+  /* Khoảng cách lề phải tạo khoảng trống với nút */
+  padding: 0 1.25rem;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.floating-search-wrapper.open .floating-search-btn {
+  background: var(--accent-color);
+  transform: rotate(90deg);
+  opacity: 1;
+}
+
+#floating-search-box {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-main);
+  font-size: 0.95rem;
+  width: 100%;
+}
+
+#floating-search-clear-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+#floating-search-clear-btn:hover {
+  color: #ef4444;
+}
+
+/* ==========================================================================
+   CẤU HÌNH ĐÁP ỨNG CHO THIẾT BỊ DI ĐỘNG (MOBILE RESPONSIVE)
+   ========================================================================== */
+@media (max-width: 768px) {
+
+  /* Thu nhỏ nút Go to Top trên di động */
+  .scroll-top-btn {
+    right: 1rem;
+    bottom: 1rem;
+    width: 2.5rem;
+    /* Nhỏ gọn hơn */
+    height: 2.5rem;
+    font-size: 0.85rem;
+  }
+
+  /* Định vị lại thanh tìm kiếm nổi xếp thẳng hàng trên di động */
+  .floating-search-wrapper {
+    right: 1rem;
+    bottom: 4rem;
+    /* Sắp xếp phía trên nút Go to Top chính xác 0.5rem */
+    left: auto;
+    width: auto;
+  }
+
+  /* Giãn rộng toàn bộ chiều ngang màn hình di động khi bấm mở ô tìm kiếm */
+  .floating-search-wrapper.open {
+    left: 1rem;
+  }
+
+  /* Thu nhỏ nút tìm kiếm trên di động */
+  .floating-search-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 0.85rem;
+  }
+
+  /* Khớp kích thước chiều cao thanh nhập liệu co giãn trên di động */
+  .floating-search-input-box {
+    height: 2.5rem;
+  }
+
+  .floating-search-wrapper.open .floating-search-input-box {
+    flex: 1;
+    width: auto;
+    /* Tự động co giãn mượt mà theo chiều rộng màn hình */
+    margin-right: 0.5rem;
+  }
 }
 
 /* Card Thumbnail */
