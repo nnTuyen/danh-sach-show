@@ -32,15 +32,26 @@
 }
 
 body {
+  /* 1. CHỈ CẦN màu nền phẳng tối làm dự phòng (fallback) */
+  background-color: #090d16;
+
+  /* 2. HÃY XÓA HOẶC COMMENT 2 DÒNG DƯỚI ĐÂY 
+     để tránh trình duyệt vẽ đè dải màu 2 lần gây nặng máy khi cuộn */
+  /* background: var(--bg-gradient); */
+  /* background-attachment: fixed; */
+
   color: var(--text-main);
+
+  /* Sử dụng Dynamic Viewport Height (dvh) giúp body luôn tự động khớp 100% 
+     với thanh công cụ của điện thoại mà không bị trồi sụt khoảng trống */
   min-height: 100vh;
+  min-height: 100dvh;
+
   padding: 2rem 1.5rem;
   line-height: 1.5;
-  position: relative;
-  /* Thêm dòng này */
 }
 
-/* Tạo một lớp nền cố định riêng biệt */
+/* Tạo một lớp nền cố định riêng biệt (Giữ nguyên phần này bạn đã viết rất tốt) */
 body::before {
   content: "";
   position: fixed;
@@ -51,11 +62,12 @@ body::before {
   background: var(--bg-gradient);
   z-index: -1;
   will-change: transform;
-  /* Ép trình duyệt đưa lớp này vào GPU */
+  /* Ép trình duyệt đưa lớp này vào xử lý bằng phần cứng GPU */
 }
 
 html {
-  scrollbar-gutter: stable;
+  background-color: #090d16 !important;
+  /* Giữ nguyên dòng này để làm nền canvas tối */
 }
 
 .container {
@@ -203,8 +215,8 @@ header p {
 }
 
 @media (min-width: 1024px) {
-  .filter-section {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  html {
+    scrollbar-gutter: stable;
   }
 }
 
@@ -431,13 +443,9 @@ header p {
 
 /* Show Card */
 .show-card {
-  /* Thay vì dùng nền trong suốt + blur (gây lỗi sương trắng), 
-     ta dùng màu nền tối đặc hơn một chút để giữ độ tương phản cao */
-  background: rgba(23, 33, 53, 0.95);
-
-  /* Xóa hoàn toàn hoặc comment lại hai dòng backdrop-filter dưới đây để sửa lỗi: */
-  /* backdrop-filter: blur(12px); */
-  /* -webkit-backdrop-filter: blur(12px); */
+  /* Thay vì nền trong suốt + blur, dùng nền tối mờ không blur */
+  background: rgba(15, 23, 42, 0.9);
+  /* backdrop-filter: blur(12px);  <--- Hãy xóa hoặc comment dòng này đi */
 
   border: 1px solid var(--panel-border);
   border-radius: 1.25rem;
@@ -446,10 +454,10 @@ header p {
   flex-direction: column;
   justify-content: space-between;
 
-  /* Thay transition: all bằng các thuộc tính cụ thể để tránh giật lag */
+  /* Thay transition: all bằng các thuộc tính cụ thể */
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
 
   position: relative;
   overflow: hidden;
@@ -2364,7 +2372,7 @@ header p {
   color: #ef4444;
 }
 
-/* Cáº¥u hÃ¬nh Ä‘Ã¡p á»©ng giao diá»‡n di Ä‘á»™ng (Mobile Responsive) */
+/* (Mobile Responsive) */
 @media (max-width: 768px) {
   .floating-search-wrapper {
     left: 1rem;
