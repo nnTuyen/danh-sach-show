@@ -431,9 +431,13 @@ header p {
 
 /* Show Card */
 .show-card {
-  /* Thay vì nền trong suốt + blur, dùng nền tối mờ không blur */
-  background: rgba(15, 23, 42, 0.9);
-  /* backdrop-filter: blur(12px);  <--- Hãy xóa hoặc comment dòng này đi */
+  /* Thay vì dùng nền trong suốt + blur (gây lỗi sương trắng), 
+     ta dùng màu nền tối đặc hơn một chút để giữ độ tương phản cao */
+  background: rgba(23, 33, 53, 0.95);
+
+  /* Xóa hoàn toàn hoặc comment lại hai dòng backdrop-filter dưới đây để sửa lỗi: */
+  /* backdrop-filter: blur(12px); */
+  /* -webkit-backdrop-filter: blur(12px); */
 
   border: 1px solid var(--panel-border);
   border-radius: 1.25rem;
@@ -442,10 +446,10 @@ header p {
   flex-direction: column;
   justify-content: space-between;
 
-  /* Thay transition: all bằng các thuộc tính cụ thể */
+  /* Thay transition: all bằng các thuộc tính cụ thể để tránh giật lag */
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.3s ease,
-    border-color 0.3s ease;
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 
   position: relative;
   overflow: hidden;
