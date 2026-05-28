@@ -1096,6 +1096,10 @@
     "description": "Cuộc sống chung của những chàng trai và cô gái trẻ bắt đầu tại Signal House, nơi tràn ngập những kỳ vọng tươi đẹp về tình yêu và sự lãng mạn. Những \"nhà tiên tri\" với kinh nghiệm dày dặn trong hẹn hò và tình yêu sẽ tìm kiếm những người yêu tiềm năng tại Signal House. Trò chơi tình yêu hồi hộp nhất bắt đầu từ đây.",
     "vietnameseWatchUrls": [
       {
+        "url": "https://kisskh.co/Drama/Heart-Signal-Season-5/Episode-7?id=12805&ep=214568&page=0&pageSize=100",
+        "label": "Kisskh - Sub auto (Tầm 11h tối T4 có sub)"
+      },
+      {
         "url": "https://rophim1.vip/phim/nhip-dap-trai-tim-phan-5",
         "label": "Rophim - Sub chuẩn"
       },
@@ -1104,7 +1108,7 @@
         "label": "Yêu Phim - Sub chuẩn"
       }
     ],
-    "vietnameseWatchUrl": "https://rophim1.vip/phim/nhip-dap-trai-tim-phan-5",
+    "vietnameseWatchUrl": "https://kisskh.co/Drama/Heart-Signal-Season-5/Episode-7?id=12805&ep=214568&page=0&pageSize=100",
     "rating": 5,
     "platform": "ChanelA",
     "year": "14-04-2026"
@@ -1640,8 +1644,8 @@
     "chinese": "나는 SOLO 나는 솔로",
     "english": "I am solo S31",
     "vietnamese": "I am solo S31",
-    "status": "airing",
-    "platform": "Tving",
+    "status": "completed",
+    "platform": "SBS",
     "image": "https://i.vgy.me/BCMbS5.png",
     "vietnameseWatchUrl": "https://www.bilibili.tv/vi/video/4799616656218624",
     "vietnameseWatchUrls": [
@@ -1657,7 +1661,9 @@
     "rating": 4,
     "description": "Show hẹn hò nổi tiếng bên Hàn, có tỷ lệ thành đôi ngoài đời thực rất cao. Đồng thời cũng thành công khi có rất nhiều cặp đôi đã đám cưới.",
     "year": "2026",
-    "time": "15h T5 Hàng tuần"
+    "time": "15h T5 Hàng tuần",
+    "episodeProgress": "247 - 255",
+    "detailNotes": "Có 3 CP trong show\n1 Cặp vẫn hẹn hò sau show: Sun Ja - Kyung Soo"
   },
   {
     "chinese": "나는 SOLO 그 후 사랑은 계속된다",
