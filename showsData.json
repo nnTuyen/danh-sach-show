@@ -5,7 +5,7 @@
     "vietnamese": "Người Yêu Một Nửa Thân Thuộc 5",
     "status": "upcoming",
     "platform": "Tencent Video",
-    "time": "1 Tháng 6",
+    "time": "12h 1 Tháng 6",
     "image": "https://i.vgy.me/vw02Ce.jpg",
     "chineseWatchUrl": "https://v.qq.com/x/cover/mzc00200x8zylq0/c4102tnbp6u.html",
     "tags": [
@@ -99,7 +99,8 @@
       "normal"
     ],
     "country": "china",
-    "description": "Show tập trung vào khái niệm \"thiên vị\" trong tình yêu: khi một người không chỉ được chọn vì phù hợp, mà còn vì trở thành ngoại lệ đặc biệt trong mắt đối phương. Tên Anh \"Preference of Love\" là bản dịch sát nghĩa, còn tên Việt \"Tình Yêu Thiên Vị\" giữ đúng sắc thái gốc."
+    "description": "Show tập trung vào khái niệm \"thiên vị\" trong tình yêu: khi một người không chỉ được chọn vì phù hợp, mà còn vì trở thành ngoại lệ đặc biệt trong mắt đối phương. Tên Anh \"Preference of Love\" là bản dịch sát nghĩa, còn tên Việt \"Tình Yêu Thiên Vị\" giữ đúng sắc thái gốc.",
+    "time": "Đang casting"
   },
   {
     "chinese": "妈妈我要恋爱啦",
@@ -237,16 +238,24 @@
   },
   {
     "chinese": "喜欢你我也是6",
-    "english": "Yes, I Do 6",
+    "english": "Yes, I Do S6",
     "vietnamese": "Thích anh, anh cũng vậy S6",
     "status": "upcoming",
     "platform": "iQiyi",
-    "time": "Tháng 5",
+    "time": "Tháng 6",
     "tags": [
       "normal"
     ],
     "country": "china",
-    "description": "Tên Anh chính thức trên iQIYI quốc tế: Yes, I Do. Đây là dating reality theo mô hình người chơi sống chung, quan sát tín hiệu và lựa chọn người mình thích qua các hoạt động hằng ngày. Tên tiếng Việt nên dịch theo nghĩa \"Em/Anh cũng thích bạn\" thay vì \"Love You Too\" vì tên Anh chính thức không dùng cụm đó."
+    "description": "10 nam nữ độc thân trẻ tuổi 20+ đến từ những vùng miền khác nhau, làm những công việc khác nhau, có trình độ học vấn và trải nghiệm tình cảm khác nhau. Họ bắt đầu hành trình bằng một chuyến du lịch, lên đường đến bốn thành phố, dũng cảm tiến về phía tình yêu và mở ra “kỳ nghỉ yêu đương”.\n\nLần này, hãy để mọi người gỡ bỏ sự phòng bị giữa khung cảnh đẹp của chuyến đi, thấu hiểu nhau qua những sự quan tâm ấm áp, cùng tìm kiếm những tâm hồn đồng điệu và cùng nhau lưu giữ một tình yêu đẹp.",
+    "year": "2026",
+    "image": "https://i.vgy.me/F1gL8s.jpg",
+    "chineseWatchUrls": [
+      {
+        "url": "https://www.iqiyi.com/a_nr08g34nj5.html"
+      }
+    ],
+    "chineseWatchUrl": "https://www.iqiyi.com/a_nr08g34nj5.html"
   },
   {
     "chinese": "恋爱咖啡屋",
@@ -683,7 +692,7 @@
   },
   {
     "chinese": "偏爱之恋",
-    "english": "Love Wins All 2",
+    "english": "Love Wins All",
     "vietnamese": "Tình Yêu Thiên Vị",
     "status": "completed",
     "platform": "Youku",
