@@ -102,7 +102,6 @@ let currentModalIndex = null;
 let settingsLocked = true;
 let settingsSearchQuery = "";
 let customShows = loadCustomShows();
-mergeLegacyCustomShowsIntoShowsData();
 
 function loadCustomShows() {
   try {
@@ -1828,5 +1827,6 @@ function initializeAppEvents() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   await loadShowsData();
+  mergeLegacyCustomShowsIntoShowsData();
   initializeAppEvents();
 });
