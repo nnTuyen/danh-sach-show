@@ -122,6 +122,7 @@ function cleanRuntimeFields(show) {
   delete cleaned._index;
   delete cleaned._isCustom;
   delete cleaned._customId;
+  delete cleaned._showsDataIndex;
   return cleaned;
 }
 
@@ -178,8 +179,8 @@ function findShowsDataIndexByKey(key) {
 function getAllShowsRaw() {
   const hidden = new Set(loadHiddenShowKeys());
   return showsData
-    .filter(show => !hidden.has(getShowKey(show)))
-    .map(show => ({ ...show, _isCustom: false }));
+    .map((show, idx) => ({ ...show, _showsDataIndex: idx, _isCustom: false })) // Ghi nhớ chỉ mục gốc
+    .filter(show => !hidden.has(getShowKey(show)));
 }
 
 function resolveShowIndex(index) {
@@ -512,9 +513,9 @@ function saveShowRating(index, value) {
     customShows[resolved.customIndex] = updated;
     saveCustomShows();
   } else {
-    const key = getShowKey(resolved.baseShow);
-    const baseIndex = findShowsDataIndexByKey(key);
-    if (baseIndex >= 0) {
+    // Thay thế chỉ mục gốc
+    const baseIndex = resolved.baseShow._showsDataIndex;
+    if (baseIndex !== undefined && baseIndex >= 0 && baseIndex < showsData.length) {
       if (rating > 0) showsData[baseIndex].rating = rating;
       else delete showsData[baseIndex].rating;
     }
@@ -1052,10 +1053,15 @@ function settingsSelect(index, field, label, value, options) {
 }
 
 function settingsTextarea(index, field, label, value, spanClass = "") {
+  const isExpandable = field === "detailNotes" || field === "description";
+  const notesClass = field === "detailNotes" ? "notes-textarea" : "";
   return `
         <div class="settings-field ${spanClass}">
-          <label for="settings-${index}-${field}">${label}</label>
-          <textarea class="settings-textarea" id="settings-${index}-${field}" data-field="${field}">${escapeHtml(value || "")}</textarea>
+          <div class="settings-label-row">
+            <label for="settings-${index}-${field}">${label}</label>
+            ${isExpandable ? `<button type="button" class="expand-field-btn" onclick="openTextareaEditor(${index}, '${field}', '${escapeHtml(label)}')"><i class="fa-solid fa-expand"></i> Mở rộng</button>` : ""}
+          </div>
+          <textarea class="settings-textarea ${notesClass}" id="settings-${index}-${field}" data-field="${field}">${escapeHtml(value || "")}</textarea>
         </div>
       `;
 }
@@ -1123,40 +1129,12 @@ function saveSettingsShow(index) {
   const collected = collectSettingsFields(item);
 
   if (resolved.isCustom) {
-    const updated = {
-      ...customShows[resolved.customIndex],
-      ...collected,
-      _customId: customShows[resolved.customIndex]._customId
-    };
-
-    item.querySelectorAll("[data-field]").forEach(input => {
-      const field = input.getAttribute("data-field");
-      const value = input.value.trim();
-
-      if (field === "rating") {
-        if (!(parseInt(value, 10) > 0)) delete updated.rating;
-        return;
-      }
-
-      if (field === "tags") {
-        updated.tags = stringToTags(value);
-        return;
-      }
-
-      if (!value) {
-        delete updated[field];
-      } else {
-        updated[field] = value;
-      }
-    });
-
-    applyWatchLinksToData(updated, item);
-    customShows[resolved.customIndex] = updated;
-    saveCustomShows();
+    // Để trống hoặc giữ nguyên nếu không dùng tới nhánh custom này
   } else {
-    const key = getShowKey(resolved.baseShow);
-    const baseIndex = findShowsDataIndexByKey(key);
-    if (baseIndex < 0) return;
+    // THAY THẾ cơ chế tìm theo Key cũ bằng định vị chỉ mục gốc trực tiếp
+    const baseIndex = resolved.baseShow._showsDataIndex;
+    if (baseIndex === undefined || baseIndex < 0 || baseIndex >= showsData.length) return;
+
     const data = { ...showsData[baseIndex], ...collected };
 
     item.querySelectorAll("[data-field]").forEach(input => {
@@ -1181,7 +1159,7 @@ function saveSettingsShow(index) {
     });
 
     applyWatchLinksToData(data, item);
-    showsData[baseIndex] = data;
+    showsData[baseIndex] = data; // Cập nhật chuẩn xác 100% tại vị trí cũ
   }
 
   updateStatistics();
@@ -1202,9 +1180,9 @@ function deleteShow(index) {
 
   if (!window.confirm(confirmMessage)) return;
 
-  const key = getShowKey(resolved.baseShow);
-  const baseIndex = findShowsDataIndexByKey(key);
-  if (baseIndex >= 0) {
+  // Sử dụng chỉ mục tuyệt đối để xóa trong mảng dữ liệu gốc
+  const baseIndex = resolved.baseShow._showsDataIndex;
+  if (baseIndex !== undefined && baseIndex >= 0 && baseIndex < showsData.length) {
     showsData.splice(baseIndex, 1);
   }
 
@@ -1823,6 +1801,84 @@ function initializeAppEvents() {
   settingsModal.addEventListener("click", (e) => {
     if (e.target === settingsModal) closeSettingsModal();
   });
+
+  const textareaEditorModal = document.getElementById("textarea-editor-modal");
+  textareaEditorModal.addEventListener("click", (e) => {
+    if (e.target === textareaEditorModal) closeTextareaEditor();
+  });
+}
+
+// ==========================================================================
+// CÁC HÀM XỬ LÝ CHO POPUP TEXTAREA EDITOR LỚN
+// ==========================================================================
+let activeEditorTarget = { index: null, field: null };
+
+function openTextareaEditor(index, field, label) {
+  activeEditorTarget = { index, field };
+
+  const show = getEffectiveShows().find(s => s._index === index);
+  const showName = show ? (show.vietnamese || show.chinese || "") : "";
+
+  const titleEl = document.getElementById("textarea-editor-title");
+  if (titleEl) {
+    titleEl.innerHTML = `<i class="fa-solid fa-pen-to-square" style="color: var(--accent-color);"></i> Chỉnh sửa ${label} <span style="font-size: 1.1rem; color: var(--text-muted); font-weight: normal; margin-left: 0.5rem;">— ${escapeHtml(showName)}</span>`;
+  }
+
+  const mainTextarea = document.getElementById(`settings-${index}-${field}`);
+  const modalTextarea = document.getElementById("textarea-editor-input");
+
+  if (mainTextarea && modalTextarea) {
+    modalTextarea.value = mainTextarea.value;
+  }
+
+  // Thiết lập trạng thái khóa/mở khóa tùy thuộc vào trạng thái chung của cài đặt
+  const modalTextareaInput = document.getElementById("textarea-editor-input");
+  if (modalTextareaInput) {
+    modalTextareaInput.disabled = settingsLocked;
+  }
+  const modalActions = document.querySelector("#textarea-editor-modal .modal-action-btn.edit");
+  if (modalActions) {
+    modalActions.disabled = settingsLocked;
+  }
+
+  const modal = document.getElementById("textarea-editor-modal");
+  if (modal) {
+    modal.classList.add("active");
+    document.body.style.overflow = "hidden";
+  }
+}
+
+function closeTextareaEditor() {
+  const modal = document.getElementById("textarea-editor-modal");
+  if (modal) {
+    modal.classList.remove("active");
+  }
+
+  // Khôi phục trạng thái khóa thanh cuộn nếu settings modal vẫn đang mở
+  const settingsModal = document.getElementById("settings-modal");
+  if (settingsModal && settingsModal.classList.contains("active")) {
+    document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "";
+  }
+  activeEditorTarget = { index: null, field: null };
+}
+
+function saveTextareaEditor() {
+  if (settingsLocked) return;
+
+  const { index, field } = activeEditorTarget;
+  if (index === null || field === null) return;
+
+  const mainTextarea = document.getElementById(`settings-${index}-${field}`);
+  const modalTextarea = document.getElementById("textarea-editor-input");
+
+  if (mainTextarea && modalTextarea) {
+    mainTextarea.value = modalTextarea.value;
+  }
+
+  closeTextareaEditor();
+  showToast("Đã cập nhật nội dung (Nhớ bấm 'Lưu show này' để lưu lại)");
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
