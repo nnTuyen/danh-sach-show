@@ -261,11 +261,12 @@ function detectPlatformFromUrl(url) {
   if (lower.includes("v.qq.com") || lower.includes("tencent")) return "Tencent Video";
   if (lower.includes("mgtv.com") || lower.includes("mango")) return "Mango TV";
   if (lower.includes("youku.com") || lower.includes("youku")) return "Youku";
-  if (lower.includes("bilibili.com") || lower.includes("bilibili")) return "Bilibili";
+  if (lower.includes("bilibili.com") || lower.includes("bili")) return "Bilibili";
   if (lower.includes("rophim1.vip") || lower.includes("rophim")) return "Rophim";
   if (lower.includes("yeuphim.biz") || lower.includes("yeuphim")) return "Yêu Phim";
   if (lower.includes("youtube.com") || lower.includes("youtu.be")) return "YouTube";
   if (lower.includes("ok.ru")) return "OK.ru";
+  if (lower.includes("rumble.com") || lower.includes("rumble")) return "Rumble";
   if (lower.includes("dailymotion.com") || lower.includes("dailymotion")) return "Dailymotion";
   return "";
 }
@@ -650,7 +651,11 @@ function getPlatformClass(platform) {
   if (lower.includes("mango") || lower.includes("mgtv")) return "mango";
   if (lower.includes("youku")) return "youku";
   if (lower.includes("iqiyi")) return "iqiyi";
-  if (lower.includes("bilibili")) return "bilibili";
+  if (lower.includes("bili")) return "bilibili";
+  if (lower.includes("rumble")) return "rumble";
+  if (lower.includes("ok.ru")) return "ok.ru";
+  if (lower.includes("dailymotion")) return "dailymotion";
+  if (lower.includes("youtube")) return "youtube";
   if (lower.includes("migu")) return "migu";
   if (lower.includes("tvb")) return "tvb";
   if (lower.includes("gaga")) return "gaga";
