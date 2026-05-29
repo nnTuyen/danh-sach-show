@@ -147,7 +147,7 @@
     "vietnamese": "Khoảng Cách Giữa Chúng Ta Và Tình Yêu",
     "status": "upcoming",
     "platform": "Mango TV",
-    "time": "Tháng 6",
+    "time": "12h 2 Tháng 6",
     "image": "https://i.vgy.me/pMBlbF.png",
     "tags": [
       "normal"
@@ -242,7 +242,7 @@
     "vietnamese": "Thích anh, anh cũng vậy S6",
     "status": "upcoming",
     "platform": "iQiyi",
-    "time": "Tháng 6",
+    "time": "12h 3 Tháng 6",
     "tags": [
       "normal"
     ],
@@ -252,7 +252,8 @@
     "image": "https://i.vgy.me/F1gL8s.jpg",
     "chineseWatchUrls": [
       {
-        "url": "https://www.iqiyi.com/a_nr08g34nj5.html"
+        "url": "https://www.iqiyi.com/a_nr08g34nj5.html",
+        "label": "Nơi chiếu tiếng Trung"
       }
     ],
     "chineseWatchUrl": "https://www.iqiyi.com/a_nr08g34nj5.html"
@@ -2128,15 +2129,22 @@
     "vietnamese": "I am solo, Love Forever S15",
     "status": "airing",
     "platform": "SBS",
-    "time": "15h Thứ 6 Hàng tuần",
+    "time": "19h Thứ 6 Hàng tuần",
     "image": "https://i.vgy.me/I4Ofk3.jpg",
     "tags": [
       "normal"
     ],
     "country": "korea",
-    "rating": 2,
-    "description": "Phần spin-off của show I am solo.\nChủ đề S15 này là mùa chỉ dành cho Người độc thân.",
+    "rating": 3,
+    "description": "Phần spin-off của show I am solo.\nS15 này là một phần đặc biệt khi kết hợp 2 show hẹn hò\nI am solo và Jjak (Show hẹn hò có trước cả I am solo)\nVới các bạn Nam đã từng tham gia I am solo\nVà các bạn Nữ từng tham gia Jjak",
     "year": "29-05-2026",
-    "detailNotes": "Nữ:\n???\nNam:\nS1 Young-ho           | 1984 | Ca sĩ Opera\nS7 Young-ho          | 1980 | Giáo viên Toán, giám đốc học viện\nS8 Young-soo       | 1986 | Công ty thương mại quốc tế\nS17 Young-soo      | 1985 | Nghiên cứu viên bán dẫn, Samsung\nS12 Young-cheol  | 1985 | INFP, Đô vật chuyên nghiệp\nS26 Young-cheol | 1984 |Thư pháp gia"
+    "detailNotes": "Nữ:\n???\nNam:\nS1 Young-ho           | 1984 | Ca sĩ Opera\nS7 Young-ho          | 1980 | Giáo viên Toán, giám đốc học viện\nS8 Young-soo       | 1986 | Công ty thương mại quốc tế\nS17 Young-soo      | 1985 | Nghiên cứu viên bán dẫn, Samsung\nS12 Young-cheol  | 1985 | INFP, Đô vật chuyên nghiệp\nS26 Young-cheol | 1984 |Thư pháp gia",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://bili.im/sqAxXnV",
+        "label": "Sub auto"
+      }
+    ],
+    "vietnameseWatchUrl": "https://bili.im/sqAxXnV"
   }
 ]
