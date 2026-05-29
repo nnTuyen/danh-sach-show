@@ -238,6 +238,25 @@
     </div>
   </div>
 
+  <!-- Large Textarea Editor Modal -->
+  <div class="modal-overlay" id="textarea-editor-modal">
+    <div class="modal-container textarea-editor-container">
+      <button class="modal-close" onclick="closeTextareaEditor()"><i class="fa-solid fa-xmark"></i></button>
+      <div class="modal-title" id="textarea-editor-title">Chỉnh sửa nội dung</div>
+      <div class="textarea-editor-body">
+        <textarea id="textarea-editor-input" placeholder="Nhập nội dung chi tiết ở đây..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="modal-action-btn edit" onclick="saveTextareaEditor()">
+          <i class="fa-solid fa-check"></i> Xác nhận
+        </button>
+        <button type="button" class="modal-action-btn delete" onclick="closeTextareaEditor()">
+          <i class="fa-solid fa-xmark"></i> Hủy
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toast-container"></div>
 
