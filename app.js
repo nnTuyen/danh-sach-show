@@ -264,6 +264,8 @@ function detectPlatformFromUrl(url) {
   if (lower.includes("bilibili.com") || lower.includes("bili")) return "Bilibili";
   if (lower.includes("rophim1.vip") || lower.includes("rophim")) return "Rophim";
   if (lower.includes("yeuphim.biz") || lower.includes("yeuphim")) return "Yêu Phim";
+  if (lower.includes("mamphim.site") || lower.includes("mamphim")) return "Mâm Phim";
+  if (lower.includes("phimvietsub.site") || lower.includes("phimvietsub")) return "Phim Việt Sub";
   if (lower.includes("youtube.com") || lower.includes("youtu.be")) return "YouTube";
   if (lower.includes("ok.ru")) return "OK.ru";
   if (lower.includes("rumble.com") || lower.includes("rumble")) return "Rumble";
@@ -653,6 +655,10 @@ function getPlatformClass(platform) {
   if (lower.includes("iqiyi")) return "iqiyi";
   if (lower.includes("bili")) return "bilibili";
   if (lower.includes("rumble")) return "rumble";
+  if (lower.includes("mamphim")) return "mamphim";
+  if (lower.includes("yeuphim")) return "yeuphim";
+  if (lower.includes("rophim")) return "rophim";
+  if (lower.includes("phimvietsub")) return "phimvietsub";
   if (lower.includes("ok.ru")) return "ok.ru";
   if (lower.includes("dailymotion")) return "dailymotion";
   if (lower.includes("youtube")) return "youtube";
