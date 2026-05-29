@@ -2441,3 +2441,93 @@ header p {
     min-width: 120px;
   }
 }
+
+/* ==========================================================================
+   NÂNG CẤP Ô NHẬP GHI CHÚ CHI TIẾT & POPUP TEXTAREA EDITOR
+   ========================================================================== */
+
+/* Tăng chiều cao mặc định cho ô ghi chú chi tiết */
+.settings-textarea.notes-textarea {
+  min-height: 180px;
+}
+
+/* Căn chỉnh nhãn và nút Mở rộng trên cùng dòng */
+.settings-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.15rem;
+}
+
+.settings-label-row label {
+  margin-bottom: 0 !important;
+}
+
+/* Nút Mở rộng ô nhập */
+.expand-field-btn {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #c084fc;
+  padding: 0.25rem 0.55rem;
+  border-radius: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+  text-transform: none;
+  letter-spacing: normal;
+  line-height: 1.2;
+}
+
+.expand-field-btn:hover {
+  background: rgba(139, 92, 246, 0.3);
+  border-color: rgba(139, 92, 246, 0.5);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.expand-field-btn:active {
+  transform: translateY(0);
+}
+
+/* Modal Textarea Editor */
+#textarea-editor-modal {
+  z-index: 2800; /* Hiển thị phía trên settings modal (z-index 2500) */
+}
+
+.textarea-editor-container {
+  max-width: 800px !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.textarea-editor-body {
+  margin: 1.25rem 0;
+  flex: 1;
+  display: flex;
+}
+
+#textarea-editor-input {
+  width: 100%;
+  min-height: 380px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--panel-border);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  color: var(--text-main);
+  font-size: 1rem;
+  font-family: inherit;
+  line-height: 1.6;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#textarea-editor-input:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 4px var(--accent-glow);
+  background: rgba(15, 23, 42, 0.85);
+}
