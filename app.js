@@ -680,7 +680,7 @@ function escapeHtml(value) {
 function applyUserEditableFields(show) {
   const description = show.description && show.description.trim() ? show.description.trim() : getShowDescription(show);
   const detailsHtml = renderDetailUpdates(show);
-  document.getElementById("modal-desc-el").innerHTML = `${escapeHtml(description)}${detailsHtml}`;
+  document.getElementById("modal-desc-el").innerHTML = `<div class="modal-desc-text">${escapeHtml(description)}</div>${detailsHtml}`;
   renderShowPoster(show);
   renderShowLinks(show);
 }
@@ -697,7 +697,7 @@ function renderDetailUpdates(show) {
   const notesHtml = show.detailNotes ? `
         <div class="couple-updates-section">
           <div class="couple-updates-title"><i class="fa-solid fa-note-sticky"></i> Ghi chú cập nhật</div>
-          <div class="couple-updates-content">${escapeHtml(show.detailNotes)}</div>
+          <div class="couple-updates-content">${escapeHtml(show.detailNotes.trim())}</div>
         </div>
       ` : "";
 
