@@ -1255,7 +1255,7 @@ function renderShowPoster(show) {
   const posterEl = document.getElementById("modal-poster-el");
 
   if (posterUrl) {
-    posterEl.innerHTML = `<img src="${escapeHtml(posterUrl)}" alt="Ảnh show ${escapeHtml(show.vietnamese)}" loading="lazy">`;
+    posterEl.innerHTML = `<img src="${escapeHtml(posterUrl)}" alt="Ảnh show ${escapeHtml(show.vietnamese)}" loading="lazy" width="300" height="400">`;
     return;
   }
 
@@ -1323,13 +1323,18 @@ function renderShowLinks(show) {
     return;
   }
 
-  let html = "";
+  const fragment = document.createDocumentFragment();
 
   // 1. Render Vietnamese Watch Links (Priority 1)
   if (viLinks.length > 0) {
-    html += `<div class="modal-links-section-title"><i class="fa-solid fa-closed-captioning" style="color: var(--accent-color);"></i> Bản Vietsub / Thuyết minh</div>`;
-    html += `<div class="modal-links-list">`;
-    html += viLinks.map(link => `
+    const viSectionTitle = document.createElement('div');
+    viSectionTitle.className = 'modal-links-section-title';
+    viSectionTitle.innerHTML = `<i class="fa-solid fa-closed-captioning" style="color: var(--accent-color);"></i> Bản Vietsub / Thuyết minh`;
+    fragment.appendChild(viSectionTitle);
+
+    const viLinksList = document.createElement('div');
+    viLinksList.className = 'modal-links-list';
+    viLinksList.innerHTML = viLinks.map(link => `
           <a class="watch-link-item" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">
             <div>
               <span class="watch-link-label">${escapeHtml(link.label || "Link xem tiếng Việt")}</span>
@@ -1338,15 +1343,20 @@ function renderShowLinks(show) {
             <i class="fa-solid fa-arrow-up-right-from-square"></i>
           </a>
         `).join("");
-    html += `</div>`;
+    fragment.appendChild(viLinksList);
   }
 
   // 2. Render Chinese Watch Links (Priority 2)
   if (zhLinks.length > 0) {
-    const spacingClass = viLinks.length > 0 ? "style='margin-top: 1.25rem;'" : "";
-    html += `<div class="modal-links-section-title" ${spacingClass}><i class="fa-solid fa-earth-asia" style="color: var(--accent-color);"></i> Bản gốc tiếng Trung</div>`;
-    html += `<div class="modal-links-list">`;
-    html += zhLinks.map(link => `
+    const zhSectionTitle = document.createElement('div');
+    zhSectionTitle.className = 'modal-links-section-title';
+    if (viLinks.length > 0) zhSectionTitle.style.marginTop = '1.25rem'; // Add spacing if there are Vietnamese links
+    zhSectionTitle.innerHTML = `<i class="fa-solid fa-earth-asia" style="color: var(--accent-color);"></i> Bản gốc tiếng Trung`;
+    fragment.appendChild(zhSectionTitle);
+
+    const zhLinksList = document.createElement('div');
+    zhLinksList.className = 'modal-links-list';
+    zhLinksList.innerHTML = zhLinks.map(link => `
           <a class="watch-link-item" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">
             <div>
               <span class="watch-link-label">${escapeHtml(link.label || "Link xem tiếng Trung")}</span>
@@ -1355,10 +1365,11 @@ function renderShowLinks(show) {
             <i class="fa-solid fa-arrow-up-right-from-square"></i>
           </a>
         `).join("");
-    html += `</div>`;
+    fragment.appendChild(zhLinksList);
   }
 
-  linksEl.innerHTML = html;
+  linksEl.innerHTML = ''; // Clear existing content
+  linksEl.appendChild(fragment);
 }
 
 // Modal Control Logic - Tối ưu INP triệt để
@@ -1471,7 +1482,7 @@ function loadMoreShows() {
     const ratingHtml = renderInteractiveStarRating(originalIndex, getShowRating(show));
     const thumbUrl = getShowImage(show);
     const thumbHtml = thumbUrl
-      ? `<img src="${escapeHtml(thumbUrl)}" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy">`
+      ? `<img src="${escapeHtml(thumbUrl)}" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy" width="110" height="110">`
       : `<i class="fa-regular fa-image card-thumb-placeholder"></i>`;
 
     card.innerHTML = `
