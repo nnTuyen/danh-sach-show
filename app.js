@@ -53,7 +53,7 @@ function removeVietnameseTones(str) {
   str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
   str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
   str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
-  str = str.replace(/Ý|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+  str =   str.replace(/Ý|Ỳ|Ỵ|Ỷ|Ỹ/g, "Y");
   str = str.replace(/Đ/g, "D");
   str = str.replace(/\u0300|\u0301|\u0309|\u0303|\u0323/g, ""); // Huyền sắc hỏi ngã nặng 
   str = str.replace(/\u02c6|\u0306|\u031b/g, ""); // Â, Ă, Ơ, Ư
@@ -749,6 +749,31 @@ function statusLabel(status) {
   return "Đã xong";
 }
 
+function renderTagBadge(tags) {
+  if (tags.includes("all-female")) {
+    return `<span class="badge badge-tag"><i class="fa-solid fa-venus-double"></i> Lesbian (GL)</span>`;
+  }
+  if (tags.includes("all-male")) {
+    return `<span class="badge badge-tag"><i class="fa-solid fa-mars-double"></i> Gay (BL)</span>`;
+  }
+  if (tags.includes("other")) {
+    return `<span class="badge badge-tag" style="background: rgba(100, 116, 139, 0.2); color: #94a3b8; border-color: rgba(100, 116, 139, 0.3);"><i class="fa-solid fa-ellipsis"></i> Khác</span>`;
+  }
+  return "";
+}
+
+function renderStatusText(status) {
+  return status === "upcoming" ? "Sắp chiếu" : status === "airing" ? "Đang chiếu" : "Đã xong";
+}
+
+function renderTimeHtml(time) {
+  return time ? `<span class="time-note"><i class="fa-solid fa-clock"></i> ${time}</span>` : "";
+}
+
+function renderYearHtml(year) {
+  return year ? `<span class="badge badge-year"><i class="fa-regular fa-calendar"></i> ${escapeHtml(year)}</span>` : "";
+}
+
 // Chuyển tags thành chuỗi string
 function tagToString(tags) {
   return Array.isArray(tags) ? tags.join(",") : (tags || "normal");
@@ -1402,20 +1427,11 @@ function openShowModal(index) {
     els.vi.textContent = show.vietnamese;
     applyUserEditableFields(show);
 
-    const statusText = show.status === "upcoming" ? "Sắp chiếu" : show.status === "airing" ? "Đang chiếu" : "Đã xong";
-
-    let tagBadgeHtml = "";
-    if (show.tags.includes("all-female")) {
-      tagBadgeHtml = `<span class="badge badge-tag"><i class="fa-solid fa-venus-double"></i> Lesbian (GL)</span>`;
-    } else if (show.tags.includes("all-male")) {
-      tagBadgeHtml = `<span class="badge badge-tag"><i class="fa-solid fa-mars-double"></i> Gay (BL)</span>`;
-    } else if (show.tags.includes("other")) {
-      tagBadgeHtml = `<span class="badge badge-tag" style="background: rgba(100, 116, 139, 0.2); color: #94a3b8; border-color: rgba(100, 116, 139, 0.3);"><i class="fa-solid fa-ellipsis"></i> Khác (Không phải show hẹn hò)</span>`;
-    }
-
-    const timeHtml = show.time ? `<span class="time-note"><i class="fa-solid fa-clock"></i> ${show.time}</span>` : "";
+    const statusText = renderStatusText(show.status);
+    const tagBadgeHtml = renderTagBadge(show.tags || []);
+    const timeHtml = renderTimeHtml(show.time);
     const year = getShowYear(show);
-    const yearHtml = year ? `<span class="badge badge-year"><i class="fa-regular fa-calendar"></i> ${escapeHtml(year)}</span>` : "";
+    const yearHtml = renderYearHtml(year);
 
     els.badges.innerHTML = `
           ${renderCountryBadge(show)}
@@ -1463,22 +1479,11 @@ function loadMoreShows() {
 
     const originalIndex = show._index;
 
-    let statusText = "Đã xong";
-    if (show.status === "upcoming") statusText = "Sắp chiếu";
-    if (show.status === "airing") statusText = "Đang chiếu";
-
-    let tagBadgeHtml = "";
-    if (show.tags.includes("all-female")) {
-      tagBadgeHtml = `<span class="badge badge-tag"><i class="fa-solid fa-venus-double"></i> Lesbian (GL)</span>`;
-    } else if (show.tags.includes("all-male")) {
-      tagBadgeHtml = `<span class="badge badge-tag"><i class="fa-solid fa-mars-double"></i> Gay (BL)</span>`;
-    } else if (show.tags.includes("other")) {
-      tagBadgeHtml = `<span class="badge badge-tag" style="background: rgba(100, 116, 139, 0.2); color: #94a3b8; border-color: rgba(100, 116, 139, 0.3);"><i class="fa-solid fa-ellipsis"></i> Khác</span>`;
-    }
-
-    const timeHtml = show.time ? `<span class="time-note"><i class="fa-solid fa-clock"></i> ${show.time}</span>` : "";
+    const statusText = renderStatusText(show.status);
+    const tagBadgeHtml = renderTagBadge(show.tags || []);
+    const timeHtml = renderTimeHtml(show.time);
     const year = getShowYear(show);
-    const yearHtml = year ? `<span class="badge badge-year"><i class="fa-regular fa-calendar"></i> ${escapeHtml(year)}</span>` : "";
+    const yearHtml = renderYearHtml(year);
     const ratingHtml = renderInteractiveStarRating(originalIndex, getShowRating(show));
     const thumbUrl = getShowImage(show);
     const thumbHtml = thumbUrl
