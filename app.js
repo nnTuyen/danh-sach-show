@@ -53,7 +53,7 @@ function removeVietnameseTones(str) {
   str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
   str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
   str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
-  str =   str.replace(/Ý|Ỳ|Ỵ|Ỷ|Ỹ/g, "Y");
+  str = str.replace(/Ý|Ỳ|Ỵ|Ỷ|Ỹ/g, "Y");
   str = str.replace(/Đ/g, "D");
   str = str.replace(/\u0300|\u0301|\u0309|\u0303|\u0323/g, ""); // Huyền sắc hỏi ngã nặng 
   str = str.replace(/\u02c6|\u0306|\u031b/g, ""); // Â, Ă, Ơ, Ư
@@ -449,8 +449,8 @@ function compareShowsByRatingAndName(a, b) {
 
 // Trả về số sao đánh giá
 function renderStarDisplay(rating) {
-  const stars = getShowRating({ rating });
-  if (!stars) return "";
+  const stars = Number(rating);
+  if (!stars || stars <= 0) return "";
   const icons = Array.from({ length: 5 }, (_, index) => {
     const filled = index < stars;
     return `<i class="fa-${filled ? "solid" : "regular"} fa-star"></i>`;
@@ -526,7 +526,10 @@ function saveShowRating(index, value) {
 
   syncRatingPickers(index, rating);
   updateStatistics();
-  renderShows();
+
+  if (currentFilters.sort === "stars") {
+    renderShows();
+  }
 
   const showName = currentShow?.vietnamese || "show";
   if (rating > 0) {
@@ -561,30 +564,6 @@ function getEffectiveShows() {
     _index: index,
     _isCustom: !!show._isCustom
   }));
-}
-
-function collectSettingsFields(item) {
-  const data = {};
-  item.querySelectorAll("[data-field]").forEach(input => {
-    const field = input.getAttribute("data-field");
-    const value = input.value.trim();
-
-    if (field === "tags") {
-      data.tags = stringToTags(value);
-      return;
-    }
-
-    if (field === "rating") {
-      const rating = Math.min(5, Math.max(0, parseInt(value, 10) || 0));
-      if (rating > 0) data.rating = rating;
-      return;
-    }
-
-    if (value) {
-      data[field] = value;
-    }
-  });
-  return data;
 }
 
 // Calculate and render overall Statistics on load
@@ -1162,8 +1141,6 @@ function saveSettingsShow(index) {
   const item = document.querySelector(`[data-settings-index="${index}"]`);
   if (!item) return;
 
-  const collected = collectSettingsFields(item);
-
   if (resolved.isCustom) {
     // Để trống hoặc giữ nguyên nếu không dùng tới nhánh custom này
   } else {
@@ -1171,14 +1148,16 @@ function saveSettingsShow(index) {
     const baseIndex = resolved.baseShow._showsDataIndex;
     if (baseIndex === undefined || baseIndex < 0 || baseIndex >= showsData.length) return;
 
-    const data = { ...showsData[baseIndex], ...collected };
+    const data = { ...showsData[baseIndex] };
 
     item.querySelectorAll("[data-field]").forEach(input => {
       const field = input.getAttribute("data-field");
       const value = input.value.trim();
 
       if (field === "rating") {
-        if (!(parseInt(value, 10) > 0)) delete data.rating;
+        const rating = Math.min(5, Math.max(0, parseInt(value, 10) || 0));
+        if (rating > 0) data.rating = rating;
+        else delete data.rating;
         return;
       }
 
