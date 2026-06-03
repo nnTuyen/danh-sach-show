@@ -3,7 +3,7 @@
     "chinese": "半熟恋人5",
     "english": "Love Actually S5",
     "vietnamese": "Người Yêu Một Nửa Thân Thuộc 5",
-    "status": "upcoming",
+    "status": "airing",
     "platform": "Tencent Video",
     "time": "12h 1 Tháng 6",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg",
@@ -155,17 +155,33 @@
   },
   {
     "chinese": "我们与恋爱的距离",
-    "english": "The Distance Between Us and Love",
-    "vietnamese": "Khoảng Cách Giữa Chúng Ta Và Tình Yêu",
-    "status": "upcoming",
+    "english": "The Distance to Love - Chasing Season",
+    "vietnamese": "Khoảng Cách Giữa Chúng Ta Và Tình Yêu - Mùa Theo Đuổi",
+    "status": "airing",
     "platform": "Mango TV",
-    "time": "12h 2 Tháng 6",
+    "time": "12h 3 Tháng 6",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-9.jpg",
     "tags": [
       "normal"
     ],
     "country": "china",
-    "description": "Giới thiệu chương trình: Chương trình tập trung vào xu hướng xã hội \"mối quan hệ phụ nữ lớn tuổi - đàn ông trẻ tuổi\" và mời 10 khách mời nam và nữ ở các giai đoạn cuộc sống khác nhau cùng chuyển đến \"Ngôi nhà Tình yêu\" để bắt đầu một \"thí nghiệm xã hội về tình yêu\" kéo dài 10 ngày. Họ sẽ gặp gỡ và làm quen với nhau mà không bị ràng buộc bởi các định kiến ​​xã hội (như tuổi tác/giới tính/hoàn cảnh gia đình/nghề nghiệp/thu nhập), và bắt đầu một hành trình tìm kiếm tình yêu dựa hoàn toàn vào trực giác và sự yêu thích lẫn nhau!"
+    "description": "Giới thiệu chương trình: Chương trình tập trung vào xu hướng xã hội \"mối quan hệ phụ nữ lớn tuổi - đàn ông trẻ tuổi\" và mời 10 khách mời nam và nữ ở các giai đoạn cuộc sống khác nhau cùng chuyển đến \"Ngôi nhà Tình yêu\" để bắt đầu một \"thí nghiệm xã hội về tình yêu\" kéo dài 10 ngày. Họ sẽ gặp gỡ và làm quen với nhau mà không bị ràng buộc bởi các định kiến ​​xã hội (như tuổi tác/giới tính/hoàn cảnh gia đình/nghề nghiệp/thu nhập), và bắt đầu một hành trình tìm kiếm tình yêu dựa hoàn toàn vào trực giác và sự yêu thích lẫn nhau!",
+    "chineseWatchUrls": [
+      {
+        "url": "https://w.mgtv.com/b/872436/24415039.html?fpa=se&lastp=so_result&lang=en",
+        "label": "Yêu cầu VIP"
+      }
+    ],
+    "chineseWatchUrl": "https://w.mgtv.com/b/872436/24415039.html?fpa=se&lastp=so_result&lang=en",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://w.mgtv.com/b/872436/24415039.html?fpa=se&lastp=so_result&lang=en",
+        "label": "Yêu cầu có VIP"
+      }
+    ],
+    "vietnameseWatchUrl": "https://w.mgtv.com/b/872436/24415039.html?fpa=se&lastp=so_result&lang=en",
+    "rating": 3,
+    "year": "3-6-2026"
   },
   {
     "chinese": "心动双重奏",
@@ -252,7 +268,7 @@
     "chinese": "喜欢你我也是6",
     "english": "Yes, I Do S6",
     "vietnamese": "Thích anh, anh cũng vậy S6",
-    "status": "upcoming",
+    "status": "airing",
     "platform": "iQiyi",
     "time": "12h 3 Tháng 6",
     "tags": [
@@ -260,7 +276,7 @@
     ],
     "country": "china",
     "description": "10 nam nữ độc thân trẻ tuổi 20+ đến từ những vùng miền khác nhau, làm những công việc khác nhau, có trình độ học vấn và trải nghiệm tình cảm khác nhau. Họ bắt đầu hành trình bằng một chuyến du lịch, lên đường đến bốn thành phố, dũng cảm tiến về phía tình yêu và mở ra “kỳ nghỉ yêu đương”.\n\nLần này, hãy để mọi người gỡ bỏ sự phòng bị giữa khung cảnh đẹp của chuyến đi, thấu hiểu nhau qua những sự quan tâm ấm áp, cùng tìm kiếm những tâm hồn đồng điệu và cùng nhau lưu giữ một tình yêu đẹp.",
-    "year": "2026",
+    "year": "3-6-2026",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-17-v2.jpg",
     "chineseWatchUrls": [
       {
@@ -280,7 +296,8 @@
         "label": "AI sub"
       }
     ],
-    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xcahsg"
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xcahsg",
+    "rating": 5
   },
   {
     "chinese": "恋爱咖啡屋",
