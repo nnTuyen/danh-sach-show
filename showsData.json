@@ -268,7 +268,19 @@
         "label": "Nơi chiếu tiếng Trung"
       }
     ],
-    "chineseWatchUrl": "https://www.iqiyi.com/a_nr08g34nj5.html"
+    "chineseWatchUrl": "https://www.iqiyi.com/a_nr08g34nj5.html",
+    "detailNotes": "Nữ 1 - \tChương Tử Hinh | Sinh ngày 07/05, cung Kim Ngưu \nNữ 2 -  Xã Noãn Xuân Tử | Cung Kim Ngưu, Blogger thời trang\nNữ 3 - Vũ Luyện Trì | 30/07/2003, cung Sư Tử, ENFP, tốt nghiệp hệ Đại học chính quy chuyên ngành Phát thanh & Dẫn chương trình khóa 2021 – Đại học Truyền thông Trung Quốc, MC NBA của Tencent.\nNữ 4 -  Đỗ Thần Thần | Sinh ngày 07/07/1996, cung Cự Giải\n\n\nNam 1 - Lý Gia Hạo | Sinh ngày 23/02/1999, cung Song Ngư\nNam 2 - Hà Giang | Cung Kim Ngưu\nNam 3 - Chu Hạo Khiêm | Sinh ngày 07/10, cung Thiên Bình, Diễn viên\nNam 4 - Phàn Tử Hoa | Làm việc tại Mỹ",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://dailymotion.com/playlist/xcahsg",
+        "label": "AI sub"
+      },
+      {
+        "url": "https://odysee.com/Th%C3%ADch-anh%2C-anh-c%C5%A9ng-v%E1%BA%ADy-S6---Yes%2C-I-Do-S6---%E5%96%9C%E6%AC%A2%E4%BD%A0%E6%88%91%E4%B9%9F%E6%98%AF6:39286edeb542d717dbe971226e1c0dd9c909a169?r=289kzgext53vaS2RPNn7nmxB36Kd3bNX&lid=39286edeb542d717dbe971226e1c0dd9c909a169",
+        "label": "AI sub"
+      }
+    ],
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xcahsg"
   },
   {
     "chinese": "恋爱咖啡屋",
