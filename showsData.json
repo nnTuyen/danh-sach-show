@@ -5,7 +5,7 @@
     "vietnamese": "Người Yêu Một Nửa Thân Thuộc 5",
     "status": "airing",
     "platform": "Tencent Video",
-    "time": "12h 1 Tháng 6",
+    "time": "12h T2 T3 hàng tuần",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg",
     "chineseWatchUrl": "https://v.qq.com/x/cover/mzc00200x8zylq0/c4102tnbp6u.html",
     "tags": [
@@ -17,18 +17,26 @@
       {
         "url": "https://v.qq.com/x/cover/mzc00200x8zylq0/c4102tnbp6u.html",
         "label": "Nơi chiếu tiếng Trung"
+      },
+      {
+        "url": "https://wetv.vip/en/play/07820ipkkt3hcao/z41028e0ls3-Episode_2(Part_1)%3A_4v4_Dating!_Dance_Game_for_Casts_in_Love_Actually?brid=YWdncwHG3grpDv5dRhZo3_msQdCv",
+        "label": "Multi sub"
       }
     ],
     "rating": 5,
     "year": "1-6-2026",
-    "detailNotes": "Nữ 1 - Trần Đan Kỳ\nNữ 2 - Giả Bội Huyên (Có con 8 tuổi)\nNữ 3- Liễu Liễu (Từ Lục Dương)\nNữ 4 - Rita Vương Dịch\n\nNam 1 - Chu Hữu Lăng\nNam 2 - Đổng Trác Nhiên\nNam 3 - Hiểu Văn (Tiêu Văn Thao)\nNam 4 - BK Lục Bính Côn (24 tuổi)",
+    "detailNotes": "Nữ 1 - Trần Đan Kỳ | 30t | Nhà thiết kế thời trang\nNữ 2 - Giả Bội Huyên (Có con 8 tuổi) | 36t | bà chủ công ty quảng cáo\nNữ 3- Liễu Liễu (Từ Lục Dương) | 28t | nhân viên vận hành công ty AI\nNữ 4 - Rita Vương Dịch | 33t |  nhà thiết kế & chủ thương hiệu mũ\n\nNam 1 - Chu Hữu Lăng | 36t | tổng tài\nNam 2 - Đổng Trác Nhiên | 36t | phụ trách mảng bệnh nhân tại một công ty dược phẩm.\nNam 3 - Hiểu Văn (Tiêu Văn Thao) | 30t | nhạc sĩ\nNam 4 - BK Lục Bính Côn (24 tuổi) | 24t | doanh nhân công ty trí tuệ nhân tạo",
     "vietnameseWatchUrls": [
+      {
+        "url": "https://dailymotion.com/playlist/xcac46",
+        "label": "Auto sub"
+      },
       {
         "url": "https://www.youtube.com/playlist?list=PL6cx4wEBokSHihMCiCe7NEfPoIcUyFBhe",
         "label": "Tập mới ra chậm 1 tuần - Sub auto"
       }
     ],
-    "vietnameseWatchUrl": "https://www.youtube.com/playlist?list=PL6cx4wEBokSHihMCiCe7NEfPoIcUyFBhe"
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xcac46"
   },
   {
     "chinese": "心动的信号9",
@@ -268,7 +276,7 @@
     "vietnamese": "Thích anh, anh cũng vậy S6",
     "status": "airing",
     "platform": "iQiyi",
-    "time": "12h 3 Tháng 6",
+    "time": "12h T4 T5 hàng tuần",
     "tags": [
       "normal"
     ],
@@ -286,11 +294,11 @@
     "detailNotes": "Nữ 1 - \tChương Tử Hinh | Sinh ngày 07/05 | cung Kim Ngưu \nNữ 2 -  Xã Noãn Xuân Tử | Cung Kim Ngưu | Blogger thời trang\nNữ 3 - Vũ Luyện Trì | 30/07/2003 | cung Sư Tử, ENFP | tốt nghiệp hệ Đại học chính quy chuyên ngành Phát thanh & Dẫn chương trình khóa 2021 – Đại học Truyền thông Trung Quốc, MC NBA của Tencent.\nNữ 4 -  Đỗ Thần Thần | Sinh ngày 07/07/1996 | cung Cự Giải | 177cm\n\n\nNam 1 - Lý Gia Hạo | Sinh ngày 23/02/1999 | cung Song Ngư\nNam 2 - Hà Giang | Cung Kim Ngưu | 1999 | ENTJ | 186cm\nNam 3 - Chu Hạo Khiêm | Sinh ngày 07/10 | cung Thiên Bình | Diễn viên\nNam 4 - Phàn Tử Hoa | Làm việc tại Mỹ",
     "vietnameseWatchUrls": [
       {
-        "url": "https://www.dailymotion.com/user/longmon",
+        "url": "https://dailymotion.com/playlist/xcahsg",
         "label": "Sub AI"
       }
     ],
-    "vietnameseWatchUrl": "https://www.dailymotion.com/user/longmon",
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xcahsg",
     "rating": 5
   },
   {
