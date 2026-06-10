@@ -2314,5 +2314,28 @@
     "description": "Liệu những tế bào lãng mạn có thực sự được đánh thức ngay cả trong những tình huống kỳ quặc và khó xử?\nMáy ảnh thí nghiệm quan sát tế bào tình yêu hoàn chỉnh.\nShow của PD Lee Jin Joo, 1 PD của nhiều show nổi tiếng như transit love, My Sibling's Romance",
     "year": "11-06-2026",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/Show-101.jpg"
+  },
+  {
+    "chinese": "스탠바이미",
+    "english": "Stand BI Me",
+    "vietnamese": "Stand BI Me",
+    "status": "upcoming",
+    "platform": "Wave",
+    "time": "19-06-2026",
+    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-102.jpg",
+    "tags": [
+      "normal"
+    ],
+    "country": "korea",
+    "rating": 4,
+    "description": "Show dành cho người song giới tính.\n\"Chúng ta có thể ở bên nhau, hoặc cũng có thể trở thành đối thủ của nhau.\"\nVô vàn khả năng đang mở ra, một câu chuyện tình lãng mạn đích thực bắt đầu vì em",
+    "year": "19-06-2026",
+    "chineseWatchUrls": [
+      {
+        "url": "https://www.youtube.com/watch?v=fOxnG_jd38k",
+        "label": "Trailer"
+      }
+    ],
+    "chineseWatchUrl": "https://www.youtube.com/watch?v=fOxnG_jd38k"
   }
 ]
