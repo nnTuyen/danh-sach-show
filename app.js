@@ -900,7 +900,7 @@ function renderSettingsShowFormHtml(show) {
     ["other", "Khác (Không phải show hẹn hò)"]
   ])}
             ${settingsInput(show._index, "image", "Link hình ảnh", getShowImage(show), "span-2")}
-            ${settingsWatchLinksGroup(show._index, "chinese", getChineseWatchLinks(show), "Link xem tiếng Trung")}
+            ${settingsWatchLinksGroup(show._index, "chinese", getChineseWatchLinks(show), "Link gốc")}
             ${settingsWatchLinksGroup(show._index, "vietnamese", getVietnameseWatchLinks(show), "Link xem tiếng Việt")}
             ${settingsInput(show._index, "episodeProgress", "Đang chiếu đến tập", show.episodeProgress || "")}
             ${settingsInput(show._index, "airingNote", "Ghi chú phát sóng", show.airingNote || "", "span-2")}
@@ -1357,7 +1357,7 @@ function renderShowLinks(show) {
     const zhSectionTitle = document.createElement('div');
     zhSectionTitle.className = 'modal-links-section-title';
     if (viLinks.length > 0) zhSectionTitle.style.marginTop = '1.25rem'; // Add spacing if there are Vietnamese links
-    zhSectionTitle.innerHTML = `<i class="fa-solid fa-earth-asia" style="color: var(--accent-color);"></i> Bản gốc tiếng Trung`;
+    zhSectionTitle.innerHTML = `<i class="fa-solid fa-earth-asia" style="color: var(--accent-color);"></i> Bản gốc`;
     fragment.appendChild(zhSectionTitle);
 
     const zhLinksList = document.createElement('div');
@@ -1365,7 +1365,7 @@ function renderShowLinks(show) {
     zhLinksList.innerHTML = zhLinks.map(link => `
           <a class="watch-link-item" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">
             <div>
-              <span class="watch-link-label">${escapeHtml(link.label || "Link xem tiếng Trung")}</span>
+              <span class="watch-link-label">${escapeHtml(link.label || "Link gốc")}</span>
               ${link.note ? `<span class="watch-link-note">${escapeHtml(link.note)}</span>` : ""}
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square"></i>
