@@ -2303,18 +2303,11 @@
   },
   {
     "chinese": "연애실험실",
-    "english": "Love Lab",
-    "vietnamese": "Love Lab",
-    "status": "upcoming",
+    "english": "The Love Lab",
+    "vietnamese": "The Love Lab",
+    "status": "airing",
     "platform": "Netflix",
-    "time": "11h 17-06-2026",
-    "chineseWatchUrl": "https://www.youtube.com/watch?v=x-1qtKg7bnQ",
-    "chineseWatchUrls": [
-      {
-        "url": "https://www.youtube.com/watch?v=x-1qtKg7bnQ",
-        "label": "Trailer"
-      }
-    ],
+    "time": "Sáng T5 hàng tuần",
     "tags": [
       "normal"
     ],
@@ -2322,7 +2315,14 @@
     "rating": 3,
     "description": "Liệu những tế bào lãng mạn có thực sự được đánh thức ngay cả trong những tình huống kỳ quặc và khó xử?\nMáy ảnh thí nghiệm quan sát tế bào tình yêu hoàn chỉnh.\nShow của PD Lee Jin Joo, 1 PD của nhiều show nổi tiếng như transit love, My Sibling's Romance",
     "year": "11-06-2026",
-    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/Show-101.jpg"
+    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/Show-101.jpg",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://kisskh.co/Drama/The-Love-Lab--2026-/Episode-1?id=13178&ep=216440&page=0&pageSize=100&utm_source=j2team&utm_medium=url_shortener&utm_campaign=ade08747",
+        "label": "Sub auto"
+      }
+    ],
+    "vietnameseWatchUrl": "https://kisskh.co/Drama/The-Love-Lab--2026-/Episode-1?id=13178&ep=216440&page=0&pageSize=100&utm_source=j2team&utm_medium=url_shortener&utm_campaign=ade08747"
   },
   {
     "chinese": "스탠바이미",
