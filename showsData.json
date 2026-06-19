@@ -2328,9 +2328,9 @@
     "chinese": "스탠바이미",
     "english": "Stand BI Me",
     "vietnamese": "Stand BI Me",
-    "status": "upcoming",
+    "status": "airing",
     "platform": "Wave",
-    "time": "19-06-2026",
+    "time": "12h Thứ 6",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-102.jpg",
     "tags": [
       "normal"
@@ -2345,6 +2345,13 @@
         "label": "Trailer"
       }
     ],
-    "chineseWatchUrl": "https://www.youtube.com/watch?v=fOxnG_jd38k"
+    "chineseWatchUrl": "https://www.youtube.com/watch?v=fOxnG_jd38k",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://kisskh.co/Drama/Stand-Bi-Me--2026-?id=13207&q=true",
+        "label": "Auto sub"
+      }
+    ],
+    "vietnameseWatchUrl": "https://kisskh.co/Drama/Stand-Bi-Me--2026-?id=13207&q=true"
   }
 ]
