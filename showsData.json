@@ -300,10 +300,6 @@
       {
         "url": "https://rumble.com/playlists/WpQVExFVAEg",
         "label": "Sub AI"
-      },
-      {
-        "url": "https://odysee.com/@Nguy%E1%BB%85nNg%E1%BB%8DcTuy%C3%AAn:b/Th%C3%ADch-anh%2C-anh-c%C5%A9ng-v%E1%BA%ADy-S6---Yes%2C-I-Do-S6---%E5%96%9C%E6%AC%A2%E4%BD%A0%E6%88%91%E4%B9%9F%E6%98%AF6:3?r=289kzgext53vaS2RPNn7nmxB36Kd3bNX&lid=39286edeb542d717dbe971226e1c0dd9c909a169",
-        "label": "Sub AI"
       }
     ],
     "vietnameseWatchUrl": "https://www.bilibili.tv/vi/video/4800020754209792",
@@ -2231,9 +2227,9 @@
     "chinese": "자식 방생 프로젝트 합숙맞선",
     "english": "Match to Marry: With Parents S2",
     "vietnamese": "Cùng Mẹ Đi Hẹn Hò S2",
-    "status": "upcoming",
+    "status": "airing",
     "platform": "SBS",
-    "time": "25-6-2026",
+    "time": "17h Thứ 6",
     "tags": [
       "normal"
     ],
@@ -2248,7 +2244,18 @@
       }
     ],
     "chineseWatchUrl": "https://www.youtube.com/watch?v=v4NBRstYuYQ",
-    "description": "Đây là một chương trình hẹn hò thực tế, nơi 10 người độc thân nghiêm túc với hôn nhân cùng sống chung trong 5 đêm 6 ngày. Đặc biệt, 10 người mẹ của họ cũng ở chung trong cùng một ngôi nhà, trực tiếp theo dõi toàn bộ quá trình hẹn hò của con cái từ khoảng cách gần.\nKhi những rung động, từ chối và cảm xúc chân thật diễn ra theo thời gian thực, các bà mẹ không chỉ quan sát mà còn chủ động đưa ra ý kiến, tạo nên những va chạm gay gắt giữa tình yêu và các điều kiện thực tế của hôn nhân. Điều này cũng làm bùng nổ những xung đột căng thẳng giữa mẹ và con, xoay quanh câu hỏi: ai mới là người phù hợp để kết hôn?"
+    "description": "Đây là một chương trình hẹn hò thực tế, nơi 10 người độc thân nghiêm túc với hôn nhân cùng sống chung trong 5 đêm 6 ngày. Đặc biệt, 10 người mẹ của họ cũng ở chung trong cùng một ngôi nhà, trực tiếp theo dõi toàn bộ quá trình hẹn hò của con cái từ khoảng cách gần.\nKhi những rung động, từ chối và cảm xúc chân thật diễn ra theo thời gian thực, các bà mẹ không chỉ quan sát mà còn chủ động đưa ra ý kiến, tạo nên những va chạm gay gắt giữa tình yêu và các điều kiện thực tế của hôn nhân. Điều này cũng làm bùng nổ những xung đột căng thẳng giữa mẹ và con, xoay quanh câu hỏi: ai mới là người phù hợp để kết hôn?",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://kisskh.co/Drama/Match-to-Marry--With-Parents-Season-2/Episode-1?id=13205&ep=216587&page=0&pageSize=100&utm_source=j2team&utm_medium=url_shortener&utm_campaign=d2e7cc1f",
+        "label": "Sub auto"
+      },
+      {
+        "url": "https://bili.im/TFrHD14",
+        "label": "Sub làm qua loa"
+      }
+    ],
+    "vietnameseWatchUrl": "https://kisskh.co/Drama/Match-to-Marry--With-Parents-Season-2/Episode-1?id=13205&ep=216587&page=0&pageSize=100&utm_source=j2team&utm_medium=url_shortener&utm_campaign=d2e7cc1f"
   },
   {
     "chinese": "연애전쟁",
