@@ -270,6 +270,8 @@ function detectPlatformFromUrl(url) {
   if (lower.includes("ok.ru")) return "OK.ru";
   if (lower.includes("rumble.com") || lower.includes("rumble")) return "Rumble";
   if (lower.includes("dailymotion.com") || lower.includes("dailymotion")) return "Dailymotion";
+  if (lower.includes("kisskh.co") || lower.includes("kisskh")) return "KissKh";
+  if (lower.includes("d.tube") || lower.includes("dtube")) return "D.Tube";
   if (lower.includes("odysee.com") || lower.includes("odysee")) return "Odysee";
   return "";
 }
@@ -636,6 +638,8 @@ function getPlatformClass(platform) {
   if (lower.includes("bili")) return "bilibili";
   if (lower.includes("rumble")) return "rumble";
   if (lower.includes("odysee")) return "odysee";
+  if (lower.includes("kisskh")) return "kisskh";
+  if (lower.includes("dtube")) return "dtube";
   if (lower.includes("mamphim")) return "mamphim";
   if (lower.includes("yeuphim")) return "yeuphim";
   if (lower.includes("rophim")) return "rophim";
