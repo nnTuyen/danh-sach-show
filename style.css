@@ -358,12 +358,6 @@ header p {
   box-shadow: 0 4px 12px rgba(180, 83, 9, 0.3);
 }
 
-.filter-btn.active[data-country="singapore"] {
-  background: #0891b2;
-  border-color: #0891b2;
-  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
-}
-
 .filter-btn.active[data-country="other"] {
   background: #64748b;
   border-color: #64748b;
@@ -409,11 +403,6 @@ header p {
 .badge-country.hongkong {
   border-color: rgba(180, 83, 9, 0.35);
   background: rgba(180, 83, 9, 0.12);
-}
-
-.badge-country.singapore {
-  border-color: rgba(8, 145, 178, 0.35);
-  background: rgba(8, 145, 178, 0.12);
 }
 
 .badge-country.other {
@@ -1215,7 +1204,7 @@ header p {
 }
 
 /* Loại bỏ khoảng trống vô nghĩa từ dòng trống liên tiếp trong nội dung pre-wrap */
-.modal-desc-content br + br {
+.modal-desc-content br+br {
   display: none;
 }
 
@@ -2509,7 +2498,8 @@ header p {
 
 /* Modal Textarea Editor */
 #textarea-editor-modal {
-  z-index: 2800; /* Hiển thị phía trên settings modal (z-index 2500) */
+  z-index: 2800;
+  /* Hiển thị phía trên settings modal (z-index 2500) */
 }
 
 .textarea-editor-container {
