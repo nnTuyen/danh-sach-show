@@ -86,6 +86,7 @@
               A-Z</button>
             <button class="filter-btn" data-sort="name-desc"><i class="fa-solid fa-sort-alpha-up"></i> Tên Z-A</button>
             <button class="filter-btn" data-sort="stars"><i class="fa-solid fa-star"></i> Số sao</button>
+            <button class="filter-btn" data-sort="year"><i class="fa-regular fa-calendar"></i> Năm</button>
             <button class="filter-btn" data-sort="name-en"><i class="fa-solid fa-globe"></i> Tên tiếng Anh</button>
             <button class="filter-btn" data-sort="watch-link"><i class="fa-solid fa-link"></i> Link xem video</button>
           </div>
@@ -98,6 +99,10 @@
             <button class="filter-btn active" data-country="all">Tất cả</button>
             <button class="filter-btn" data-country="china">🇨🇳 Trung Quốc</button>
             <button class="filter-btn" data-country="korea">🇰🇷 Hàn Quốc</button>
+            <button class="filter-btn" data-country="japan">🇯🇵 Nhật Bản</button>
+            <button class="filter-btn" data-country="thailand">🇹🇭 Thái Lan</button>
+            <button class="filter-btn" data-country="taiwan">🇹🇼 Đài Loan</button>
+            <button class="filter-btn" data-country="hongkong">🇭🇰 Hồng Kông</button>
             <button class="filter-btn" data-country="other">🌏 Khác</button>
           </div>
         </div>
@@ -112,6 +117,8 @@
                 class="fa-solid fa-venus-double"></i> Les GL</button>
             <button class="filter-btn" data-tag="all-male" title="Show hẹn hò đam mỹ / BL"><i
                 class="fa-solid fa-mars-double"></i> Gay BL</button>
+            <button class="filter-btn" data-tag="bisexual" title="Show hẹn hò song tính / Bisexual"><i
+                class="fa-solid fa-venus-mars"></i> Bisexual</button>
             <button class="filter-btn" data-tag="other" title="Chương trình/show khác"><i
                 class="fa-solid fa-ellipsis"></i> Khác</button>
           </div>
@@ -236,7 +243,7 @@
             <i class="fa-solid fa-code"></i> Copy JSON
           </button>
           <button class="settings-save-btn" type="button" onclick="downloadUpdatedJson()">
-            <i class="fa-solid fa-file-arrow-down"></i> Tải HTML đã cập nhật
+            <i class="fa-solid fa-file-arrow-down"></i> Tải JSON đã cập nhật
           </button>
         </div>
       </div>
@@ -292,7 +299,7 @@
     <i class="fa-solid fa-arrow-up"></i>
   </button>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=20260627-filters"></script>
 </body>
 
 </html>
