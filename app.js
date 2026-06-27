@@ -73,7 +73,6 @@ const COUNTRY_OPTIONS = [
   { code: "thailand", label: "Thái Lan", flag: "🇹🇭" },
   { code: "taiwan", label: "Đài Loan", flag: "🇹🇼" },
   { code: "hongkong", label: "Hồng Kông", flag: "🇭🇰" },
-  { code: "singapore", label: "Singapore", flag: "🇸🇬" },
   { code: "other", label: "Khác", flag: "🌏" }
 ];
 
@@ -741,6 +740,9 @@ function renderTagBadge(tags) {
   if (tags.includes("all-male")) {
     return `<span class="badge badge-tag"><i class="fa-solid fa-mars-double"></i> Gay (BL)</span>`;
   }
+  if (tags.includes("bisexual")) {
+    return `<span class="badge badge-tag"><i class="fa-solid fa-venus-mars"></i> Bisexual</span>`;
+  }
   if (tags.includes("other")) {
     return `<span class="badge badge-tag" style="background: rgba(100, 116, 139, 0.2); color: #94a3b8; border-color: rgba(100, 116, 139, 0.3);"><i class="fa-solid fa-ellipsis"></i> Khác</span>`;
   }
@@ -757,6 +759,16 @@ function renderTimeHtml(time) {
 
 function renderYearHtml(year) {
   return year ? `<span class="badge badge-year"><i class="fa-regular fa-calendar"></i> ${escapeHtml(year)}</span>` : "";
+}
+
+function getSortableYear(show) {
+  const yearText = getShowYear(show);
+  const matches = String(yearText || "").match(/\b(19|20)\d{2}\b/g);
+  return matches ? Math.max(...matches.map(Number)) : -Infinity;
+}
+
+function compareShowsByVietnameseName(a, b) {
+  return removeVietnameseTones(a.vietnamese || "").localeCompare(removeVietnameseTones(b.vietnamese || ""), "vi");
 }
 
 // Chuyển tags thành chuỗi string
@@ -901,6 +913,7 @@ function renderSettingsShowFormHtml(show) {
     ["normal", "Bình thường"],
     ["all-female", "Lesbian (GL)"],
     ["all-male", "Gay (BL)"],
+    ["bisexual", "Bisexual / Song tính"],
     ["other", "Khác (Không phải show hẹn hò)"]
   ])}
             ${settingsInput(show._index, "image", "Link hình ảnh", getShowImage(show), "span-2")}
@@ -1197,7 +1210,7 @@ function deleteShow(index) {
 
   const show = getShowWithUserData(resolved.baseShow);
   const showName = show.vietnamese || show.chinese || "show";
-  const confirmMessage = `Xóa vĩnh viễn "${showName}" khỏi danh sách hiện tại? Nếu muốn giữ thay đổi này trong file, hãy bấm "Tải HTML đã cập nhật" sau khi xóa.`;
+  const confirmMessage = `Xóa vĩnh viễn "${showName}" khỏi danh sách hiện tại? Nếu muốn giữ thay đổi này trong file, hãy bấm "Tải JSON đã cập nhật" sau khi xóa.`;
 
   if (!window.confirm(confirmMessage)) return;
 
@@ -1561,13 +1574,16 @@ function renderShows() {
 
     // Tag Filter
     if (currentFilters.tag !== "all") {
-      if (currentFilters.tag === "normal" && ((show.tags || []).includes("all-female") || (show.tags || []).includes("all-male") || (show.tags || []).includes("other"))) {
+      if (currentFilters.tag === "normal" && ((show.tags || []).includes("all-female") || (show.tags || []).includes("all-male") || (show.tags || []).includes("bisexual") || (show.tags || []).includes("other"))) {
         return false;
       }
       if (currentFilters.tag === "all-female" && !(show.tags || []).includes("all-female")) {
         return false;
       }
       if (currentFilters.tag === "all-male" && !(show.tags || []).includes("all-male")) {
+        return false;
+      }
+      if (currentFilters.tag === "bisexual" && !(show.tags || []).includes("bisexual")) {
         return false;
       }
       if (currentFilters.tag === "other" && !(show.tags || []).includes("other")) {
@@ -1606,7 +1622,12 @@ function renderShows() {
       case "stars": {
         const ratingDiff = getShowRating(b) - getShowRating(a);
         if (ratingDiff !== 0) return ratingDiff;
-        return removeVietnameseTones(a.vietnamese || "").localeCompare(removeVietnameseTones(b.vietnamese || ""), "vi");
+        return compareShowsByVietnameseName(a, b);
+      }
+      case "year": {
+        const yearDiff = getSortableYear(b) - getSortableYear(a);
+        if (yearDiff !== 0) return yearDiff;
+        return compareShowsByVietnameseName(a, b);
       }
       case "name-desc":
         return removeVietnameseTones(b.vietnamese || "").localeCompare(removeVietnameseTones(a.vietnamese || ""), "vi");
@@ -1615,17 +1636,17 @@ function renderShows() {
         const nameEnB = (b.english || "").toLowerCase();
         const enCompare = nameEnA.localeCompare(nameEnB, "en");
         if (enCompare !== 0) return enCompare;
-        return removeVietnameseTones(a.vietnamese || "").localeCompare(removeVietnameseTones(b.vietnamese || ""), "vi");
+        return compareShowsByVietnameseName(a, b);
       }
       case "watch-link": {
         const hasLinkA = (getChineseWatchLinks(a).length > 0 || getVietnameseWatchLinks(a).length > 0 || (Array.isArray(a.watchLinks) && a.watchLinks.length > 0)) ? 1 : 0;
         const hasLinkB = (getChineseWatchLinks(b).length > 0 || getVietnameseWatchLinks(b).length > 0 || (Array.isArray(b.watchLinks) && b.watchLinks.length > 0)) ? 1 : 0;
         if (hasLinkB !== hasLinkA) return hasLinkB - hasLinkA;
-        return removeVietnameseTones(a.vietnamese || "").localeCompare(removeVietnameseTones(b.vietnamese || ""), "vi");
+        return compareShowsByVietnameseName(a, b);
       }
       case "name-asc":
       default:
-        return removeVietnameseTones(a.vietnamese || "").localeCompare(removeVietnameseTones(b.vietnamese || ""), "vi");
+        return compareShowsByVietnameseName(a, b);
     }
   });
 
