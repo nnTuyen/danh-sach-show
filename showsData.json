@@ -65,7 +65,8 @@
         "url": "https://v.qq.com/x/cover/mzc002003kpyd2m/m410197cfzm.html",
         "label": "Nơi chiếu tiếng Trung"
       }
-    ]
+    ],
+    "rating": 5
   },
   {
     "chinese": "日落时分说爱你2",
@@ -124,7 +125,8 @@
     ],
     "country": "china",
     "description": "Show tập trung vào khái niệm \"thiên vị\" trong tình yêu: khi một người không chỉ được chọn vì phù hợp, mà còn vì trở thành ngoại lệ đặc biệt trong mắt đối phương. Tên Anh \"Preference of Love\" là bản dịch sát nghĩa, còn tên Việt \"Tình Yêu Thiên Vị\" giữ đúng sắc thái gốc.",
-    "time": "Đang casting"
+    "time": "Đang casting",
+    "rating": 4
   },
   {
     "chinese": "妈妈我要恋爱啦",
@@ -170,7 +172,7 @@
   {
     "chinese": "我们与恋爱的距离",
     "english": "The Distance to Love - Chasing Season",
-    "vietnamese": "Khoảng Cách Giữa Chúng Ta Và Tình Yêu - Mùa Theo Đuổi",
+    "vietnamese": "Khoảng Cách Giữa Chúng Ta Và Tình Yêu",
     "status": "airing",
     "platform": "Mango TV",
     "time": "12h 3 Tháng 6",
@@ -189,11 +191,19 @@
     "chineseWatchUrl": "https://w.mgtv.com/b/872436/24415039.html?fpa=se&lastp=so_result&lang=en",
     "vietnameseWatchUrls": [
       {
+        "url": "https://dailymotion.com/playlist/xcbwna",
+        "label": "Sub auto"
+      },
+      {
+        "url": "https://bili.im/S1JRY7y",
+        "label": "Sub auto - Chỉ 720p"
+      },
+      {
         "url": "https://w.mgtv.com/b/872436/24415039.html?fpa=se&lastp=so_result&lang=en",
         "label": "Auto sub"
       }
     ],
-    "vietnameseWatchUrl": "https://w.mgtv.com/b/872436/24415039.html?fpa=se&lastp=so_result&lang=en",
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xcbwna",
     "rating": 3,
     "year": "3-6-2026"
   },
@@ -639,7 +649,8 @@
       }
     ],
     "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLyzma10V340H1X5ANmGTDpE_m9w-_cepJ&si=BuqmI4q855_k0auQ",
-    "year": "2024"
+    "year": "2024",
+    "rating": 2
   },
   {
     "chinese": "有你的恋歌2",
@@ -797,7 +808,8 @@
       }
     ],
     "vietnameseWatchUrl": "https://www.youtube.com/hashtag/%E6%9C%AA%E7%9F%A5%E7%9A%84%E5%BF%83%E8%B7%B3",
-    "year": "2024"
+    "year": "2024",
+    "rating": 2
   },
   {
     "chinese": "我们恋爱吧 1-6季",
@@ -997,7 +1009,8 @@
       }
     ],
     "vietnameseWatchUrl": "https://youtube.com/playlist?list=PL8ZqkzK2I5RQ3XKHG-8kmTchg1IiO6hKf&si=0qvN-QCWwRFYGYED",
-    "year": "2024"
+    "year": "2024",
+    "rating": 2
   },
   {
     "chinese": "漂洋过海的我们",
@@ -1018,7 +1031,8 @@
       }
     ],
     "vietnameseWatchUrl": "https://youtube.com/playlist?list=PL9Ay-oitSPcxVGHS_pMg5Cfmc-DGviP1C&si=ENg4UJF4UXO5Civp",
-    "year": "2026"
+    "year": "2026",
+    "rating": 2
   },
   {
     "chinese": "你是我心选的她",
@@ -1039,7 +1053,8 @@
       }
     ],
     "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLpXN9a1M9GegxDLmioN-jhSFTnHD2A50o&si=-2tWmzlJhxwccs59",
-    "year": "2025"
+    "year": "2025",
+    "rating": 2
   },
   {
     "chinese": "浪漫的竞争",
@@ -1060,7 +1075,8 @@
       }
     ],
     "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLD5NR0GwV8msZTaPhdgRgxUoop_hdWegI&si=0rsHbhdCpvEF27IG",
-    "year": "2025"
+    "year": "2025",
+    "rating": 2
   },
   {
     "chinese": "爱就拉上她",
@@ -1081,7 +1097,8 @@
       }
     ],
     "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLKEM1yuJ_2Ul7jC8b3eXZch17Jb9jeg2e&si=-LOkrYnB3o-CnVQO",
-    "year": "2025"
+    "year": "2025",
+    "rating": 2
   },
   {
     "chinese": "仔仔一堂 1-2季",
@@ -1105,7 +1122,8 @@
         "label": "Mùa 1 - Sub auto Youtube"
       }
     ],
-    "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLOBkSBZzsdmLxfN_mcIIiOEROE4IV2Ssm&si=3sPXRAmbg31_6pJ4"
+    "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLOBkSBZzsdmLxfN_mcIIiOEROE4IV2Ssm&si=3sPXRAmbg31_6pJ4",
+    "rating": 2
   },
   {
     "chinese": "恋爱Casting",
@@ -1126,7 +1144,8 @@
       }
     ],
     "vietnameseWatchUrl": "https://www.youtube.com/hashtag/%E6%88%80%E6%84%9Bcasting",
-    "year": "2025"
+    "year": "2025",
+    "rating": 2
   },
   {
     "chinese": "友間合租屋",
@@ -1368,7 +1387,8 @@
     ],
     "country": "other",
     "description": "Show đưa các thí sinh nổi tiếng từ nhiều reality show khác nhau vào chung một villa ở Tulum để ghép đôi, đổi cặp và cạnh tranh tìm “perfect match”.",
-    "year": "2023-2026"
+    "year": "2023-2026",
+    "rating": 3
   },
   {
     "chinese": "Love Never Lies",
@@ -1389,7 +1409,8 @@
     ],
     "country": "other",
     "description": "Love Never Lies là một chương trình truyền hình thực tế của Netflix, trong đó các cặp đôi thử thách lòng tin của nhau thông qua công nghệ phát hiện nói dối hiện đại. Loạt chương trình thu hút sự chú ý vì cách kết hợp yếu tố tâm lý, trò chơi và drama quan hệ.",
-    "year": "2021-2024"
+    "year": "2021-2024",
+    "rating": 3
   },
   {
     "chinese": "Too Hot To Handle: Latino",
@@ -1410,7 +1431,8 @@
         "label": "Yêu phim - Sub chuẩn"
       }
     ],
-    "chineseWatchUrl": "https://yeuphim.biz/su-cam-do-nong-bong-latinh-7523"
+    "chineseWatchUrl": "https://yeuphim.biz/su-cam-do-nong-bong-latinh-7523",
+    "rating": 3
   },
   {
     "chinese": "Too Hot to Handle: Brazil",
@@ -1452,7 +1474,8 @@
     ],
     "country": "other",
     "description": "Một nhóm trai xinh gái đẹp được đưa tới khu nghỉ dưỡng sang trọng với suy nghĩ họ sẽ tham gia show hẹn hò tự do. Nhưng sau đó họ bị “Lana” — AI hình nón nổi tiếng của chương trình — thông báo rằng: cấm hôn, cấm quan hệ tình dục, cấm mọi tiếp xúc thân mật quá mức.",
-    "year": "2025"
+    "year": "2025",
+    "rating": 3
   },
   {
     "chinese": "Too Hot To Handle: Germany",
@@ -1473,7 +1496,8 @@
     ],
     "country": "other",
     "description": "Mười người độc thân quyến rũ cùng hội ngộ tại một thiên đường nhiệt đới. Họ không hề biết rằng để giành được giải thưởng trị giá 200.000 €, họ sẽ phải từ bỏ hoàn toàn việc quan hệ tình dục.",
-    "year": "2023-2024"
+    "year": "2023-2024",
+    "rating": 3
   },
   {
     "chinese": "Love Is Blind",
@@ -1494,7 +1518,8 @@
     ],
     "country": "other",
     "description": "Nick và Vanessa Lachey dẫn chính trong thử nghiệm xã hội này, trong đó những người đàn ông và phụ nữ độc thân sẽ tìm kiếm tình yêu và hứa hôn trước khi gặp mặt trực tiếp.",
-    "year": "2020-2025"
+    "year": "2020-2025",
+    "rating": 3
   },
   {
     "chinese": "Rak Rak: Sense Of Love",
@@ -1582,7 +1607,8 @@
     ],
     "country": "other",
     "description": "Selling Sunset là một series truyền hình thực tế nổi tiếng của Mỹ phát sóng trên Netflix. Chương trình theo chân các nữ đại lý môi giới bất động sản xinh đẹp và sành điệu làm việc tại Oppenheim Group — công ty chuyên bán các căn biệt thự siêu sang với giá hàng triệu USD tại khu vực Los Angeles và vùng lân cận.\nShow không chỉ mang đến những bất động sản xa hoa, choáng ngợp mà còn thu hút lượng lớn người xem nhờ những drama kịch tính chốn công sở, các mối quan hệ tình cảm phức tạp và thời trang đẳng cấp của dàn cast",
-    "year": "2019-2025"
+    "year": "2019-2025",
+    "rating": 2
   },
   {
     "chinese": "Love Island",
@@ -1603,7 +1629,8 @@
     ],
     "country": "other",
     "description": "Những trái tim tìm yêu rời sa mạc quay trở lại bờ biển cho một mùa hè đầy tình yêu, cám dỗ và những cơ hội khi tắm mình dưới ánh nắng Hawaii.",
-    "year": "2018-2021"
+    "year": "2018-2021",
+    "rating": 3
   },
   {
     "chinese": "진짜 괜찮은 사람",
@@ -1646,7 +1673,8 @@
     ],
     "country": "korea",
     "description": "Show Hàn quốc Lesbian",
-    "year": "2025"
+    "year": "2025",
+    "rating": 3
   },
   {
     "chinese": "자식 방생 프로젝트 합숙맞선",
@@ -2346,7 +2374,7 @@
       "normal"
     ],
     "country": "korea",
-    "rating": 3,
+    "rating": 4,
     "description": "Liệu những tế bào lãng mạn có thực sự được đánh thức ngay cả trong những tình huống kỳ quặc và khó xử?\nMáy ảnh thí nghiệm quan sát tế bào tình yêu hoàn chỉnh.\nShow của PD Lee Jin Joo, 1 PD của nhiều show nổi tiếng như transit love, My Sibling's Romance",
     "year": "11-06-2026",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/Show-101.jpg",
