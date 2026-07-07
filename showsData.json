@@ -2332,9 +2332,9 @@
     "chinese": "모태솔로지만 연애는 하고 싶어2",
     "english": "Better Late Than Single S2",
     "vietnamese": "Muộn Còn Hơn Ế S2",
-    "status": "upcoming",
+    "status": "airing",
     "platform": "Netflix",
-    "time": "7-7-2026",
+    "time": "20h T3",
     "chineseWatchUrl": "https://youtu.be/FfLAN3cm4AA?si=TTViSsL0NKLC5BHd",
     "chineseWatchUrls": [
       {
@@ -2348,8 +2348,15 @@
     "country": "korea",
     "rating": 4,
     "year": "7-7-2026",
-    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/Show-99.jpg",
-    "description": "Sẵn sàng bước vào thế giới hẹn hò, những người độc thân lâu năm sẽ nhận được sự giúp đỡ của chuyên gia về phong cách, sức khỏe và sự tự tin. Liệu họ có vượt qua được những trở ngại trên con đường tìm kiếm tình yêu không?"
+    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/Show-99-v2.png",
+    "description": "Sẵn sàng bước vào thế giới hẹn hò, những người độc thân lâu năm sẽ nhận được sự giúp đỡ của chuyên gia về phong cách, sức khỏe và sự tự tin. Liệu họ có vượt qua được những trở ngại trên con đường tìm kiếm tình yêu không?",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://kisskh.co/Drama/Better-Late-than-Single---Season-2/Episode-1?id=13351&ep=218197&page=0&pageSize=100",
+        "label": "Sub tiếng việt"
+      }
+    ],
+    "vietnameseWatchUrl": "https://kisskh.co/Drama/Better-Late-than-Single---Season-2/Episode-1?id=13351&ep=218197&page=0&pageSize=100"
   },
   {
     "chinese": "솔로지옥 6",
