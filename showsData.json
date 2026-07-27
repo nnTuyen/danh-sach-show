@@ -169,7 +169,7 @@
     "chinese": "我们与恋爱的距离",
     "english": "The Distance to Love - Chasing Season",
     "vietnamese": "Khoảng Cách Giữa Chúng Ta Và Tình Yêu",
-    "status": "airing",
+    "status": "completed",
     "platform": "Mango TV",
     "time": "18h Thứ 6",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-9.jpg",
@@ -349,7 +349,7 @@
     "chinese": "为爱闪耀的她",
     "english": "Shine for Love",
     "vietnamese": "Tỏa Sáng Vì Yêu",
-    "status": "airing",
+    "status": "completed",
     "platform": "Mango TV",
     "time": "18h T2",
     "tags": [
@@ -388,7 +388,7 @@
     "chinese": "爱的流动态",
     "english": "Fluid Love",
     "vietnamese": "Dòng Chảy Tình Yêu",
-    "status": "airing",
+    "status": "completed",
     "platform": "Bilibili",
     "tags": [
       "normal"
@@ -492,10 +492,6 @@
       {
         "url": "https://yeuphim.biz/ban-than-yeu-thuong-mua-3/tap-1a-60949",
         "label": "Mùa 3 - Yeuphim sub chuẩn"
-      },
-      {
-        "url": "https://dailymotion.com/playlist/x8b29s",
-        "label": "Mùa 2 - Dailymotion"
       }
     ],
     "vietnameseWatchUrl": "https://yeuphim.biz/ban-than-yeu-thuong-mua-3/tap-1a-60949",
@@ -1171,7 +1167,7 @@
     "chinese": "하트 시그널 5",
     "english": "Heart signals S5",
     "vietnamese": "Nhịp đập trái tim S5",
-    "status": "airing",
+    "status": "completed",
     "platform_zh": "Chưa rõ",
     "platform_en": "ChanelA",
     "time": "12h Tối T4",
@@ -1187,12 +1183,12 @@
         "label": "Kisskh - Sub auto (Tầm 11h tối T4 có sub)"
       },
       {
-        "url": "https://rophim1.vip/phim/nhip-dap-trai-tim-phan-5",
-        "label": "Rophim - Sub chuẩn"
+        "url": "https://www.bilibili.tv/vi/video/4800321436654080",
+        "label": "Sub chuẩn"
       },
       {
         "url": "https://yeuphim.biz/nhip-dap-trai-tim-phan-5-6413",
-        "label": "Yêu Phim - Sub chuẩn"
+        "label": "Sub chuẩn - Chỉ đến tập 9"
       }
     ],
     "vietnameseWatchUrl": "https://kisskh.co/Drama/Heart-Signal-Season-5/Episode-7?id=12805&ep=214568&page=0&pageSize=100",
@@ -1225,17 +1221,17 @@
     "platform": "tencent"
   },
   {
-    "chinese": "하트 시그널 2",
-    "english": "Heart signal S2",
-    "vietnamese": "Nhịp đập trái tim S2",
+    "chinese": "하트 시그널 1-4",
+    "english": "Heart signal S1-4",
+    "vietnamese": "Nhịp đập trái tim S1-4",
     "status": "completed",
     "platform_zh": "Chưa rõ",
     "platform_en": "ChanelA",
-    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xbsjhk",
+    "vietnameseWatchUrl": "https://kisskh.co/Drama/Heart-Signal-2/Episode-1?id=301&ep=8768",
     "vietnameseWatchUrls": [
       {
-        "url": "https://dailymotion.com/playlist/xbsjhk",
-        "label": "Dailymotion - Sub auto"
+        "url": "https://kisskh.co/Drama/Heart-Signal-2/Episode-1?id=301&ep=8768",
+        "label": "Chỉ có tiếng anh"
       }
     ],
     "tags": [
@@ -1249,17 +1245,17 @@
     "year": "2018"
   },
   {
-    "chinese": "체인지 데이즈",
-    "english": "Change Days S1",
-    "vietnamese": "Ngày đổi người yêu S1",
+    "chinese": "체인지 데이즈 1-2",
+    "english": "Change Days S1-2",
+    "vietnamese": "Ngày đổi người yêu S1-2",
     "status": "completed",
     "platform_zh": "Chưa rõ",
     "platform_en": "Kakaotv",
-    "vietnameseWatchUrl": "https://dailymotion.com/playlist/x9c694",
+    "vietnameseWatchUrl": "https://goplay.ml/4b2d3631303337373132/Change-Days/Episode-17/",
     "vietnameseWatchUrls": [
       {
-        "url": "https://dailymotion.com/playlist/x9c694",
-        "label": "Dailymotion - Sub auto"
+        "url": "https://goplay.ml/4b2d3631303337373132/Change-Days/Episode-17/",
+        "label": "Chỉ có tiếng anh"
       }
     ],
     "tags": [
@@ -1279,13 +1275,6 @@
     "status": "completed",
     "platform": "Tving",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-56.png",
-    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xapn0g",
-    "vietnameseWatchUrls": [
-      {
-        "url": "https://dailymotion.com/playlist/xapn0g",
-        "label": "Dailymotion"
-      }
-    ],
     "tags": [
       "normal"
     ],
@@ -1323,13 +1312,6 @@
     "status": "completed",
     "platform": "Tencent Video",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-58.jpg",
-    "vietnameseWatchUrl": "https://dailymotion.com/playlist/x9p5pw",
-    "vietnameseWatchUrls": [
-      {
-        "url": "https://dailymotion.com/playlist/x9p5pw",
-        "label": "Dailymotion"
-      }
-    ],
     "tags": [
       "normal"
     ],
@@ -2195,7 +2177,7 @@
       "normal"
     ],
     "country": "korea",
-    "rating": 5,
+    "rating": 4,
     "description": "Mùa 2 của show các chàng trai trẻ tuổi theo đuổi các chị lớn.",
     "year": "23-05-2026",
     "detailNotes": "Nữ 1 - Ji Seung\nNữ 2 - Ji Hye\nNữ 3 - Yu Jin\nNữ 4 - Ju Hee\n\nNam 1 - Si Won\nNam 2 - Jun Han\nNam 3 - Jin Woo\nNam 4 - Yun So",
@@ -2227,7 +2209,7 @@
       "normal"
     ],
     "country": "korea",
-    "rating": 4,
+    "rating": 2,
     "description": "Phần spin-off của show I am solo.\nS15 này là một phần đặc biệt khi kết hợp 2 show hẹn hò\nI am solo và Jjak (Show hẹn hò có trước cả I am solo)\nVới các bạn Nam đã từng tham gia I am solo\nVà các bạn Nữ từng tham gia Jjak",
     "year": "29-05-2026",
     "detailNotes": "Nữ:\nW-NO 1  | 1985 | Giảng viên hướng dẫn sử dụng điện thoại thông minh\nW-NO 2 | 1985 |Quản lý thương hiệu cho một hãng nước hoa nội địa\nW-NO 3 | 1985 | Làm việc trong bộ phận kiểm soát chất lượng tại một công ty sữa\nW-NO 4 | 1988 | Làm hướng dẫn viên du lịch tại Canada\nW-NO 5 | 1989 | Huấn luyện viên chạy bộ\nNam:\nS1 Young-ho           | 1984 | Ca sĩ Opera\nS7 Young-ho          | 1980 | Giáo viên Toán, giám đốc học viện\nS8 Young-soo       | 1986 | Công ty thương mại quốc tế\nS17 Young-soo      | 1985 | Nghiên cứu viên bán dẫn, Samsung\nS12 Young-cheol  | 1985 | INFP, Đô vật chuyên nghiệp\nS26 Young-cheol | 1984 |Thư pháp gia",
@@ -2251,7 +2233,7 @@
       "normal"
     ],
     "country": "korea",
-    "rating": 5,
+    "rating": 3,
     "description": "Tiếp tục thành công của S28 khi có 3 cặp đôi đã kết hôn.\nI am solo S32 tiếp tục với mùa của những người đã ly hôn",
     "year": "4-6-2026",
     "vietnameseWatchUrls": [
