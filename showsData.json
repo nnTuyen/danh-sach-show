@@ -28,19 +28,23 @@
     "detailNotes": "Nữ 1 - Trần Đan Kỳ | 30t | Nhà thiết kế thời trang\nNữ 2 - Giả Bội Huyên (Có con 8 tuổi) | 36t | bà chủ công ty quảng cáo\nNữ 3- Liễu Liễu (Từ Lục Dương) | 28t | nhân viên vận hành công ty AI\nNữ 4 - Rita Vương Dịch | 33t |  nhà thiết kế & chủ thương hiệu mũ\nNữ 5 - Trần Kiếm Oánh (Story)  Đạo diễn\nNữ 6- Dương Tây Huệ (32t) Đang học Thạc sĩ đại học bắc kinh\n\nNam 1 - Chu Hữu Lăng | 36t | tổng tài\nNam 2 - Đổng Trác Nhiên | 36t | phụ trách mảng bệnh nhân tại một công ty dược phẩm.\nNam 3 - Hiểu Văn (Tiêu Văn Thao) | 30t | nhạc sĩ\nNam 4 - BK Lục Bính Côn (24 tuổi) | 24t | doanh nhân công ty trí tuệ nhân tạo\nNam 5 - Lăng Lý Chính (27 tuổi) Tốt nghiệp thạc sĩ tại Đại học Leeds, Anh Quốc.\nNam 6 - Quý vũ (Hạnh Nhân) (27 tuổi) Khởi nghiệp, nhà viết sách",
     "vietnameseWatchUrls": [
       {
-        "url": "https://odysee.com/@Nguy%E1%BB%85nNg%E1%BB%8DcTuy%C3%AAn:b/Ng%C6%B0%E1%BB%9Di-Y%C3%AAu-M%E1%BB%99t-N%E1%BB%ADa-Th%C3%A2n-Thu%E1%BB%99c-S5-T%E1%BA%ADp--Love-Actually-S5---%E5%8D%8A%E7%86%9F%E6%81%8B%E4%BA%BA5:d?r=289kzgext53vaS2RPNn7nmxB36Kd3bNX&lid=daf5fbbef8ae34ee27bc43eb51a1beb92c0e5101",
-        "label": "Lựa chọn thay thế."
-      },
-      {
         "url": "https://rumble.com/playlists/PP86sL24_5c",
         "label": "Chất lượng video tốt nhất - Nhớ bật sub"
+      },
+      {
+        "url": "https://www.bilibili.tv/vi/video/4800351518202880",
+        "label": "Chỉ có 720p"
+      },
+      {
+        "url": "https://odysee.com/@Nguy%E1%BB%85nNg%E1%BB%8DcTuy%C3%AAn:b/Ng%C6%B0%E1%BB%9Di-Y%C3%AAu-M%E1%BB%99t-N%E1%BB%ADa-Th%C3%A2n-Thu%E1%BB%99c-S5-T%E1%BA%ADp--Love-Actually-S5---%E5%8D%8A%E7%86%9F%E6%81%8B%E4%BA%BA5:d?r=289kzgext53vaS2RPNn7nmxB36Kd3bNX&lid=daf5fbbef8ae34ee27bc43eb51a1beb92c0e5101",
+        "label": "Lựa chọn thay thế."
       },
       {
         "url": "https://www.youtube.com/playlist?list=PL6cx4wEBokSHihMCiCe7NEfPoIcUyFBhe",
         "label": "Tập mới ra chậm 1 tuần - Sub auto"
       }
     ],
-    "vietnameseWatchUrl": "https://odysee.com/@Nguy%E1%BB%85nNg%E1%BB%8DcTuy%C3%AAn:b/Ng%C6%B0%E1%BB%9Di-Y%C3%AAu-M%E1%BB%99t-N%E1%BB%ADa-Th%C3%A2n-Thu%E1%BB%99c-S5-T%E1%BA%ADp--Love-Actually-S5---%E5%8D%8A%E7%86%9F%E6%81%8B%E4%BA%BA5:d?r=289kzgext53vaS2RPNn7nmxB36Kd3bNX&lid=daf5fbbef8ae34ee27bc43eb51a1beb92c0e5101"
+    "vietnameseWatchUrl": "https://rumble.com/playlists/PP86sL24_5c"
   },
   {
     "chinese": "心动的信号9",
@@ -205,17 +209,26 @@
   },
   {
     "chinese": "心动双重奏",
-    "english": "Heartbeat Duet",
-    "vietnamese": "Bản Song Tấu Nhịp Tim / Song Tấu Rung Động",
+    "english": "The Love Duet",
+    "vietnamese": "Bản Song Tấu Rung Động",
     "status": "upcoming",
     "platform": "Mango TV",
-    "time": "Tháng 8",
+    "time": "T4 T5",
     "tags": [
       "normal"
     ],
     "country": "china",
-    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-10.jpg",
-    "description": "Chưa rõ thông tin"
+    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-10-v2.jpg",
+    "description": "là chương trình truyền hình thực tế hẹn hò liên thế hệ đầu tiên, nơi tám người trẻ độc thân bắt đầu hành trình tìm kiếm tình yêu kéo dài 13 ngày cùng với những người lớn tuổi hơn. \nTập trung vào sự thu hút ban đầu của những người trẻ, được bổ sung bởi sự đồng hành của những người lớn tuổi, chương trình ghi lại một cách chân thực các buổi hẹn hò và tương tác của họ, pha trộn bầu không khí lãng mạn, sự ấm áp của gia đình và một góc nhìn thực tế về hôn nhân và các mối quan hệ để tạo nên một câu chuyện tình yêu vừa lãng mạn vừa gần gũi.",
+    "rating": 2,
+    "year": "29-07-2026",
+    "chineseWatchUrls": [
+      {
+        "url": "https://w.mgtv.com/b/893741/24518312.html?lang=vn",
+        "label": "Trailer"
+      }
+    ],
+    "chineseWatchUrl": "https://w.mgtv.com/b/893741/24518312.html?lang=vn"
   },
   {
     "chinese": "当爱情再次降临",
@@ -308,19 +321,23 @@
     "detailNotes": "Nữ 1 - \tChương Tử Hinh | Sinh ngày 06/05/2001 | cung Kim Ngưu  | Học cao học ở Mỹ\nNữ 2 -  Đỗ Viện Xuân Tử | 1994 | Cung Kim Ngưu | Blogger thời trang, bà chủ công ty truyền thông.\nNữ 3 - Vũ Luyện Trì | 07/03/2003 | cung Sư Tử, ENFP | tốt nghiệp hệ Đại học chính quy chuyên ngành Phát thanh & Dẫn chương trình khóa 2021 – Đại học Truyền thông Trung Quốc, MC NBA của Tencent.\nNữ 4 -  Đỗ Thần Thần | Sinh ngày 07/07/1996 | cung Cự Giải | 177cm | Nhân viên các tập đoàn công nghệ lớn.\nNữ 5 - Trương Sở Tử Hàm\n\n\nNam 1 - Lý Gia Hạo | Sinh ngày 23/02/1999 | cung Song Ngư | Nhân viên doanh nghiệp nhà nước.\nNam 2 - Hà Giang | Cung Kim Ngưu | 10/05/1999 | ENTJ | 186cm | mở 1 quán đồ nướng, và quán đồ mẹ và em bé.\nNam 3 - Chu Hạo Khiêm | Sinh ngày 10/7/ 1995 | cung Thiên Bình | Diễn viên\nNam 4 - Phàn Tử Hoa | Làm việc tại Mỹ | 2001 | Phân tích kế toán.\nNam 5 - Lôi Đồng | Tháng 11/1999 | Giám đốc 2 công ty sự kiện thể thao quốc tế.",
     "vietnameseWatchUrls": [
       {
-        "url": "https://odysee.com/@Nguy%E1%BB%85nNg%E1%BB%8DcTuy%C3%AAn:b/Th%C3%ADch-anh%2C-anh-c%C5%A9ng-v%E1%BA%ADy-S6---Yes%2C-I-Do-S6---%E5%96%9C%E6%AC%A2%E4%BD%A0%E6%88%91%E4%B9%9F%E6%98%AF6:3?r=289kzgext53vaS2RPNn7nmxB36Kd3bNX&lid=39286edeb542d717dbe971226e1c0dd9c909a169",
-        "label": "Tốc độ chậm hơn"
+        "url": "https://rumble.com/playlists/WpQVExFVAEg",
+        "label": "Chất lượng tốt nhất - Nhớ bật sub"
       },
       {
         "url": "https://www.bilibili.tv/vi/video/4800020754209792",
         "label": "Chỉ có 720p"
       },
       {
-        "url": "https://rumble.com/playlists/WpQVExFVAEg",
-        "label": "Chất lượng tốt nhất - Nhớ bật sub"
+        "url": "https://odysee.com/@Nguy%E1%BB%85nNg%E1%BB%8DcTuy%C3%AAn:b/Th%C3%ADch-anh%2C-anh-c%C5%A9ng-v%E1%BA%ADy-S6---Yes%2C-I-Do-S6---%E5%96%9C%E6%AC%A2%E4%BD%A0%E6%88%91%E4%B9%9F%E6%98%AF6:3?r=289kzgext53vaS2RPNn7nmxB36Kd3bNX&lid=39286edeb542d717dbe971226e1c0dd9c909a169",
+        "label": "Tốc độ chậm hơn"
+      },
+      {
+        "url": "https://youtube.com/playlist?list=PLduC-Rdu-8RGn-CLYboz1Jdq0w7lPJyc6",
+        "label": "Chậm hơn 1 tuần"
       }
     ],
-    "vietnameseWatchUrl": "https://odysee.com/@Nguy%E1%BB%85nNg%E1%BB%8DcTuy%C3%AAn:b/Th%C3%ADch-anh%2C-anh-c%C5%A9ng-v%E1%BA%ADy-S6---Yes%2C-I-Do-S6---%E5%96%9C%E6%AC%A2%E4%BD%A0%E6%88%91%E4%B9%9F%E6%98%AF6:3?r=289kzgext53vaS2RPNn7nmxB36Kd3bNX&lid=39286edeb542d717dbe971226e1c0dd9c909a169",
+    "vietnameseWatchUrl": "https://rumble.com/playlists/WpQVExFVAEg",
     "rating": 5
   },
   {
