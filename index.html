@@ -4,6 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="Danh sách tổng hợp show hẹn hò Trung, Hàn, Nhật, Thái cùng link xem, trạng thái phát sóng, nền tảng và ghi chú cập nhật.">
+  <meta name="theme-color" content="#090d16">
   <title>Tổng hợp show hẹn hò</title>
 
   <!-- Google Fonts - Inter -->
@@ -15,18 +18,19 @@
   <!-- FontAwesome Icons for clipboard and UI -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="preload" href="showsData.json?v=20260728-optimize" as="fetch" type="application/json">
+  <link rel="stylesheet" href="style.css?v=20260728-optimize">
 </head>
 
 <body>
 
-  <div class="container">
+  <main class="container">
     <header>
       <h1>Tổng hợp show hẹn hò</h1>
       <p>Danh sách các show truyền hình thực tế hẹn hò được tổng hợp đầy đủ từ Trung - Hàn, Tencent, Mango TV, Youku,
         iQiyi, Bilibili....</p>
       <div class="header-actions">
-        <button class="settings-btn" onclick="openSettingsModal()"
+        <button class="settings-btn" type="button" onclick="openSettingsModal()"
           title="Cài đặt chung - Chỉnh sửa thông tin tất cả show">
           <i class="fa-solid fa-gear"></i> Cài đặt chung
         </button>
@@ -58,7 +62,8 @@
       <!-- Search Input -->
       <div class="search-wrapper">
         <input type="text" id="search-box" class="search-input"
-          placeholder="Tìm kiếm theo tên show, quốc gia, nền tảng, ghi chú thời gian...">
+          placeholder="Tìm kiếm theo tên show, quốc gia, nền tảng, ghi chú thời gian..."
+          aria-label="Tìm kiếm show">
         <i class="fa-solid fa-magnifying-glass"></i>
       </div>
 
@@ -68,12 +73,12 @@
         <div class="filter-group">
           <div class="filter-label">Trạng thái phát sóng</div>
           <div class="filter-buttons" id="status-filters">
-            <button class="filter-btn active" data-status="all"><i class="fa-solid fa-list"></i> Tất cả</button>
-            <button class="filter-btn" data-status="upcoming"><i class="fa-solid fa-calendar-days"></i> Sắp
+            <button class="filter-btn active" type="button" data-status="all" aria-pressed="true"><i class="fa-solid fa-list"></i> Tất cả</button>
+            <button class="filter-btn" type="button" data-status="upcoming" aria-pressed="false"><i class="fa-solid fa-calendar-days"></i> Sắp
               chiếu</button>
-            <button class="filter-btn" data-status="airing"><i class="fa-solid fa-satellite-dish"></i> Đang
+            <button class="filter-btn" type="button" data-status="airing" aria-pressed="false"><i class="fa-solid fa-satellite-dish"></i> Đang
               chiếu</button>
-            <button class="filter-btn" data-status="completed"><i class="fa-solid fa-circle-check"></i> Đã chiếu
+            <button class="filter-btn" type="button" data-status="completed" aria-pressed="false"><i class="fa-solid fa-circle-check"></i> Đã chiếu
               xong</button>
           </div>
         </div>
@@ -82,13 +87,13 @@
         <div class="filter-group">
           <div class="filter-label">Sắp xếp theo</div>
           <div class="filter-buttons" id="sort-controls">
-            <button class="filter-btn active" data-sort="name-asc"><i class="fa-solid fa-sort-alpha-down"></i> Tên
+            <button class="filter-btn active" type="button" data-sort="name-asc" aria-pressed="true"><i class="fa-solid fa-sort-alpha-down"></i> Tên
               A-Z</button>
-            <button class="filter-btn" data-sort="name-desc"><i class="fa-solid fa-sort-alpha-up"></i> Tên Z-A</button>
-            <button class="filter-btn" data-sort="stars"><i class="fa-solid fa-star"></i> Số sao</button>
-            <button class="filter-btn" data-sort="year"><i class="fa-regular fa-calendar"></i> Năm</button>
-            <button class="filter-btn" data-sort="name-en"><i class="fa-solid fa-globe"></i> Tên tiếng Anh</button>
-            <button class="filter-btn" data-sort="watch-link"><i class="fa-solid fa-link"></i> Link xem video</button>
+            <button class="filter-btn" type="button" data-sort="name-desc" aria-pressed="false"><i class="fa-solid fa-sort-alpha-up"></i> Tên Z-A</button>
+            <button class="filter-btn" type="button" data-sort="stars" aria-pressed="false"><i class="fa-solid fa-star"></i> Số sao</button>
+            <button class="filter-btn" type="button" data-sort="year" aria-pressed="false"><i class="fa-regular fa-calendar"></i> Năm</button>
+            <button class="filter-btn" type="button" data-sort="name-en" aria-pressed="false"><i class="fa-solid fa-globe"></i> Tên tiếng Anh</button>
+            <button class="filter-btn" type="button" data-sort="watch-link" aria-pressed="false"><i class="fa-solid fa-link"></i> Link xem video</button>
           </div>
         </div>
 
@@ -96,14 +101,14 @@
         <div class="filter-group">
           <div class="filter-label">Quốc gia / Vùng</div>
           <div class="filter-buttons" id="country-filters">
-            <button class="filter-btn active" data-country="all">Tất cả</button>
-            <button class="filter-btn" data-country="china">🇨🇳 Trung Quốc</button>
-            <button class="filter-btn" data-country="korea">🇰🇷 Hàn Quốc</button>
-            <button class="filter-btn" data-country="japan">🇯🇵 Nhật Bản</button>
-            <button class="filter-btn" data-country="thailand">🇹🇭 Thái Lan</button>
-            <button class="filter-btn" data-country="taiwan">🇹🇼 Đài Loan</button>
-            <button class="filter-btn" data-country="hongkong">🇭🇰 Hồng Kông</button>
-            <button class="filter-btn" data-country="other">🌏 Khác</button>
+            <button class="filter-btn active" type="button" data-country="all" aria-pressed="true">Tất cả</button>
+            <button class="filter-btn" type="button" data-country="china" aria-pressed="false">🇨🇳 Trung Quốc</button>
+            <button class="filter-btn" type="button" data-country="korea" aria-pressed="false">🇰🇷 Hàn Quốc</button>
+            <button class="filter-btn" type="button" data-country="japan" aria-pressed="false">🇯🇵 Nhật Bản</button>
+            <button class="filter-btn" type="button" data-country="thailand" aria-pressed="false">🇹🇭 Thái Lan</button>
+            <button class="filter-btn" type="button" data-country="taiwan" aria-pressed="false">🇹🇼 Đài Loan</button>
+            <button class="filter-btn" type="button" data-country="hongkong" aria-pressed="false">🇭🇰 Hồng Kông</button>
+            <button class="filter-btn" type="button" data-country="other" aria-pressed="false">🌏 Khác</button>
           </div>
         </div>
 
@@ -111,15 +116,15 @@
         <div class="filter-group">
           <div class="filter-label">Chủ đề đặc biệt</div>
           <div class="filter-buttons" id="tag-filters">
-            <button class="filter-btn active" data-tag="all">Tất cả</button>
-            <button class="filter-btn" data-tag="normal">Bình thường</button>
-            <button class="filter-btn" data-tag="all-female" title="Show hẹn hò bách hợp / GL"><i
+            <button class="filter-btn active" type="button" data-tag="all" aria-pressed="true">Tất cả</button>
+            <button class="filter-btn" type="button" data-tag="normal" aria-pressed="false">Bình thường</button>
+            <button class="filter-btn" type="button" data-tag="all-female" aria-pressed="false" title="Show hẹn hò bách hợp / GL"><i
                 class="fa-solid fa-venus-double"></i> Les GL</button>
-            <button class="filter-btn" data-tag="all-male" title="Show hẹn hò đam mỹ / BL"><i
+            <button class="filter-btn" type="button" data-tag="all-male" aria-pressed="false" title="Show hẹn hò đam mỹ / BL"><i
                 class="fa-solid fa-mars-double"></i> Gay BL</button>
-            <button class="filter-btn" data-tag="bisexual" title="Show hẹn hò song tính / Bisexual"><i
+            <button class="filter-btn" type="button" data-tag="bisexual" aria-pressed="false" title="Show hẹn hò song tính / Bisexual"><i
                 class="fa-solid fa-venus-mars"></i> Bisexual</button>
-            <button class="filter-btn" data-tag="other" title="Chương trình/show khác"><i
+            <button class="filter-btn" type="button" data-tag="other" aria-pressed="false" title="Chương trình/show khác"><i
                 class="fa-solid fa-ellipsis"></i> Khác</button>
           </div>
         </div>
@@ -130,12 +135,12 @@
     <div class="show-grid" id="show-cards-grid">
       <!-- Cards will be dynamically inserted here -->
     </div>
-  </div>
+  </main>
 
   <!-- Central Popup Modal -->
-  <div class="modal-overlay" id="show-modal">
+  <div class="modal-overlay" id="show-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title-el">
     <div class="modal-container" id="modal-container-el">
-      <button class="modal-close" onclick="closeShowModal()"><i class="fa-solid fa-xmark"></i></button>
+      <button class="modal-close" type="button" onclick="closeShowModal()" aria-label="Đóng chi tiết show"><i class="fa-solid fa-xmark"></i></button>
       <div class="modal-title" id="modal-title-el">Tên Show Hẹn Hò</div>
 
       <div class="modal-badges" id="modal-badges-el">
@@ -223,12 +228,12 @@
   </div>
 
   <!-- Global Settings Modal -->
-  <div class="settings-overlay" id="settings-modal">
+  <div class="settings-overlay" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
     <div class="settings-container">
-      <button class="modal-close" onclick="closeSettingsModal()"><i class="fa-solid fa-xmark"></i></button>
+      <button class="modal-close" type="button" onclick="closeSettingsModal()" aria-label="Đóng cài đặt"><i class="fa-solid fa-xmark"></i></button>
       <div class="settings-header">
         <div>
-          <div class="settings-title">Cài đặt chung</div>
+          <div class="settings-title" id="settings-title">Cài đặt chung</div>
           <p style="color: var(--text-muted); margin-top: 0.35rem;">Chỉnh sửa quốc gia, đánh giá sao, thêm show mới; dữ
             liệu lưu trong trình duyệt. Danh sách sắp xếp theo tên tiếng Việt A-Z.</p>
         </div>
@@ -250,7 +255,8 @@
       <div class="settings-search-bar">
         <div class="search-wrapper settings-search-wrapper">
           <input type="text" id="settings-search-box" class="search-input"
-            placeholder="Tìm show theo tên, quốc gia, nền tảng, trạng thái, ghi chú...">
+            placeholder="Tìm show theo tên, quốc gia, nền tảng, trạng thái, ghi chú..."
+            aria-label="Tìm show trong cài đặt">
           <i class="fa-solid fa-magnifying-glass"></i>
         </div>
         <div class="settings-search-meta" id="settings-search-meta"></div>
@@ -262,9 +268,9 @@
   </div>
 
   <!-- Large Textarea Editor Modal -->
-  <div class="modal-overlay" id="textarea-editor-modal">
+  <div class="modal-overlay" id="textarea-editor-modal" role="dialog" aria-modal="true" aria-labelledby="textarea-editor-title">
     <div class="modal-container textarea-editor-container">
-      <button class="modal-close" onclick="closeTextareaEditor()"><i class="fa-solid fa-xmark"></i></button>
+      <button class="modal-close" type="button" onclick="closeTextareaEditor()" aria-label="Đóng trình chỉnh sửa nội dung"><i class="fa-solid fa-xmark"></i></button>
       <div class="modal-title" id="textarea-editor-title">Chỉnh sửa nội dung</div>
       <div class="textarea-editor-body">
         <textarea id="textarea-editor-input" placeholder="Nhập nội dung chi tiết ở đây..."></textarea>
@@ -281,25 +287,25 @@
   </div>
 
   <!-- Toast Notification Container -->
-  <div class="toast-container" id="toast-container"></div>
+  <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <!-- Floating Search Box -->
   <div class="floating-search-wrapper" id="floating-search-wrapper">
-    <button class="floating-search-btn" id="floating-search-btn" title="Tìm nhanh">
+    <button class="floating-search-btn" id="floating-search-btn" type="button" title="Tìm nhanh" aria-label="Mở tìm nhanh">
       <i class="fa-solid fa-magnifying-glass"></i>
     </button>
     <div class="floating-search-input-box" id="floating-search-input-box">
-      <input type="text" id="floating-search-box" placeholder="Tìm nhanh show...">
-      <button id="floating-search-clear-btn" title="Xóa tìm kiếm"><i class="fa-solid fa-xmark"></i></button>
+      <input type="text" id="floating-search-box" placeholder="Tìm nhanh show..." aria-label="Tìm nhanh show">
+      <button id="floating-search-clear-btn" type="button" title="Xóa tìm kiếm" aria-label="Xóa tìm kiếm"><i class="fa-solid fa-xmark"></i></button>
     </div>
   </div>
 
   <!-- Scroll to Top Button -->
-  <button class="scroll-top-btn" id="scroll-btn" title="Lên đầu trang">
+  <button class="scroll-top-btn" id="scroll-btn" type="button" title="Lên đầu trang" aria-label="Lên đầu trang">
     <i class="fa-solid fa-arrow-up"></i>
   </button>
 
-  <script src="app.js?v=20260627-filters"></script>
+  <script src="app.js?v=20260728-optimize" defer></script>
 </body>
 
 </html>
