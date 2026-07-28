@@ -9,6 +9,10 @@ const DATA_VERSION = "20260728-optimize";
 let sentinelObserver = null;
 let searchTimeout = null; // Quản lý debounce tìm kiếm tránh lag phím
 let _searchIndexCache = new Map();
+const dialogState = {
+  stack: [],
+  restoreFocus: new WeakMap()
+};
 
 // Cache DOM references cho modal để tránh getElementById mỗi lần click
 let _modalEls = null;
@@ -35,6 +39,111 @@ function getModalEls() {
     };
   }
   return _modalEls;
+}
+
+function getFocusableElements(root) {
+  return [...root.querySelectorAll([
+    "a[href]",
+    "button:not([disabled])",
+    "input:not([disabled])",
+    "select:not([disabled])",
+    "textarea:not([disabled])",
+    "[tabindex]:not([tabindex='-1'])"
+  ].join(","))].filter(el => {
+    const rect = el.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  });
+}
+
+function updateBackgroundInertState() {
+  const hasOpenDialog = dialogState.stack.length > 0;
+  const main = document.querySelector("main.container");
+  if (!main) return;
+
+  if (hasOpenDialog) {
+    main.setAttribute("aria-hidden", "true");
+    if ("inert" in main) main.inert = true;
+  } else {
+    main.removeAttribute("aria-hidden");
+    if ("inert" in main) main.inert = false;
+  }
+}
+
+function openAccessibleDialog(modal, focusTarget) {
+  if (!modal) return;
+
+  if (!dialogState.stack.includes(modal)) {
+    dialogState.restoreFocus.set(modal, document.activeElement);
+    dialogState.stack.push(modal);
+  }
+
+  modal.classList.add("active");
+  document.body.style.overflow = "hidden";
+  updateBackgroundInertState();
+
+  requestAnimationFrame(() => {
+    const target = focusTarget || getFocusableElements(modal)[0] || modal;
+    target?.focus?.({ preventScroll: true });
+  });
+}
+
+function closeAccessibleDialog(modal, { keepScrollLocked = false, restoreFocus = true } = {}) {
+  if (!modal) return;
+
+  modal.classList.remove("active");
+  dialogState.stack = dialogState.stack.filter(item => item !== modal);
+  updateBackgroundInertState();
+
+  if (!keepScrollLocked && dialogState.stack.length === 0) {
+    document.body.style.overflow = "";
+  }
+
+  if (restoreFocus) {
+    const previous = dialogState.restoreFocus.get(modal);
+    if (previous && document.contains(previous)) {
+      previous.focus?.({ preventScroll: true });
+    }
+  }
+  dialogState.restoreFocus.delete(modal);
+}
+
+function getTopActiveDialog() {
+  for (let i = dialogState.stack.length - 1; i >= 0; i -= 1) {
+    if (dialogState.stack[i].classList.contains("active")) return dialogState.stack[i];
+  }
+  return null;
+}
+
+function handleDialogKeydown(e) {
+  const modal = getTopActiveDialog();
+  if (!modal) return;
+
+  if (e.key === "Escape") {
+    e.preventDefault();
+    if (modal.id === "textarea-editor-modal") closeTextareaEditor();
+    else if (modal.id === "settings-modal") closeSettingsModal();
+    else if (modal.id === "show-modal") closeShowModal();
+    return;
+  }
+
+  if (e.key !== "Tab") return;
+
+  const focusable = getFocusableElements(modal);
+  if (!focusable.length) {
+    e.preventDefault();
+    modal.focus?.({ preventScroll: true });
+    return;
+  }
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus({ preventScroll: true });
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus({ preventScroll: true });
+  }
 }
 
 // Cache hiddenShowKeys để tránh parse JSON từ localStorage mỗi lần gọi
@@ -864,8 +973,9 @@ function openSettingsModal() {
   if (settingsSearchBox) settingsSearchBox.value = "";
 
   // ===== PHẦN 1: Mở modal overlay ngay lập tức để phản hồi nhanh chóng =====
-  document.getElementById("settings-modal").classList.add("active");
-  document.body.style.overflow = "hidden";
+  const settingsModal = document.getElementById("settings-modal");
+  const closeButton = settingsModal?.querySelector(".modal-close");
+  openAccessibleDialog(settingsModal, closeButton);
 
   // Đảm bảo hiển thị lại danh sách list (phòng trường hợp bị ẩn display: none từ lần đóng trước)
   const list = document.getElementById("settings-list");
@@ -890,7 +1000,7 @@ function openSettingsModal() {
 
 function closeSettingsModal() {
   const modal = document.getElementById("settings-modal");
-  modal.classList.remove("active");
+  closeAccessibleDialog(modal, { restoreFocus: true });
 
   const list = document.getElementById("settings-list");
   if (list) {
@@ -902,7 +1012,6 @@ function closeSettingsModal() {
 
   // Trì hoãn việc khôi phục thanh cuộn body và dọn dẹp DOM cho đến khi modal đã ẩn hoàn toàn (250ms)
   setTimeout(() => {
-    document.body.style.overflow = "";
     if (list) {
       list.innerHTML = "";
       list.style.display = ""; // Khôi phục lại thuộc tính display chuẩn bị cho lần mở sau
@@ -1300,8 +1409,8 @@ function openSettingsForShow(index) {
 
   renderSettingsList();
   updateSettingsLockState();
-  document.getElementById("settings-modal").classList.add("active");
-  document.body.style.overflow = "hidden";
+  const settingsModal = document.getElementById("settings-modal");
+  openAccessibleDialog(settingsModal, settingsSearchBox || settingsModal?.querySelector(".modal-close"));
 
   requestAnimationFrame(() => {
     const item = document.querySelector(`[data-settings-index="${index}"]`);
@@ -1455,8 +1564,7 @@ function openShowModal(index) {
   // ===== PHẦN 1: SYNCHRONOUS - Chỉ thay đổi visual state =====
   // Chỉ thêm class + block scroll - KHÔNG làm gì khác
   // Đây là tất cả những gì trình duyệt cần để vẽ next paint
-  els.modal.classList.add("active");
-  document.body.style.overflow = "hidden";
+  openAccessibleDialog(els.modal, els.modal.querySelector(".modal-close"));
 
   // ===== PHẦN 2: ASYNC - Tách toàn bộ data processing ra khỏi interaction =====
   // Dùng setTimeout để thực sự nhường luồng (yield) cho trình duyệt vẽ Next Paint trước
@@ -1500,8 +1608,7 @@ function openShowModal(index) {
 
 function closeShowModal() {
   const els = getModalEls();
-  els.modal.classList.remove("active");
-  document.body.style.overflow = ""; // Re-enable background scrolling
+  closeAccessibleDialog(els.modal);
 }
 
 // Khởi tạo Infinite Scroll: Hàm tải thêm show vào giao diện
@@ -1727,6 +1834,7 @@ function setActiveFilterButton(activeButton, buttons) {
 function initializeAppEvents() {
   // Khởi tạo cache DOM modal sớm
   getModalEls();
+  document.addEventListener("keydown", handleDialogKeydown);
 
   updateStatistics();
   renderShows();
@@ -1914,24 +2022,17 @@ function openTextareaEditor(index, field, label) {
 
   const modal = document.getElementById("textarea-editor-modal");
   if (modal) {
-    modal.classList.add("active");
-    document.body.style.overflow = "hidden";
+    openAccessibleDialog(modal, modalTextareaInput || modal.querySelector(".modal-close"));
   }
 }
 
 function closeTextareaEditor() {
   const modal = document.getElementById("textarea-editor-modal");
-  if (modal) {
-    modal.classList.remove("active");
-  }
 
   // Khôi phục trạng thái khóa thanh cuộn nếu settings modal vẫn đang mở
   const settingsModal = document.getElementById("settings-modal");
-  if (settingsModal && settingsModal.classList.contains("active")) {
-    document.body.style.overflow = "hidden";
-  } else {
-    document.body.style.overflow = "";
-  }
+  const keepScrollLocked = settingsModal && settingsModal.classList.contains("active");
+  closeAccessibleDialog(modal, { keepScrollLocked });
   activeEditorTarget = { index: null, field: null };
 }
 
