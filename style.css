@@ -116,7 +116,9 @@ header p {
   border-radius: 1rem;
   padding: 1.25rem;
   text-align: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .stat-card:hover {
@@ -194,7 +196,9 @@ header p {
   color: var(--text-main);
   font-size: 1.05rem;
   outline: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    background-color 0.3s ease;
 }
 
 .search-input:focus {
@@ -255,7 +259,10 @@ header p {
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -729,7 +736,10 @@ header p {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
   position: relative;
 }
 
@@ -809,7 +819,10 @@ header p {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
   outline: none;
 }
 
@@ -1182,7 +1195,11 @@ header p {
   padding: 0.75rem 1rem;
   cursor: pointer;
   font-weight: 700;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .admin-action-btn.primary {
@@ -1332,7 +1349,11 @@ header p {
   font-weight: 700;
   cursor: pointer;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .modal-action-btn.edit {
@@ -1369,7 +1390,9 @@ header p {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  transition: all 0.2s;
+  transition: background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .settings-delete-btn:hover:not(:disabled) {
@@ -1434,7 +1457,8 @@ header p {
   gap: 0.75rem;
   transform: translateY(100px);
   opacity: 0;
-  transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    opacity 0.25s ease;
   font-weight: 500;
   font-size: 0.9rem;
 }
@@ -1472,7 +1496,11 @@ header p {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease,
+    visibility 0.3s ease,
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
   opacity: 0;
   visibility: hidden;
   z-index: 1000;
@@ -1522,7 +1550,10 @@ header p {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease,
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   outline: none;
   pointer-events: auto;
@@ -1820,7 +1851,11 @@ header p {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  transition: all 0.25s ease;
+  transition: background-color 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .lock-btn:hover {
@@ -2060,7 +2095,9 @@ header p {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  transition: all 0.2s;
+  transition: transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .settings-save-btn:hover {
@@ -2087,7 +2124,10 @@ header p {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  transition: all 0.2s;
+  transition: background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .settings-reset-btn:hover {
@@ -2113,7 +2153,9 @@ header p {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  transition: all 0.25s ease;
+  transition: transform 0.25s ease,
+    box-shadow 0.25s ease,
+    opacity 0.25s ease;
 }
 
 .settings-add-btn:hover:not(:disabled) {
@@ -2287,7 +2329,9 @@ header p {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  transition: all 0.2s;
+  transition: background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .watch-link-add-btn:hover:not(:disabled) {
@@ -2307,7 +2351,9 @@ header p {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .watch-link-remove-btn:hover:not(:disabled) {
@@ -2340,7 +2386,9 @@ header p {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .watch-link-move-btn:hover:not(:disabled) {
@@ -2505,7 +2553,10 @@ header p {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
   text-transform: none;
   letter-spacing: normal;
   line-height: 1.2;
