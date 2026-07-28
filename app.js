@@ -5,8 +5,10 @@ let showsData = [];
 let activeFilteredShows = [];
 let showsRenderedCount = 0;
 const SHOWS_PER_PAGE = 12; // Số lượng show hiển thị mỗi lần cuộn
+const DATA_VERSION = "20260728-optimize";
 let sentinelObserver = null;
 let searchTimeout = null; // Quản lý debounce tìm kiếm tránh lag phím
+let _searchIndexCache = new Map();
 
 // Cache DOM references cho modal để tránh getElementById mỗi lần click
 let _modalEls = null;
@@ -145,6 +147,7 @@ function mergeLegacyCustomShowsIntoShowsData() {
 
   customShows = [];
   saveCustomShows();
+  invalidateSearchIndex();
 }
 
 function loadHiddenShowKeys() {
@@ -165,10 +168,15 @@ function loadHiddenShowKeys() {
 function saveHiddenShowKeys(keys) {
   localStorage.setItem(HIDDEN_SHOWS_STORAGE_KEY, JSON.stringify(keys));
   _hiddenShowKeysCacheDirty = true;
+  invalidateSearchIndex();
 }
 
 function getShowKey(show) {
   return show._customId || show.chinese;
+}
+
+function invalidateSearchIndex() {
+  _searchIndexCache = new Map();
 }
 
 function findShowsDataIndexByKey(key) {
@@ -571,15 +579,18 @@ function getEffectiveShows() {
 // Calculate and render overall Statistics on load
 function updateStatistics() {
   const effectiveShows = getEffectiveShows();
-  const total = effectiveShows.length;
-  const upcoming = effectiveShows.filter(s => s.status === "upcoming").length;
-  const airing = effectiveShows.filter(s => s.status === "airing").length;
-  const completed = effectiveShows.filter(s => s.status === "completed").length;
+  const stats = effectiveShows.reduce((acc, show) => {
+    acc.total += 1;
+    if (show.status === "upcoming") acc.upcoming += 1;
+    else if (show.status === "airing") acc.airing += 1;
+    else if (show.status === "completed") acc.completed += 1;
+    return acc;
+  }, { total: 0, upcoming: 0, airing: 0, completed: 0 });
 
-  document.getElementById("stat-total").innerText = total;
-  document.getElementById("stat-upcoming").innerText = upcoming;
-  document.getElementById("stat-airing").innerText = airing;
-  document.getElementById("stat-completed").innerText = completed;
+  document.getElementById("stat-total").textContent = stats.total;
+  document.getElementById("stat-upcoming").textContent = stats.upcoming;
+  document.getElementById("stat-airing").textContent = stats.airing;
+  document.getElementById("stat-completed").textContent = stats.completed;
 }
 
 // Copy to clipboard helper
@@ -607,12 +618,17 @@ function showToast(msg, isError = false) {
   const container = document.getElementById("toast-container");
   const toast = document.createElement("div");
   toast.className = "toast";
+  const icon = document.createElement("i");
+  icon.className = isError ? "fa-solid fa-circle-exclamation" : "fa-solid fa-circle-check";
+  if (isError) icon.style.color = "#ef4444";
+
+  const message = document.createElement("span");
+  message.textContent = msg;
+
   if (isError) {
     toast.style.borderColor = "#ef4444";
-    toast.innerHTML = `<i class="fa-solid fa-circle-exclamation" style="color: #ef4444;"></i> <span>${msg}</span>`;
-  } else {
-    toast.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>${msg}</span>`;
   }
+  toast.append(icon, message);
 
   container.appendChild(toast);
 
@@ -788,25 +804,57 @@ function matchesSettingsSearch(show, query) {
   const normalizedQuery = removeVietnameseTones(String(query || "").toLowerCase().trim());
   if (!normalizedQuery) return true;
 
-  const searchable = [
+  return getShowSearchText(show, true).includes(normalizedQuery);
+}
+
+function buildShowSearchText(show, includeSettingsOnlyFields = false) {
+  const values = [
     show.chinese,
     show.english,
     show.vietnamese,
     show.platform,
+    countryLabel(getShowCountry(show)),
+    show.time,
+    show.episodeProgress,
+    show.airingNote
+  ];
+
+  if (includeSettingsOnlyFields) {
+    values.push(
+      show.detailNotes,
+      show.description || getShowDescription(show),
+      statusLabel(show.status),
+      tagToString(show.tags),
+      show._isCustom ? "tu them show moi" : ""
+    );
+  }
+
+  const raw = values.filter(Boolean).join(" ").toLowerCase();
+  return `${raw} ${removeVietnameseTones(raw)}`;
+}
+
+function getShowSearchText(show, includeSettingsOnlyFields = false) {
+  const key = `${includeSettingsOnlyFields ? "settings" : "main"}:${getShowKey(show)}:${show._showsDataIndex ?? show._index ?? ""}`;
+  const signature = [
+    show.chinese,
+    show.english,
+    show.vietnamese,
+    show.platform,
+    show.country,
+    show.status,
     show.time,
     show.episodeProgress,
     show.airingNote,
-    show.detailNotes,
-    show.description || getShowDescription(show),
-    statusLabel(show.status),
-    tagToString(show.tags),
-    countryLabel(getShowCountry(show)),
-    show._isCustom ? "tu them show moi" : ""
-  ].join(" ");
+    includeSettingsOnlyFields ? show.detailNotes : "",
+    includeSettingsOnlyFields ? show.description : "",
+    includeSettingsOnlyFields ? tagToString(show.tags) : ""
+  ].join("|");
+  const cached = _searchIndexCache.get(key);
+  if (cached?.signature === signature) return cached.text;
 
-  const raw = searchable.toLowerCase();
-  const rawNoTone = removeVietnameseTones(raw);
-  return raw.includes(normalizedQuery) || rawNoTone.includes(normalizedQuery);
+  const text = buildShowSearchText(show, includeSettingsOnlyFields);
+  _searchIndexCache.set(key, { signature, text });
+  return text;
 }
 
 function openSettingsModal() {
@@ -967,7 +1015,7 @@ function renderSettingsList() {
   list.innerHTML = filtered.map(show => {
     const thumbUrl = getShowImage(show);
     const thumbHtml = thumbUrl
-      ? `<img src="${escapeHtml(thumbUrl)}" alt="Ảnh ${escapeHtml(show.vietnamese)}">`
+      ? `<img src="${escapeHtml(thumbUrl)}" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" width="44" height="44">`
       : `<i class="fa-regular fa-image"></i>`;
     const customBadge = show._isCustom ? `<span class="badge-custom">Tự thêm</span>` : "";
     const ratingHtml = renderStarDisplay(getShowRating(show));
@@ -1005,7 +1053,7 @@ function settingsStarRating(index, rating) {
   const stars = Array.from({ length: 5 }, (_, starIndex) => {
     const value = starIndex + 1;
     const active = value <= current;
-    return `<button type="button" class="star-btn ${active ? "active" : ""}" data-star-value="${value}" onclick="setSettingsRating(${index}, ${value})" title="${value} sao"><i class="fa-${active ? "solid" : "regular"} fa-star"></i></button>`;
+    return `<button type="button" class="star-btn ${active ? "active" : ""}" data-star-value="${value}" onclick="setSettingsRating(${index}, ${value})" title="${value} sao" aria-label="Đánh giá ${value} sao"><i class="fa-${active ? "solid" : "regular"} fa-star"></i></button>`;
   }).join("");
 
   return `
@@ -1014,7 +1062,7 @@ function settingsStarRating(index, rating) {
           <div class="star-rating-picker" data-rating-index="${index}">
             <input type="hidden" class="settings-input" id="settings-${index}-rating" data-field="rating" value="${current}">
             ${stars}
-            <button type="button" class="star-clear-btn" onclick="setSettingsRating(${index}, 0)">Xóa sao</button>
+            <button type="button" class="star-clear-btn" onclick="setSettingsRating(${index}, 0)" aria-label="Xóa đánh giá sao">Xóa sao</button>
           </div>
         </div>
       `;
@@ -1049,6 +1097,7 @@ function addNewShow() {
   };
 
   showsData.push(newShow);
+  invalidateSearchIndex();
   settingsSearchQuery = "";
   const settingsSearchBox = document.getElementById("settings-search-box");
   if (settingsSearchBox) settingsSearchBox.value = "";
@@ -1112,7 +1161,7 @@ function settingsWatchLinksGroup(index, type, links, label, spanClass = "span-2"
           <div class="watch-links-editor" id="watch-links-${index}-${type}">
             ${rows}
           </div>
-          <button type="button" class="watch-link-add-btn" onclick="addWatchLinkRow(${index}, '${type}')">
+          <button type="button" class="watch-link-add-btn" onclick="addWatchLinkRow(${index}, '${type}')" aria-label="Thêm link ${escapeHtml(label)}">
             <i class="fa-solid fa-plus"></i> Thêm link
           </button>
         </div>
@@ -1196,6 +1245,7 @@ function saveSettingsShow(index) {
     showsData[baseIndex] = data; // Cập nhật chuẩn xác 100% tại vị trí cũ
   }
 
+  invalidateSearchIndex();
   updateStatistics();
   renderShows();
   renderSettingsList();
@@ -1219,6 +1269,7 @@ function deleteShow(index) {
   if (baseIndex !== undefined && baseIndex >= 0 && baseIndex < showsData.length) {
     showsData.splice(baseIndex, 1);
   }
+  invalidateSearchIndex();
 
   if (currentModalIndex === index) {
     closeShowModal();
@@ -1278,7 +1329,7 @@ function renderShowPoster(show) {
   const posterEl = document.getElementById("modal-poster-el");
 
   if (posterUrl) {
-    posterEl.innerHTML = `<img src="${escapeHtml(posterUrl)}" alt="Ảnh show ${escapeHtml(show.vietnamese)}" loading="lazy" width="300" height="400">`;
+    posterEl.innerHTML = `<img src="${escapeHtml(posterUrl)}" alt="Ảnh show ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" width="300" height="400">`;
     return;
   }
 
@@ -1485,7 +1536,7 @@ function loadMoreShows() {
     const ratingHtml = renderInteractiveStarRating(originalIndex, getShowRating(show));
     const thumbUrl = getShowImage(show);
     const thumbHtml = thumbUrl
-      ? `<img src="${escapeHtml(thumbUrl)}" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy" width="110" height="110">`
+      ? `<img src="${escapeHtml(thumbUrl)}" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" width="110" height="110">`
       : `<i class="fa-regular fa-image card-thumb-placeholder"></i>`;
 
     card.innerHTML = `
@@ -1513,7 +1564,7 @@ function loadMoreShows() {
             </div>
           </div>
           
-          <button class="open-modal-btn" data-show-index="${originalIndex}" title="Mở cửa sổ chi tiết tiêu điểm show">
+          <button class="open-modal-btn" type="button" data-show-index="${originalIndex}" title="Mở cửa sổ chi tiết tiêu điểm show" aria-label="Xem chi tiết ${escapeHtml(show.vietnamese || show.english || show.chinese)}">
             <i class="fa-solid fa-up-right-from-square"></i> Xem chi tiết & Tiêu điểm
           </button>
         `;
@@ -1593,25 +1644,7 @@ function renderShows() {
 
     // Search Query filter
     if (query !== "") {
-      const rawZh = (show.chinese || "").toLowerCase();
-      const rawEn = (show.english || "").toLowerCase();
-      const rawVi = (show.vietnamese || "").toLowerCase();
-      const rawViNoTone = removeVietnameseTones(rawVi);
-      const rawPlat = (show.platform || "").toLowerCase();
-      const rawCountry = countryLabel(getShowCountry(show)).toLowerCase();
-      const rawCountryNoTone = removeVietnameseTones(rawCountry);
-      const rawTime = `${show.time || ""} ${show.episodeProgress || ""} ${show.airingNote || ""}`.toLowerCase();
-      const rawTimeNoTone = removeVietnameseTones(rawTime);
-
-      return rawZh.includes(query) ||
-        rawEn.includes(query) ||
-        rawVi.includes(query) ||
-        rawViNoTone.includes(query) ||
-        rawPlat.includes(query) ||
-        rawCountry.includes(query) ||
-        rawCountryNoTone.includes(query) ||
-        rawTime.includes(query) ||
-        rawTimeNoTone.includes(query);
+      return getShowSearchText(show).includes(query);
     }
 
     return true;
@@ -1671,15 +1704,24 @@ function renderShows() {
 
 async function loadShowsData() {
   try {
-    const response = await fetch('./showsData.json', { cache: 'no-store' });
+    const response = await fetch(`./showsData.json?v=${DATA_VERSION}`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     showsData = await response.json();
     if (!Array.isArray(showsData)) throw new Error('showsData.json must contain an array');
+    invalidateSearchIndex();
   } catch (err) {
     console.error('Cannot load showsData.json:', err);
     showToast('Khong tai duoc showsData.json. Hay chay qua local server hoac kiem tra file du lieu.', true);
     showsData = [];
   }
+}
+
+function setActiveFilterButton(activeButton, buttons) {
+  buttons.forEach(button => {
+    const isActive = button === activeButton;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
 }
 
 function initializeAppEvents() {
@@ -1761,8 +1803,7 @@ function initializeAppEvents() {
   // Tối ưu INP cho Bộ lọc trạng thái
   const statusButtons = document.querySelectorAll("#status-filters .filter-btn");
   statusButtons.forEach(btn => btn.addEventListener("click", () => {
-    statusButtons.forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
+    setActiveFilterButton(btn, statusButtons);
     setTimeout(() => {
       currentFilters.status = btn.getAttribute("data-status");
       renderShows();
@@ -1772,8 +1813,7 @@ function initializeAppEvents() {
   // Tối ưu INP cho Bộ lọc sắp xếp
   const sortButtons = document.querySelectorAll("#sort-controls .filter-btn");
   sortButtons.forEach(btn => btn.addEventListener("click", () => {
-    sortButtons.forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
+    setActiveFilterButton(btn, sortButtons);
     setTimeout(() => {
       currentFilters.sort = btn.getAttribute("data-sort");
       renderShows();
@@ -1783,8 +1823,7 @@ function initializeAppEvents() {
   // Tối ưu INP cho Bộ lọc quốc gia
   const countryButtons = document.querySelectorAll("#country-filters .filter-btn");
   countryButtons.forEach(btn => btn.addEventListener("click", () => {
-    countryButtons.forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
+    setActiveFilterButton(btn, countryButtons);
     setTimeout(() => {
       currentFilters.country = btn.getAttribute("data-country");
       renderShows();
@@ -1794,8 +1833,7 @@ function initializeAppEvents() {
   // Tối ưu INP cho Bộ lọc tag (Nguyên nhân chính được báo cáo từ Cloudflare)
   const tagButtons = document.querySelectorAll("#tag-filters .filter-btn");
   tagButtons.forEach(btn => btn.addEventListener("click", () => {
-    tagButtons.forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
+    setActiveFilterButton(btn, tagButtons);
     setTimeout(() => {
       currentFilters.tag = btn.getAttribute("data-tag");
       renderShows();
