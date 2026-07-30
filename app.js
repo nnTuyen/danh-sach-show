@@ -1,2356 +1,2094 @@
-:root {
-  --bg-gradient: linear-gradient(135deg, #090d16 0%, #0f172a 50%, #1e1b4b 100%);
-  --panel-bg: rgba(30, 41, 59, 0.45);
-  --panel-border: rgba(255, 255, 255, 0.08);
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --accent-color: #8b5cf6;
-  --accent-glow: rgba(139, 92, 246, 0.3);
+// Full dataset of shows translated to English and Vietnamese
+let showsData = [];
 
-  /* Platform Colors */
-  --color-tencent: #007acc;
-  --color-mango: #ff5f00;
-  --color-youku: #0099ff;
-  --color-iqiyi: #00c800;
-  --color-bilibili: #fb7299;
-  --color-migu: #e60012;
-  --color-tvb: #005bac;
-  --color-gaga: #111827;
-  --color-undecided: #64748b;
+// Các biến phục vụ tính năng tải trang cuộn vô hạn (Lazy Loading DOM)
+let activeFilteredShows = [];
+let showsRenderedCount = 0;
+const SHOWS_PER_PAGE = 12; // Số lượng show hiển thị mỗi lần cuộn
+const DATA_VERSION = "20260728-optimize";
+let sentinelObserver = null;
+let searchTimeout = null; // Quản lý debounce tìm kiếm tránh lag phím
+let _searchIndexCache = new Map();
+const dialogState = {
+  stack: [],
+  restoreFocus: new WeakMap()
+};
 
-  /* Status Colors */
-  --status-upcoming: #38bdf8;
-  --status-airing: #4ade80;
-  --status-completed: #94a3b8;
+// Cache DOM references cho modal để tránh getElementById mỗi lần click
+let _modalEls = null;
+function getModalEls() {
+  if (!_modalEls) {
+    _modalEls = {
+      modal: document.getElementById("show-modal"),
+      container: document.getElementById("modal-container-el"),
+      title: document.getElementById("modal-title-el"),
+      zh: document.getElementById("modal-zh-el"),
+      en: document.getElementById("modal-en-el"),
+      vi: document.getElementById("modal-vi-el"),
+      badges: document.getElementById("modal-badges-el"),
+      ratingSlot: document.getElementById("modal-rating-slot"),
+      poster: document.getElementById("modal-poster-el"),
+      linksCard: document.getElementById("modal-links-card"),
+      linksToggle: document.getElementById("modal-links-toggle"),
+      linksSummary: document.getElementById("modal-links-summary"),
+      linksEl: document.getElementById("modal-links-el"),
+      desc: document.getElementById("modal-desc-el"),
+      btnZh: document.getElementById("modal-copy-zh-btn"),
+      btnEn: document.getElementById("modal-copy-en-btn"),
+      btnVi: document.getElementById("modal-copy-vi-btn")
+    };
+  }
+  return _modalEls;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+function getFocusableElements(root) {
+  return [...root.querySelectorAll([
+    "a[href]",
+    "button:not([disabled])",
+    "input:not([disabled])",
+    "select:not([disabled])",
+    "textarea:not([disabled])",
+    "[tabindex]:not([tabindex='-1'])"
+  ].join(","))].filter(el => {
+    const rect = el.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  });
 }
 
-/* Screen Reader Only Utility (WCAG a11y) */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
+function updateBackgroundInertState() {
+  const hasOpenDialog = dialogState.stack.length > 0;
+  const main = document.querySelector("main.container");
+  if (!main) return;
 
-/* Custom Scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(9, 13, 22, 0.6);
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.3);
-  border-radius: 4px;
-  border: 2px solid rgba(9, 13, 22, 0.6);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.6);
-}
-
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(139, 92, 246, 0.3) rgba(9, 13, 22, 0.6);
-}
-
-body {
-  background-color: #090d16;
-  color: var(--text-main);
-  min-height: 100vh;
-  min-height: 100dvh;
-  padding: 2rem 1.5rem;
-  line-height: 1.5;
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--bg-gradient);
-  z-index: -1;
-  will-change: transform;
-}
-
-html {
-  background-color: #090d16 !important;
-}
-
-.container {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-/* Header Styling */
-header {
-  text-align: center;
-  margin-bottom: 3rem;
-  position: relative;
-}
-
-header h1 {
-  font-size: 2.75rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 50%, #f472b6 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 0.75rem;
-  letter-spacing: -0.025em;
-}
-
-header p {
-  color: var(--text-muted);
-  font-size: 1.1rem;
-  max-width: 700px;
-  margin: 0 auto 1.5rem;
-}
-
-/* Stats Panel */
-.stats-container {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-  margin-bottom: 2.5rem;
-}
-
-.stat-card {
-  background: var(--panel-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--panel-border);
-  border-radius: 1rem;
-  padding: 1.25rem;
-  text-align: center;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-}
-
-.stat-number {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-main);
-  line-height: 1.2;
-}
-
-.stat-label {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 0.25rem;
-  font-weight: 500;
-}
-
-.stat-card.total .stat-number {
-  color: #f472b6;
-}
-
-.stat-card.upcoming .stat-number {
-  color: var(--status-upcoming);
-}
-
-.stat-card.airing .stat-number {
-  color: var(--status-airing);
-}
-
-.stat-card.completed .stat-number {
-  color: var(--status-completed);
-}
-
-/* Control Panel (Search & Filters) */
-.control-panel {
-  background: var(--panel-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--panel-border);
-  border-radius: 1.25rem;
-  padding: 2rem;
-  margin-bottom: 2.5rem;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
-}
-
-/* Search Bar */
-.search-wrapper {
-  position: relative;
-  margin-bottom: 1.75rem;
-}
-
-.search-wrapper i {
-  position: absolute;
-  left: 1.25rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted);
-  font-size: 1.2rem;
-  transition: color 0.3s;
-}
-
-.search-input {
-  width: 100%;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid var(--panel-border);
-  border-radius: 0.75rem;
-  padding: 1.1rem 1.25rem 1.1rem 3.25rem;
-  color: var(--text-main);
-  font-size: 1.05rem;
-  outline: none;
-  transition: border-color 0.3s ease,
-    box-shadow 0.3s ease,
-    background-color 0.3s ease;
-}
-
-.search-input:focus {
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 4px var(--accent-glow);
-  background: rgba(15, 23, 42, 0.85);
-}
-
-.search-input:focus+i {
-  color: var(--accent-color);
-}
-
-/* Filter Groups */
-.filter-section {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
-}
-
-@media (min-width: 1024px) {
-  html {
-    scrollbar-gutter: stable;
+  if (hasOpenDialog) {
+    main.setAttribute("aria-hidden", "true");
+    if ("inert" in main) main.inert = true;
+  } else {
+    main.removeAttribute("aria-hidden");
+    if ("inert" in main) main.inert = false;
   }
 }
 
-@media (min-width: 1280px) {
-  .filter-section {
-    grid-template-columns: 1.1fr 1.5fr 1fr 1fr;
+function openAccessibleDialog(modal, focusTarget) {
+  if (!modal) return;
+
+  if (!dialogState.stack.includes(modal)) {
+    dialogState.restoreFocus.set(modal, document.activeElement);
+    dialogState.stack.push(modal);
+  }
+
+  modal.classList.add("active");
+  document.body.style.overflow = "hidden";
+  updateBackgroundInertState();
+
+  requestAnimationFrame(() => {
+    const target = focusTarget || getFocusableElements(modal)[0] || modal;
+    target?.focus?.({ preventScroll: true });
+  });
+}
+
+function closeAccessibleDialog(modal, { keepScrollLocked = false, restoreFocus = true } = {}) {
+  if (!modal) return;
+
+  modal.classList.remove("active");
+  dialogState.stack = dialogState.stack.filter(item => item !== modal);
+  updateBackgroundInertState();
+
+  if (!keepScrollLocked && dialogState.stack.length === 0) {
+    document.body.style.overflow = "";
+  }
+
+  if (restoreFocus) {
+    const previous = dialogState.restoreFocus.get(modal);
+    if (previous && document.contains(previous)) {
+      previous.focus?.({ preventScroll: true });
+    }
+  }
+  dialogState.restoreFocus.delete(modal);
+}
+
+function getTopActiveDialog() {
+  for (let i = dialogState.stack.length - 1; i >= 0; i -= 1) {
+    if (dialogState.stack[i].classList.contains("active")) return dialogState.stack[i];
+  }
+  return null;
+}
+
+function handleDialogKeydown(e) {
+  const modal = getTopActiveDialog();
+  if (!modal) return;
+
+  if (e.key === "Escape") {
+    e.preventDefault();
+    if (modal.id === "textarea-editor-modal") closeTextareaEditor();
+    else if (modal.id === "settings-modal") closeSettingsModal();
+    else if (modal.id === "show-modal") closeShowModal();
+    return;
+  }
+
+  if (e.key !== "Tab") return;
+
+  const focusable = getFocusableElements(modal);
+  if (!focusable.length) {
+    e.preventDefault();
+    modal.focus?.({ preventScroll: true });
+    return;
+  }
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus({ preventScroll: true });
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus({ preventScroll: true });
   }
 }
 
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+// Cache hiddenShowKeys để tránh parse JSON từ localStorage mỗi lần gọi
+let _hiddenShowKeysCache = null;
+let _hiddenShowKeysCacheDirty = true;
+
+// Remove Vietnamese accents / diacritics for better searching
+function removeVietnameseTones(str) {
+  if (!str) return "";
+  str = String(str);
+  str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+  str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+  str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+  str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+  str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+  str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+  str = str.replace(/đ/g, "d");
+  str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+  str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+  str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+  str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+  str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+  str = str.replace(/Ý|Ỳ|Ỵ|Ỷ|Ỹ/g, "Y");
+  str = str.replace(/Đ/g, "D");
+  str = str.replace(/\u0300|\u0301|\u0309|\u0303|\u0323/g, ""); // Huyền sắc hỏi ngã nặng 
+  str = str.replace(/\u02c6|\u0306|\u031b/g, ""); // Â, Ă, Ơ, Ư
+  return str;
 }
 
-.filter-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+// Custom descriptions database mapping based on show names
+function getShowDescription(show) {
+  return "";
 }
 
-.filter-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
+// Active state tracker for filters
+const COUNTRY_OPTIONS = [
+  { code: "china", label: "Trung Quốc", flag: "🇨🇳" },
+  { code: "korea", label: "Hàn Quốc", flag: "🇰🇷" },
+  { code: "japan", label: "Nhật Bản", flag: "🇯🇵" },
+  { code: "thailand", label: "Thái Lan", flag: "🇹🇭" },
+  { code: "taiwan", label: "Đài Loan", flag: "🇹🇼" },
+  { code: "hongkong", label: "Hồng Kông", flag: "🇭🇰" },
+  { code: "other", label: "Khác", flag: "🌏" }
+];
 
-.filter-btn {
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  color: var(--text-muted);
-  padding: 0.5rem 0.9rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.15s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
+const COUNTRY_BY_CHINESE = [
+  ["恋爱兄妹", "korea"],
+  ["仔仔一堂", "hongkong"],
+  ["男生男生配", "taiwan"]
+];
 
-.filter-btn:hover {
-  background: rgba(51, 65, 85, 0.7);
-  color: var(--text-main);
-}
+const COUNTRY_BY_PLATFORM = {
+  "TVB": "hongkong",
+  "GagaOOLala": "taiwan"
+};
 
-.filter-btn:active {
-  transform: scale(0.97);
-}
+let currentFilters = {
+  search: "",
+  status: "all",
+  country: "all",
+  tag: "all",
+  sort: "name-asc"
+};
 
-:focus-visible {
-  outline: 2px solid #38bdf8 !important;
-  outline-offset: 3px !important;
-}
+const CUSTOM_SHOWS_STORAGE_KEY = "cnDatingShowsCustomShowsV1";
+const HIDDEN_SHOWS_STORAGE_KEY = "cnDatingShowsHiddenShowsV1";
+let currentModalIndex = null;
+let settingsLocked = true;
+let settingsSearchQuery = "";
+let customShows = loadCustomShows();
 
-.filter-btn.active {
-  background: var(--accent-color);
-  color: #fff;
-  border-color: var(--accent-color);
-  box-shadow: 0 4px 12px var(--accent-glow);
-}
-
-.badge-country {
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 0.28rem 0.55rem;
-  border-radius: 100px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--text-main);
-  white-space: nowrap;
-}
-
-.badge-country.china {
-  border-color: rgba(220, 38, 38, 0.35);
-  background: rgba(220, 38, 38, 0.12);
-}
-
-.badge-country.korea {
-  border-color: rgba(37, 99, 235, 0.35);
-  background: rgba(37, 99, 235, 0.12);
-}
-
-.badge-country.japan {
-  border-color: rgba(225, 29, 72, 0.35);
-  background: rgba(225, 29, 72, 0.12);
-}
-
-.badge-country.thailand {
-  border-color: rgba(124, 58, 237, 0.35);
-  background: rgba(124, 58, 237, 0.12);
-}
-
-.badge-country.taiwan {
-  border-color: rgba(5, 150, 105, 0.35);
-  background: rgba(5, 150, 105, 0.12);
-}
-
-.badge-country.hongkong {
-  border-color: rgba(180, 83, 9, 0.35);
-  background: rgba(180, 83, 9, 0.12);
-}
-
-.badge-country.other {
-  border-color: rgba(148, 163, 184, 0.35);
-  background: rgba(148, 163, 184, 0.12);
-}
-
-/* Show Grid */
-.show-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-  margin-top: 1rem;
-}
-
-@media (min-width: 768px) {
-  .show-grid {
-    grid-template-columns: repeat(2, 1fr);
+function loadCustomShows() {
+  try {
+    const raw = localStorage.getItem(CUSTOM_SHOWS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter(item => item && typeof item === "object") : [];
+  } catch (err) {
+    console.warn("Không đọc được danh sách show tự thêm:", err);
+    return [];
   }
 }
 
-@media (min-width: 1200px) {
-  .show-grid {
-    grid-template-columns: repeat(3, 1fr);
+function saveCustomShows() {
+  try {
+    localStorage.setItem(CUSTOM_SHOWS_STORAGE_KEY, JSON.stringify(customShows));
+  } catch (err) {
+    console.warn("Lỗi khi lưu custom shows:", err);
   }
 }
 
-/* Show Card */
-.show-card {
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid var(--panel-border);
-  border-radius: 1.25rem;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.3s ease,
-    border-color 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  content-visibility: auto;
-  contain-intrinsic-size: auto 320px;
-}
-
-.show-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: var(--accent-color);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.show-card[data-plat="tencent"]::before {
-  background: var(--color-tencent);
-  opacity: 0.6;
-}
-
-.show-card[data-plat="mango"]::before {
-  background: var(--color-mango);
-  opacity: 0.6;
-}
-
-.show-card[data-plat="youku"]::before {
-  background: var(--color-youku);
-  opacity: 0.6;
-}
-
-.show-card[data-plat="iqiyi"]::before {
-  background: var(--color-iqiyi);
-  opacity: 0.6;
-}
-
-.show-card[data-plat="bilibili"]::before {
-  background: var(--color-bilibili);
-  opacity: 0.6;
-}
-
-.show-card[data-plat="migu"]::before {
-  background: var(--color-migu);
-  opacity: 0.6;
-}
-
-.show-card[data-plat="tvb"]::before {
-  background: var(--color-tvb);
-  opacity: 0.6;
-}
-
-.show-card[data-plat="gaga"]::before {
-  background: var(--color-gaga);
-  opacity: 0.6;
-}
-
-.show-card[data-plat="undecided"]::before {
-  background: var(--color-undecided);
-  opacity: 0.6;
-}
-
-.show-card:hover {
-  transform: translateY(-5px);
-  border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
-}
-
-.show-card:hover::before {
-  opacity: 1;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.25rem;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.badge {
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 0.25rem 0.6rem;
-  border-radius: 100px;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.badge-status {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-main);
-}
-
-.badge-status.upcoming {
-  background: rgba(56, 189, 248, 0.15);
-  color: var(--status-upcoming);
-}
-
-.badge-status.airing {
-  background: rgba(74, 222, 128, 0.15);
-  color: var(--status-airing);
-}
-
-.badge-status.completed {
-  background: rgba(148, 163, 184, 0.15);
-  color: var(--status-completed);
-}
-
-.badge-year {
-  background: rgba(250, 204, 21, 0.14);
-  color: #fde68a;
-  border: 1px solid rgba(250, 204, 21, 0.24);
-}
-
-.badge-plat {
-  color: #fff;
-}
-
-.badge-plat.tencent {
-  background: var(--color-tencent);
-}
-
-.badge-plat.mango {
-  background: var(--color-mango);
-}
-
-.badge-plat.youku {
-  background: var(--color-youku);
-}
-
-.badge-plat.iqiyi {
-  background: var(--color-iqiyi);
-}
-
-.badge-plat.bilibili {
-  background: var(--color-bilibili);
-}
-
-.badge-plat.migu {
-  background: var(--color-migu);
-}
-
-.badge-plat.tvb {
-  background: var(--color-tvb);
-}
-
-.badge-plat.gaga {
-  background: var(--color-gaga);
-}
-
-.badge-plat.undecided {
-  background: var(--color-undecided);
-}
-
-.badge-tag {
-  background: rgba(139, 92, 246, 0.2);
-  color: #c084fc;
-  border: 1px solid rgba(139, 92, 246, 0.3);
-}
-
-.time-note {
-  font-size: 0.75rem;
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.1);
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-weight: 600;
-}
-
-.card-compact-title {
-  margin-top: 0.9rem;
-  margin-bottom: 1.1rem;
-}
-
-.card-title-main {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--text-main);
-  line-height: 1.25;
-  margin-bottom: 0.35rem;
-  word-break: break-word;
-}
-
-.card-title-sub {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  line-height: 1.35;
-  word-break: break-word;
-}
-
-.name-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.4rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  gap: 0.75rem;
-}
-
-.name-row:last-child {
-  border-bottom: none;
-}
-
-.name-content {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.name-label {
-  font-size: 0.68rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.1rem;
-}
-
-.name-value {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--text-main);
-  word-break: break-word;
-}
-
-.name-value.zh {
-  font-size: 1.25rem;
-  color: #fff;
-}
-
-.copy-btn {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  width: 2.2rem;
-  height: 2.2rem;
-  border-radius: 0.5rem;
-  color: var(--text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
-  position: relative;
-}
-
-.copy-btn:hover {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: rgba(139, 92, 246, 0.3);
-  color: var(--accent-color);
-  transform: scale(1.05);
-}
-
-.copy-btn:active {
-  transform: scale(0.95);
-}
-
-.copy-btn.success {
-  background: rgba(74, 222, 128, 0.15);
-  border-color: rgba(74, 222, 128, 0.4);
-  color: #4ade80;
-}
-
-/* Modal Popup Styling */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(9, 13, 22, 0.92);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
-  z-index: 2000;
-  padding: 1rem;
-  will-change: opacity;
-}
-
-.modal-overlay.active {
-  opacity: 1;
-  visibility: visible;
-}
-
-.modal-container {
-  background: rgba(30, 41, 59, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 1.5rem;
-  width: 100%;
-  max-width: 980px;
-  padding: 1.5rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  transform: scale(0.95) translateY(10px);
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  position: relative;
-  color: var(--text-main);
-  overflow-y: auto;
-  max-height: 90vh;
-  will-change: transform;
-}
-
-.modal-overlay.active .modal-container {
-  transform: scale(1) translateY(0);
-}
-
-.modal-close {
-  position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  width: 2.2rem;
-  height: 2.2rem;
-  border-radius: 50%;
-  color: var(--text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
-  outline: none;
-}
-
-.modal-close:hover {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #ef4444;
-  transform: rotate(90deg);
-}
-
-.modal-title {
-  font-size: 1.7rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 50%, #f472b6 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 0.35rem;
-  padding-right: 2.5rem;
-  line-height: 1.3;
-}
-
-.modal-badges {
-  display: flex;
-  gap: 0.4rem;
-  margin-bottom: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.modal-extra-grid {
-  display: grid;
-  grid-template-columns: minmax(200px, 0.85fr) minmax(280px, 1.15fr);
-  gap: 0.75rem;
-  margin-bottom: 0.85rem;
-}
-
-.modal-poster-card,
-.modal-links-card {
-  background: rgba(15, 23, 42, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 0.85rem;
-  padding: 0.75rem;
-}
-
-.modal-side-column {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  min-width: 0;
-}
-
-.modal-side-column .modal-info-section {
-  margin-bottom: 0;
-  padding: 0.65rem 0.85rem;
-}
-
-.modal-links-card {
-  padding: 0;
-  overflow: hidden;
-}
-
-.links-toggle {
-  width: 100%;
-  border: 0;
-  background: transparent;
-  color: var(--text-main);
-  padding: 0.9rem 1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  text-align: left;
-}
-
-.links-toggle-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  font-weight: 800;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.links-toggle-summary {
-  color: var(--text-muted);
-  font-size: 0.78rem;
-  font-weight: 600;
-  margin-left: auto;
-  margin-right: 0.35rem;
-  white-space: nowrap;
-}
-
-.links-toggle i:last-child {
-  color: var(--text-muted);
-  transition: transform 0.2s ease;
-  flex-shrink: 0;
-}
-
-.modal-links-card.open .links-toggle i:last-child {
-  transform: rotate(180deg);
-}
-
-.modal-links-panel {
-  display: none;
-  padding: 0 1rem 1rem;
-}
-
-.modal-links-card.open .modal-links-panel {
-  display: block;
-}
-
-.modal-poster-frame {
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  border-radius: 0.75rem;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.2), transparent 28%),
-    radial-gradient(circle at 80% 0%, rgba(244, 114, 182, 0.16), transparent 30%),
-    rgba(15, 23, 42, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  text-align: center;
-  padding: 0.75rem;
-}
-
-.modal-poster-frame img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.modal-poster-placeholder i {
-  font-size: 2.2rem;
-  display: block;
-  margin-bottom: 0.75rem;
-  color: var(--accent-color);
-  opacity: 0.8;
-}
-
-.modal-links-list {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.modal-links-section-title {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  padding-bottom: 0.25rem;
-}
-
-.modal-links-section-title:first-of-type {
-  margin-top: 0;
-}
-
-.watch-link-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.9rem 1rem;
-  border-radius: 0.85rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-main);
-  text-decoration: none;
-  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.watch-link-item[href]:hover {
-  border-color: rgba(139, 92, 246, 0.45);
-  background: rgba(139, 92, 246, 0.12);
-  transform: translateY(-1px);
-}
-
-.watch-link-item.placeholder {
-  color: var(--text-muted);
-  cursor: default;
-  opacity: 0.8;
-}
-
-.watch-link-label {
-  font-weight: 700;
-  font-size: 0.92rem;
-}
-
-.watch-link-note {
-  display: block;
-  color: var(--text-muted);
-  font-size: 0.78rem;
-  margin-top: 0.2rem;
-  font-weight: 500;
-}
-
-.modal-info-section {
-  background: rgba(15, 23, 42, 0.4);
-  border-radius: 0.85rem;
-  padding: 0.85rem 1rem;
-  margin-bottom: 0.85rem;
-  border: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.modal-desc-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.35rem;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.modal-desc-content {
-  font-size: 0.95rem;
-  line-height: 1.55;
-  color: var(--text-main);
-  text-align: justify;
-  white-space: normal;
-  background: rgba(15, 23, 42, 0.3);
-  padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
-  border-left: 4px solid var(--accent-color);
-  transition: border-color 0.3s;
-}
-
-.modal-desc-text {
-  white-space: pre-wrap;
-}
-
-.modal-desc-text:not(:last-child) {
-  margin-bottom: 0.6rem;
-}
-
-.open-modal-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--text-main);
-  padding: 0.8rem;
-  border-radius: 0.75rem;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
-  margin-top: auto;
-  outline: none;
-}
-
-.open-modal-btn:hover {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
-  border-color: rgba(139, 92, 246, 0.4);
-  color: #c084fc;
-  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.12);
-}
-
-.open-modal-btn:active {
-  transform: scale(0.98);
-}
-
-.modal-actions {
-  display: flex;
-  gap: 0.65rem;
-  flex-wrap: wrap;
-  margin-top: 0.7rem;
-  padding-top: 0.7rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.modal-action-btn {
-  flex: 1;
-  min-width: 140px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.8rem 1rem;
-  border-radius: 0.75rem;
-  font-size: 0.88rem;
-  font-weight: 700;
-  cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.modal-action-btn.edit {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(139, 92, 246, 0.22));
-  border-color: rgba(139, 92, 246, 0.35);
-  color: var(--text-main);
-}
-
-.modal-action-btn.edit:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(139, 92, 246, 0.2);
-}
-
-.modal-action-btn.delete {
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.35);
-  color: #fca5a5;
-}
-
-.modal-action-btn.delete:hover {
-  background: rgba(239, 68, 68, 0.2);
-  transform: translateY(-1px);
-}
-
-.settings-delete-btn {
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  color: #fca5a5;
-  padding: 0.55rem 1rem;
-  border-radius: 0.6rem;
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease;
-}
-
-.settings-delete-btn:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.2);
-  color: #fecaca;
-}
-
-.settings-delete-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* Empty State Component */
-.empty-state {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  text-align: center;
-  background: rgba(15, 23, 42, 0.45);
-  border: 1px dashed rgba(255, 255, 255, 0.12);
-  border-radius: 1.25rem;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  margin: 1.5rem 0;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.empty-state-icon {
-  font-size: 3.5rem;
-  color: var(--accent-color);
-  opacity: 0.85;
-  margin-bottom: 1.25rem;
-  filter: drop-shadow(0 0 16px var(--accent-glow));
-}
-
-.empty-state-title {
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: var(--text-main);
-  margin-bottom: 0.5rem;
-  letter-spacing: -0.01em;
-}
-
-.empty-state-desc {
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  max-width: 460px;
-  margin-bottom: 1.5rem;
-  line-height: 1.6;
-}
-
-.empty-state-reset-btn {
-  background: linear-gradient(135deg, var(--accent-color) 0%, #6366f1 100%);
-  color: #fff;
-  border: none;
-  padding: 0.75rem 1.75rem;
-  border-radius: 0.75rem;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 14px var(--accent-glow);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
-}
-
-.empty-state-reset-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px var(--accent-glow);
-}
-
-.empty-state-reset-btn:active {
-  transform: translateY(0) scale(0.97);
-}
-
-/* Toast Notification */
-.toast-container {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  z-index: 3000;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  pointer-events: none;
-}
-
-.toast {
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  color: #fff;
-  padding: 0.9rem 1.5rem;
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  transform: translateY(100px);
-  opacity: 0;
-  transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-    opacity 0.25s ease;
-  font-weight: 500;
-  font-size: 0.9rem;
-}
-
-.toast.show {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-.toast i {
-  color: #4ade80;
-  font-size: 1.1rem;
-}
-
-/* Scroll to top & Floating action buttons */
-.scroll-top-btn {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--panel-border);
-  width: 3rem;
-  height: 3rem;
-  border-radius: 50%;
-  color: var(--text-main);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.3s ease,
-    visibility 0.3s ease,
-    background-color 0.3s ease,
-    box-shadow 0.3s ease;
-  opacity: 0;
-  visibility: hidden;
-  z-index: 1000;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-}
-
-.scroll-top-btn.visible {
-  opacity: 0.7;
-  visibility: visible;
-}
-
-.scroll-top-btn:hover {
-  background: var(--accent-color);
-  transform: translateY(-3px);
-  box-shadow: 0 4px 20px var(--accent-glow);
-  opacity: 1;
-}
-
-.floating-search-wrapper {
-  position: fixed;
-  bottom: 5.5rem;
-  right: 2rem;
-  display: flex;
-  flex-direction: row-reverse;
-  align-items: center;
-  z-index: 1001;
-  pointer-events: none;
-}
-
-.floating-search-btn {
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--panel-border);
-  width: 3rem;
-  height: 3rem;
-  border-radius: 50%;
-  color: var(--text-main);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.3s ease,
-    background-color 0.3s ease,
-    box-shadow 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  outline: none;
-  pointer-events: auto;
-  opacity: 0.7;
-}
-
-.floating-search-btn:hover {
-  background: var(--accent-color);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px var(--accent-glow);
-  opacity: 1;
-}
-
-.floating-search-input-box {
-  display: flex;
-  align-items: center;
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid var(--panel-border);
-  border-radius: 2rem;
-  height: 3rem;
-  width: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    margin-right 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    padding 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-right: 0;
-  padding: 0;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  pointer-events: auto;
-}
-
-.floating-search-wrapper.open .floating-search-input-box {
-  width: 280px;
-  opacity: 1;
-  margin-right: 0.75rem;
-  padding: 0 1.25rem;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px var(--accent-glow);
-}
-
-.floating-search-wrapper.open .floating-search-btn {
-  background: var(--accent-color);
-  transform: rotate(90deg);
-  opacity: 1;
-}
-
-#floating-search-box {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--text-main);
-  font-size: 0.95rem;
-  width: 100%;
-}
-
-#floating-search-clear-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 0.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s;
-}
-
-#floating-search-clear-btn:hover {
-  color: #ef4444;
-}
-
-/* Xóa bỏ viền xanh cyan bên trong ô tìm kiếm khi đang gõ chữ */
-#floating-search-box:focus,
-#floating-search-box:focus-visible,
-.search-input:focus,
-.search-input:focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-/* Card Thumbnail */
-.card-thumb {
-  width: 110px;
-  height: 110px;
-  min-width: 110px;
-  border-radius: 0.75rem;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.18), transparent 50%),
-    rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.show-card:hover .card-thumb {
-  transform: scale(1.05);
-  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.2);
-}
-
-.card-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.card-thumb-placeholder {
-  color: var(--text-muted);
-  font-size: 1.6rem;
-  opacity: 0.5;
-}
-
-.card-top-row {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
-  align-items: flex-start;
-}
-
-.card-top-info {
-  flex: 1;
-  min-width: 0;
-}
-
-/* Header Settings Button */
-.header-actions {
-  display: flex;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-top: 1rem;
-}
-
-.settings-btn {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(56, 189, 248, 0.15));
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  color: var(--text-main);
-  padding: 0.65rem 1.3rem;
-  border-radius: 0.75rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: transform 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.settings-btn:hover {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(56, 189, 248, 0.25));
-  border-color: rgba(139, 92, 246, 0.5);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.2);
-}
-
-.settings-btn:active {
-  transform: scale(0.97);
-}
-
-/* Settings Modal */
-.settings-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(9, 13, 22, 0.96);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
-  z-index: 2500;
-  padding: 1rem;
-  will-change: opacity;
-  contain: strict;
-}
-
-.settings-overlay.active {
-  opacity: 1;
-  visibility: visible;
-}
-
-.settings-container {
-  background: rgba(15, 23, 42, 0.97);
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  border-radius: 1.5rem;
-  width: 100%;
-  max-width: 1200px;
-  padding: 2rem;
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
-  transform: scale(0.97) translateY(10px);
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  position: relative;
-  color: var(--text-main);
-  overflow-y: auto;
-  max-height: 92vh;
-  will-change: transform, opacity;
-}
-
-.settings-overlay.active .settings-container {
-  transform: scale(1) translateY(0);
-}
-
-.settings-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.settings-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #38bdf8, #a78bfa, #f472b6);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.settings-actions {
-  display: flex;
-  gap: 0.6rem;
-  align-items: center;
-}
-
-.lock-btn {
-  background: rgba(74, 222, 128, 0.15);
-  border: 1px solid rgba(74, 222, 128, 0.3);
-  color: #4ade80;
-  padding: 0.6rem 1.1rem;
-  border-radius: 0.7rem;
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  transition: background-color 0.25s ease,
-    border-color 0.25s ease,
-    color 0.25s ease,
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
-}
-
-.lock-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(74, 222, 128, 0.15);
-}
-
-.lock-btn.locked {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.35);
-  color: #ef4444;
-}
-
-.settings-search-bar {
-  margin-bottom: 1rem;
-}
-
-.settings-search-wrapper {
-  margin-bottom: 0.4rem;
-}
-
-.settings-search-meta {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  padding: 0 0.2rem;
-  font-weight: 500;
-}
-
-.settings-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.settings-show-item {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 1rem;
-  overflow: hidden;
-  transition: border-color 0.2s;
-}
-
-.settings-show-item:hover {
-  border-color: rgba(139, 92, 246, 0.2);
-}
-
-.settings-show-header {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  padding: 0.85rem 1rem;
-  cursor: pointer;
-  user-select: none;
-  transition: background 0.2s;
-}
-
-.settings-show-header:hover {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.settings-show-thumb {
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  background: rgba(15, 23, 42, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.settings-show-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.settings-show-name {
-  flex: 1;
-  min-width: 0;
-}
-
-.settings-show-name-zh {
-  font-size: 1rem;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.settings-show-name-vi {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.settings-show-badges {
-  display: flex;
-  gap: 0.3rem;
-  flex-shrink: 0;
-}
-
-.settings-expand-icon {
-  color: var(--text-muted);
-  transition: transform 0.25s ease;
-  flex-shrink: 0;
-}
-
-.settings-show-item.open .settings-expand-icon {
-  transform: rotate(180deg);
-}
-
-.settings-show-form {
-  display: none;
-  padding: 0 1rem 1rem;
-}
-
-.settings-show-item.open .settings-show-form {
-  display: block;
-}
-
-.settings-form-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.7rem;
-}
-
-.settings-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.settings-field.span-2 {
-  grid-column: span 2;
-}
-
-.settings-field.span-3 {
-  grid-column: span 3;
-}
-
-.settings-field label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.settings-input,
-.settings-select,
-.settings-textarea {
-  background: rgba(2, 6, 23, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 0.55rem;
-  padding: 0.55rem 0.7rem;
-  color: var(--text-main);
-  font-size: 0.85rem;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  width: 100%;
-}
-
-.settings-input:focus,
-.settings-select:focus,
-.settings-textarea:focus {
-  border-color: rgba(139, 92, 246, 0.5);
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.12);
-}
-
-.settings-input:disabled,
-.settings-select:disabled,
-.settings-textarea:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background: rgba(30, 41, 59, 0.4);
-}
-
-.settings-textarea {
-  min-height: 82px;
-  resize: vertical;
-  line-height: 1.45;
-}
+function cleanRuntimeFields(show) {
+  const cleaned = { ...show };
+  delete cleaned._index;
+  delete cleaned._isCustom;
+  delete cleaned._customId;
+  delete cleaned._showsDataIndex;
+  delete cleaned._searchToken;
+  return cleaned;
+}
+
+function mergeLegacyCustomShowsIntoShowsData() {
+  if (!Array.isArray(customShows) || !customShows.length) return;
+
+  customShows.forEach(customShow => {
+    const cleaned = cleanRuntimeFields(customShow);
+    const duplicateIndex = showsData.findIndex(show =>
+      show.chinese === cleaned.chinese ||
+      (show.english && cleaned.english && show.english === cleaned.english) ||
+      (show.vietnamese && cleaned.vietnamese && show.vietnamese === cleaned.vietnamese)
+    );
+
+    if (duplicateIndex >= 0) {
+      showsData[duplicateIndex] = { ...showsData[duplicateIndex], ...cleaned };
+    } else {
+      showsData.push(cleaned);
+    }
+  });
+
+  customShows = [];
+  saveCustomShows();
+  invalidateSearchIndex();
+}
+
+function loadHiddenShowKeys() {
+  if (!_hiddenShowKeysCacheDirty && _hiddenShowKeysCache !== null) {
+    return _hiddenShowKeysCache;
+  }
+  try {
+    const raw = localStorage.getItem(HIDDEN_SHOWS_STORAGE_KEY);
+    if (!raw) {
+      _hiddenShowKeysCache = [];
+    } else {
+      const parsed = JSON.parse(raw);
+      _hiddenShowKeysCache = Array.isArray(parsed) ? parsed.filter(item => typeof item === "string") : [];
+    }
+  } catch (err) {
+    console.warn("Không đọc được danh sách show đã ẩn:", err);
+    _hiddenShowKeysCache = [];
+  }
+  _hiddenShowKeysCacheDirty = false;
+  return _hiddenShowKeysCache;
+}
+
+function saveHiddenShowKeys(keys) {
+  try {
+    localStorage.setItem(HIDDEN_SHOWS_STORAGE_KEY, JSON.stringify(keys));
+  } catch (err) {
+    console.warn("Lỗi khi lưu hidden show keys:", err);
+  }
+  _hiddenShowKeysCacheDirty = true;
+  invalidateSearchIndex();
+}
 
-.settings-show-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
+function getShowKey(show) {
+  return show._customId || show.chinese;
 }
 
-.settings-save-btn {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(139, 92, 246, 0.25));
-  border: 1px solid rgba(139, 92, 246, 0.35);
-  color: var(--text-main);
-  padding: 0.55rem 1rem;
-  border-radius: 0.6rem;
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+// Pre-computed Search Index Builder
+function computeShowSearchToken(show) {
+  const values = [
+    show.chinese,
+    show.english,
+    show.vietnamese,
+    show.platform,
+    countryLabel(getShowCountry(show)),
+    show.time,
+    show.episodeProgress,
+    show.airingNote,
+    show.detailNotes,
+    show.description || getShowDescription(show),
+    statusLabel(show.status),
+    tagToString(show.tags)
+  ];
+  const raw = values.filter(Boolean).join(" ").toLowerCase();
+  return `${raw} ${removeVietnameseTones(raw)}`;
 }
 
-.settings-save-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+function prepareShowsSearchTokens() {
+  showsData.forEach(show => {
+    show._searchToken = computeShowSearchToken(show);
+  });
 }
 
-.settings-save-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+function invalidateSearchIndex() {
+  _searchIndexCache = new Map();
+  prepareShowsSearchTokens();
 }
 
-.settings-reset-btn {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--text-muted);
-  padding: 0.55rem 1rem;
-  border-radius: 0.6rem;
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+function findShowsDataIndexByKey(key) {
+  return showsData.findIndex(show => getShowKey(show) === key);
 }
 
-.settings-reset-btn:hover {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #ef4444;
+function getAllShowsRaw() {
+  const hidden = new Set(loadHiddenShowKeys());
+  return showsData
+    .map((show, idx) => ({ ...show, _showsDataIndex: idx, _isCustom: false }))
+    .filter(show => !hidden.has(getShowKey(show)));
 }
 
-.settings-add-btn {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(139, 92, 246, 0.25));
-  border: 1px solid rgba(139, 92, 246, 0.35);
-  color: var(--text-main);
-  padding: 0.6rem 1.1rem;
-  border-radius: 0.7rem;
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
-}
-
-.settings-add-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.2);
-}
-
-.settings-add-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.badge-custom {
-  background: rgba(251, 191, 36, 0.15);
-  border: 1px solid rgba(251, 191, 36, 0.35);
-  color: #fbbf24;
-  font-size: 0.68rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.35rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.show-rating {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.12rem;
-  color: #fbbf24;
-  font-size: 0.82rem;
-  margin-top: 0.35rem;
-}
-
-.interactive-rating,
-.card-rating-picker {
-  display: flex;
-  align-items: center;
-  gap: 0.15rem;
-  flex-wrap: wrap;
-  margin-top: 0.4rem;
-}
-
-.interactive-rating-label {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  font-weight: 600;
-  margin-right: 0.2rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.card-rating-picker .star-btn,
-.interactive-rating .star-btn {
-  font-size: 1.05rem;
-  padding: 0.1rem;
-}
-
-.modal-rating-row {
-  margin-bottom: 0.5rem;
-}
-
-.star-rating-picker {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-}
-
-.star-btn {
-  border: 0;
-  background: transparent;
-  color: #64748b;
-  cursor: pointer;
-  font-size: 1.35rem;
-  padding: 0.15rem;
-  line-height: 1;
-  transition: color 0.15s, transform 0.15s;
-}
-
-.star-btn.active,
-.star-btn:hover:not(:disabled) {
-  color: #fbbf24;
-  transform: scale(1.08);
-}
+function resolveShowIndex(index) {
+  const allShows = getAllShowsRaw();
+  if (index < 0 || index >= allShows.length) return null;
 
-.star-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.star-clear-btn {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-muted);
-  border-radius: 0.5rem;
-  padding: 0.35rem 0.65rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  margin-left: 0.35rem;
-}
-
-.star-clear-btn:hover:not(:disabled) {
-  color: var(--text-main);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.watch-links-editor {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.watch-link-row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  padding: 0.65rem 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.7rem;
-  background: rgba(2, 6, 23, 0.25);
-}
-
-.watch-link-url-line {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.watch-link-row .watch-link-label-input,
-.watch-link-row .watch-link-input {
-  width: 100%;
-}
-
-.watch-link-row .watch-link-input {
-  flex: 1;
-}
-
-.watch-link-add-btn {
-  margin-top: 0.35rem;
-  border: 1px dashed rgba(139, 92, 246, 0.45);
-  background: rgba(139, 92, 246, 0.08);
-  color: #c4b5fd;
-  border-radius: 0.6rem;
-  padding: 0.45rem 0.75rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-
-.watch-link-add-btn:hover:not(:disabled) {
-  background: rgba(139, 92, 246, 0.16);
-  border-color: rgba(139, 92, 246, 0.65);
-}
-
-.watch-link-remove-btn {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-muted);
-  width: 2.35rem;
-  height: 2.35rem;
-  border-radius: 0.55rem;
-  cursor: pointer;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
+  const baseShow = allShows[index];
+  const isCustom = !!baseShow._isCustom;
+  const customIndex = isCustom
+    ? customShows.findIndex(show => getShowKey(show) === getShowKey(baseShow))
+    : -1;
 
-.watch-link-remove-btn:hover:not(:disabled) {
-  color: #ef4444;
-  border-color: rgba(239, 68, 68, 0.35);
-  background: rgba(239, 68, 68, 0.1);
+  return { baseShow, isCustom, customIndex };
 }
 
-.watch-link-add-btn:disabled,
-.watch-link-remove-btn:disabled,
-.watch-link-move-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+function getShowRating(show) {
+  const rating = Number(show?.rating);
+  if (!Number.isFinite(rating) || rating <= 0) return 0;
+  return Math.min(5, Math.max(0, Math.round(rating)));
 }
 
-.watch-link-actions {
-  display: flex;
-  gap: 0.35rem;
-  align-items: center;
+function isValidCountryCode(code) {
+  return COUNTRY_OPTIONS.some(option => option.code === code);
 }
 
-.watch-link-move-btn {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-muted);
-  width: 2.35rem;
-  height: 2.35rem;
-  border-radius: 0.55rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+function inferShowCountry(show) {
+  for (const [keyword, country] of COUNTRY_BY_CHINESE) {
+    if (show.chinese && show.chinese.includes(keyword)) return country;
+  }
+  if (show.platform && COUNTRY_BY_PLATFORM[show.platform]) {
+    return COUNTRY_BY_PLATFORM[show.platform];
+  }
+  return "china";
 }
 
-.watch-link-move-btn:hover:not(:disabled) {
-  color: var(--accent-color);
-  border-color: rgba(139, 92, 246, 0.35);
-  background: rgba(139, 92, 246, 0.1);
+function getShowCountry(show) {
+  const stored = String(show?.country || "").trim();
+  if (stored && isValidCountryCode(stored)) return stored;
+  return inferShowCountry(show);
 }
 
-/* Episode & Couple Info Styles */
-.detail-info-bar {
-  display: flex;
-  gap: 0.6rem;
-  margin-top: 0.45rem;
-  margin-bottom: 0.45rem;
-  flex-wrap: wrap;
+function getCountryMeta(code) {
+  return COUNTRY_OPTIONS.find(option => option.code === code) || COUNTRY_OPTIONS[COUNTRY_OPTIONS.length - 1];
 }
 
-.detail-info-chip {
-  background: rgba(56, 189, 248, 0.1);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  color: #38bdf8;
-  padding: 0.4rem 0.85rem;
-  border-radius: 100px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+function countryLabel(code) {
+  return getCountryMeta(code).label;
 }
 
-.couple-updates-section {
-  background: rgba(244, 114, 182, 0.05);
-  border: 1px solid rgba(244, 114, 182, 0.12);
-  border-radius: 0.75rem;
-  padding: 0.7rem 0.85rem;
-  margin-top: 0.45rem;
+function renderCountryBadge(show) {
+  const code = getShowCountry(show);
+  const meta = getCountryMeta(code);
+  return `<span class="badge badge-country ${code}" title="Quốc gia: ${escapeHtml(meta.label)}">${meta.flag} ${escapeHtml(meta.label)}</span>`;
 }
 
-.couple-updates-title {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #f472b6;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 0.35rem;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.couple-updates-content {
-  font-size: 0.92rem;
-  line-height: 1.5;
-  color: var(--text-main);
-  white-space: pre-wrap;
-}
+function parseWatchLinkEntry(entry) {
+  if (!entry) return null;
 
-/* Mobile responsive adjustments */
-@media (max-width: 768px) {
-  body {
-    padding: 1.5rem 1rem;
+  if (typeof entry === "string") {
+    const url = entry.trim();
+    return url ? { url, label: "" } : null;
   }
 
-  header h1 {
-    font-size: 2rem;
+  if (typeof entry === "object") {
+    const url = String(entry.url || entry.link || "").trim();
+    const label = String(entry.label || entry.name || "").trim();
+    return url ? { url, label } : null;
   }
 
-  .stats-container {
-    grid-template-columns: repeat(2, 1fr);
+  return null;
+}
+
+function detectPlatformFromUrl(url) {
+  if (!url) return "";
+  const lower = url.toLowerCase();
+  if (lower.includes("iqiyi.com") || lower.includes("iqiyi")) return "iQiyi";
+  if (lower.includes("v.qq.com") || lower.includes("tencent")) return "Tencent Video";
+  if (lower.includes("mgtv.com") || lower.includes("mango")) return "Mango TV";
+  if (lower.includes("youku.com") || lower.includes("youku")) return "Youku";
+  if (lower.includes("bilibili.com") || lower.includes("bili")) return "Bilibili";
+  if (lower.includes("rophim1.vip") || lower.includes("rophim")) return "Rophim";
+  if (lower.includes("yeuphim.biz") || lower.includes("yeuphim")) return "Yêu Phim";
+  if (lower.includes("mamphim.site") || lower.includes("mamphim")) return "Mâm Phim";
+  if (lower.includes("phimvietsub.site") || lower.includes("phimvietsub")) return "Phim Việt Sub";
+  if (lower.includes("youtube.com") || lower.includes("youtu.be")) return "YouTube";
+  if (lower.includes("ok.ru")) return "OK.ru";
+  if (lower.includes("rumble.com") || lower.includes("rumble")) return "Rumble";
+  if (lower.includes("dailymotion.com") || lower.includes("dailymotion")) return "Dailymotion";
+  if (lower.includes("kisskh.co") || lower.includes("kisskh")) return "KissKh";
+  if (lower.includes("d.tube") || lower.includes("dtube")) return "D.Tube";
+  if (lower.includes("odysee.com") || lower.includes("odysee")) return "Odysee";
+  return "";
+}
+
+function getWatchLinksByType(show, type) {
+  const arrayKey = type === "chinese" ? "chineseWatchUrls" : "vietnameseWatchUrls";
+  const legacyKey = type === "chinese" ? "chineseWatchUrl" : "vietnameseWatchUrl";
+  const entries = [];
+  const seen = new Set();
+
+  const addEntry = raw => {
+    const parsed = parseWatchLinkEntry(raw);
+    if (!parsed || seen.has(parsed.url)) return;
+    seen.add(parsed.url);
+    entries.push(parsed);
+  };
+
+  if (Array.isArray(show[arrayKey])) {
+    show[arrayKey].forEach(addEntry);
+  }
+  if (show[legacyKey]) {
+    addEntry(show[legacyKey]);
   }
 
-  .control-panel {
-    padding: 1.25rem;
+  const total = entries.length;
+  return entries.map((entry, index) => {
+    let label = entry.label;
+    let detected = detectPlatformFromUrl(entry.url);
+    let note = "";
+
+    if (type === "chinese") {
+      if (!label) {
+        label = total > 1 ? `Nơi chiếu tiếng Trung #${index + 1}` : "Nơi chiếu tiếng Trung";
+      }
+      note = detected || show.platform || "Tiếng Trung";
+    } else {
+      if (!label) {
+        label = total > 1 ? `Link tiếng Việt #${index + 1}` : "Web chiếu tiếng Việt";
+      }
+      note = detected || "Link phụ đề/thuyết minh";
+    }
+
+    return { url: entry.url, label, note };
+  });
+}
+
+function getChineseWatchLinks(show) {
+  return getWatchLinksByType(show, "chinese");
+}
+
+function getVietnameseWatchLinks(show) {
+  return getWatchLinksByType(show, "vietnamese");
+}
+
+function collectWatchLinksFromItem(item, type) {
+  return [...item.querySelectorAll(`.watch-link-row[data-watch-link-type="${type}"]`)]
+    .map(row => {
+      const url = row.querySelector(`input[data-watch-link-url-type="${type}"]`)?.value.trim() || "";
+      const label = row.querySelector(`input[data-watch-link-label-type="${type}"]`)?.value.trim() || "";
+      if (!url) return null;
+      return label ? { url, label } : { url };
+    })
+    .filter(Boolean);
+}
+
+function applyWatchLinksToData(data, item) {
+  const chineseLinks = collectWatchLinksFromItem(item, "chinese");
+  const vietnameseLinks = collectWatchLinksFromItem(item, "vietnamese");
+
+  if (chineseLinks.length) {
+    data.chineseWatchUrls = chineseLinks;
+    data.chineseWatchUrl = chineseLinks[0].url;
+  } else {
+    delete data.chineseWatchUrls;
+    delete data.chineseWatchUrl;
   }
 
-  .toast-container {
-    left: 1rem;
-    right: 1rem;
-    bottom: 1rem;
+  if (vietnameseLinks.length) {
+    data.vietnameseWatchUrls = vietnameseLinks;
+    data.vietnameseWatchUrl = vietnameseLinks[0].url;
+  } else {
+    delete data.vietnameseWatchUrls;
+    delete data.vietnameseWatchUrl;
   }
 
-  .toast {
-    width: 100%;
-    justify-content: center;
-  }
+  return data;
+}
 
-  .modal-container {
-    padding: 1.25rem 1rem 1.5rem;
-  }
+function renderWatchLinkRow(index, type, link = { url: "", label: "" }, canRemove = true) {
+  const labelPlaceholder = type === "chinese"
+    ? "Tên hiển thị (VD: Tencent, Mango TV...)"
+    : "Tên hiển thị (VD: FPT Play, VieON, YouTube...)";
 
-  .modal-extra-grid {
-    grid-template-columns: 1fr;
-  }
+  return `
+        <div class="watch-link-row" data-watch-link-type="${type}">
+          <input class="settings-input watch-link-label-input" type="text" data-watch-link-label-type="${type}" placeholder="${labelPlaceholder}" value="${escapeHtml(link.label || "")}" ${settingsLocked ? "disabled" : ""}>
+          <div class="watch-link-url-line">
+            <input class="settings-input watch-link-input" type="url" data-watch-link-url-type="${type}" placeholder="https://..." value="${escapeHtml(link.url || "")}" ${settingsLocked ? "disabled" : ""}>
+            <div class="watch-link-actions">
+              <button type="button" class="watch-link-move-btn" onclick="moveWatchLinkRow(this, 'up')" title="Di chuyển lên" ${settingsLocked ? "disabled" : ""}>
+                <i class="fa-solid fa-arrow-up"></i>
+              </button>
+              <button type="button" class="watch-link-move-btn" onclick="moveWatchLinkRow(this, 'down')" title="Di chuyển xuống" ${settingsLocked ? "disabled" : ""}>
+                <i class="fa-solid fa-arrow-down"></i>
+              </button>
+              <button type="button" class="watch-link-remove-btn" onclick="removeWatchLinkRow(this)" title="Xóa link" ${(canRemove && !settingsLocked) ? "" : "disabled"}>
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+}
 
-  .settings-container {
-    padding: 1.25rem;
-  }
+function moveWatchLinkRow(button, direction) {
+  if (settingsLocked) return;
+  const row = button.closest(".watch-link-row");
+  if (!row) return;
 
-  .settings-form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .settings-field.span-2,
-  .settings-field.span-3 {
-    grid-column: span 1;
-  }
-
-  .card-thumb {
-    width: 120px;
-    height: 120px;
-    min-width: 120px;
-  }
-
-  .scroll-top-btn {
-    right: 1rem;
-    bottom: 1rem;
-    width: 2.5rem;
-    height: 2.5rem;
-    font-size: 0.85rem;
-  }
-
-  .floating-search-wrapper {
-    right: 1rem;
-    bottom: 4rem;
-    left: auto;
-    width: auto;
-  }
-
-  .floating-search-wrapper.open {
-    left: 1rem;
-  }
-
-  .floating-search-btn {
-    width: 2.5rem;
-    height: 2.5rem;
-    font-size: 0.85rem;
-  }
-
-  .floating-search-input-box {
-    height: 2.5rem;
-  }
-
-  .floating-search-wrapper.open .floating-search-input-box {
-    flex: 1;
-    width: auto;
-    margin-right: 0.5rem;
+  const parent = row.parentElement;
+  if (direction === "up") {
+    const prev = row.previousElementSibling;
+    if (prev && prev.classList.contains("watch-link-row")) {
+      parent.insertBefore(row, prev);
+    }
+  } else if (direction === "down") {
+    const next = row.nextElementSibling;
+    if (next && next.classList.contains("watch-link-row")) {
+      parent.insertBefore(next, row);
+    }
   }
 }
 
-/* Expandable field button & Textarea Popup */
-.settings-textarea.notes-textarea {
-  min-height: 180px;
+function updateWatchLinkRemoveButtons(editor) {
+  if (!editor) return;
+  const rows = editor.querySelectorAll(".watch-link-row");
+  rows.forEach(row => {
+    const removeBtn = row.querySelector(".watch-link-remove-btn");
+    if (removeBtn) removeBtn.disabled = settingsLocked || rows.length <= 1;
+  });
 }
 
-.settings-label-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.15rem;
+function addWatchLinkRow(index, type) {
+  if (settingsLocked) return;
+
+  const editor = document.getElementById(`watch-links-${index}-${type}`);
+  if (!editor) return;
+
+  const temp = document.createElement("div");
+  temp.innerHTML = renderWatchLinkRow(index, type, { url: "", label: "" }, true);
+  const row = temp.firstElementChild;
+  editor.appendChild(row);
+  updateWatchLinkRemoveButtons(editor);
+  row.querySelector(`input[data-watch-link-label-type="${type}"]`)?.focus();
 }
 
-.expand-field-btn {
-  background: rgba(139, 92, 246, 0.15);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  color: #c084fc;
-  padding: 0.25rem 0.55rem;
-  border-radius: 0.35rem;
-  font-size: 0.72rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+function removeWatchLinkRow(button) {
+  if (settingsLocked) return;
+
+  const row = button.closest(".watch-link-row");
+  const editor = row?.parentElement;
+  if (!row || !editor) return;
+
+  if (editor.querySelectorAll(".watch-link-row").length <= 1) {
+    row.querySelectorAll("input").forEach(input => { input.value = ""; });
+    return;
+  }
+
+  row.remove();
+  updateWatchLinkRemoveButtons(editor);
 }
 
-.expand-field-btn:hover {
-  background: rgba(139, 92, 246, 0.3);
-  border-color: rgba(139, 92, 246, 0.5);
-  color: #fff;
-  transform: translateY(-1px);
+function compareShowsByRatingAndName(a, b) {
+  const nameA = removeVietnameseTones((a.vietnamese || "").toLowerCase());
+  const nameB = removeVietnameseTones((b.vietnamese || "").toLowerCase());
+  return nameA.localeCompare(nameB, "vi");
 }
 
-#textarea-editor-modal {
-  z-index: 2800;
+function renderStarDisplay(rating) {
+  const stars = Number(rating);
+  if (!stars || stars <= 0) return "";
+  const icons = Array.from({ length: 5 }, (_, index) => {
+    const filled = index < stars;
+    return `<i class="fa-${filled ? "solid" : "regular"} fa-star"></i>`;
+  }).join("");
+  return `<span class="show-rating" title="Đánh giá ${stars}/5">${icons}</span>`;
 }
 
-.textarea-editor-container {
-  max-width: 800px !important;
-  display: flex;
-  flex-direction: column;
+function updateStarPickerVisual(picker, rating) {
+  if (!picker) return;
+  picker.querySelectorAll(".star-btn").forEach((button, starIndex) => {
+    const active = starIndex + 1 <= rating;
+    button.classList.toggle("active", active);
+    const icon = button.querySelector("i");
+    if (icon) icon.className = `fa-${active ? "solid" : "regular"} fa-star`;
+  });
 }
 
-.textarea-editor-body {
-  margin: 1.25rem 0;
-  flex: 1;
-  display: flex;
-}
-
-#textarea-editor-input {
-  width: 100%;
-  min-height: 380px;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid var(--panel-border);
-  border-radius: 0.75rem;
-  padding: 1.25rem;
-  color: var(--text-main);
-  font-size: 1rem;
-  font-family: inherit;
-  line-height: 1.6;
-  outline: none;
-  resize: vertical;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-#textarea-editor-input:focus {
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 4px var(--accent-glow);
-  background: rgba(15, 23, 42, 0.85);
-}
-
-/* Skeleton Card Loader (MengTo/Skills standard) */
-.skeleton-card {
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid var(--panel-border);
-  border-radius: 1.25rem;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 1rem;
-  position: relative;
-  overflow: hidden;
-  min-height: 310px;
-}
-
-.skeleton-top-row {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-.skeleton-top-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.skeleton-shimmer {
-  position: relative;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 0.5rem;
-}
-
-.skeleton-shimmer::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  transform: translateX(-100%);
-  background: linear-gradient(90deg,
-      transparent,
-      rgba(255, 255, 255, 0.12),
-      transparent);
-  animation: skeleton-wave 1.6s infinite;
-}
-
-@keyframes skeleton-wave {
-  100% {
-    transform: translateX(100%);
+function syncRatingPickers(index, rating) {
+  const hiddenInput = document.getElementById(`settings-${index}-rating`);
+  if (hiddenInput) hiddenInput.value = String(rating);
+  document.querySelectorAll(`[data-rating-index="${index}"]`).forEach(picker => {
+    updateStarPickerVisual(picker, rating);
+  });
+  const modalSlot = document.getElementById("modal-rating-slot");
+  if (modalSlot && currentModalIndex === index) {
+    modalSlot.innerHTML = renderInteractiveStarRating(index, rating);
   }
 }
 
-.skeleton-thumb {
-  width: 110px;
-  height: 110px;
-  min-width: 110px;
-  border-radius: 0.75rem;
-  flex-shrink: 0;
+function renderInteractiveStarRating(index, rating) {
+  const current = getShowRating({ rating });
+  const stars = Array.from({ length: 5 }, (_, starIndex) => {
+    const value = starIndex + 1;
+    const active = value <= current;
+    const clearHint = value === current && current > 0 ? " (bấm lại để xóa)" : "";
+    return `<button type="button" class="star-btn ${active ? "active" : ""}" data-star-value="${value}" onclick="event.stopPropagation(); saveShowRating(${index}, ${value})" title="${value} sao${clearHint}"><i class="fa-${active ? "solid" : "regular"} fa-star"></i></button>`;
+  }).join("");
+
+  return `
+        <div class="interactive-rating card-rating-picker" data-rating-index="${index}" onclick="event.stopPropagation()">
+          <span class="interactive-rating-label">Đánh giá</span>
+          ${stars}
+        </div>
+      `;
 }
 
-.skeleton-line {
-  height: 0.9rem;
-}
+function saveShowRating(index, value) {
+  const resolved = resolveShowIndex(index);
+  if (!resolved) return;
 
-.skeleton-line.short {
-  width: 40%;
-}
+  let rating = Math.min(5, Math.max(0, parseInt(value, 10) || 0));
+  const currentShow = getEffectiveShows().find(show => show._index === index);
+  const currentRating = getShowRating(currentShow || {});
 
-.skeleton-line.medium {
-  width: 70%;
-}
-
-.skeleton-line.title {
-  height: 1.35rem;
-  width: 85%;
-  margin-top: 0.5rem;
-}
-
-.skeleton-btn {
-  height: 2.6rem;
-  width: 100%;
-  border-radius: 0.75rem;
-  margin-top: auto;
-}
-
-/* Mobile Bottom Sheet Modal */
-@media (max-width: 640px) {
-  #show-modal.modal-overlay {
-    align-items: flex-end;
-    padding: 0;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+  if (rating > 0 && rating === currentRating) {
+    rating = 0;
   }
 
-  #show-modal .modal-container {
-    max-height: 88vh;
-    max-height: 88dvh;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top-left-radius: 1.5rem;
-    border-top-right-radius: 1.5rem;
-    animation: slideUpBottomSheet 0.32s cubic-bezier(0.16, 1, 0.3, 1);
-    position: relative;
-    padding-top: 2.25rem;
-    overscroll-behavior-y: contain;
+  if (resolved.isCustom) {
+    const updated = { ...customShows[resolved.customIndex] };
+    if (rating > 0) updated.rating = rating;
+    else delete updated.rating;
+    customShows[resolved.customIndex] = updated;
+    saveCustomShows();
+  } else {
+    const baseIndex = resolved.baseShow._showsDataIndex;
+    if (baseIndex !== undefined && baseIndex >= 0 && baseIndex < showsData.length) {
+      if (rating > 0) showsData[baseIndex].rating = rating;
+      else delete showsData[baseIndex].rating;
+    }
   }
 
-  #show-modal .modal-container::before {
-    content: "";
-    position: absolute;
-    top: 0.65rem;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 44px;
-    height: 5px;
-    background: rgba(255, 255, 255, 0.25);
-    border-radius: 3px;
+  syncRatingPickers(index, rating);
+  updateStatistics();
+
+  if (currentFilters.sort === "stars") {
+    renderShows();
+  }
+
+  const showName = currentShow?.vietnamese || "show";
+  if (rating > 0) {
+    showToast(`Đã đánh giá "${showName}" ${rating} sao`);
+  } else {
+    showToast(`Đã xóa đánh giá của "${showName}"`);
   }
 }
 
-@keyframes slideUpBottomSheet {
-  from {
-    transform: translateY(100%);
+function getShowWithUserData(show) {
+  return { ...show };
+}
+
+function getShowImage(show) {
+  return show.image || show.poster || show.posterUrl || "";
+}
+
+function getShowYear(show) {
+  const directYear = show.year || show.releaseYear || show.airYear || show.premiereYear;
+  if (directYear) return String(directYear);
+
+  const text = [show.time, show.releaseDate, show.airDate, show.premiereDate].filter(Boolean).join(" ");
+  const match = text.match(/\b(19|20)\d{2}\b/);
+  return match ? match[0] : "";
+}
+
+function getEffectiveShows() {
+  return getAllShowsRaw().map((show, index) => ({
+    ...getShowWithUserData(show),
+    _index: index,
+    _isCustom: !!show._isCustom
+  }));
+}
+
+function updateStatistics() {
+  const effectiveShows = getEffectiveShows();
+  const stats = effectiveShows.reduce((acc, show) => {
+    acc.total += 1;
+    if (show.status === "upcoming") acc.upcoming += 1;
+    else if (show.status === "airing") acc.airing += 1;
+    else if (show.status === "completed") acc.completed += 1;
+    return acc;
+  }, { total: 0, upcoming: 0, airing: 0, completed: 0 });
+
+  document.getElementById("stat-total").textContent = stats.total;
+  document.getElementById("stat-upcoming").textContent = stats.upcoming;
+  document.getElementById("stat-airing").textContent = stats.airing;
+  document.getElementById("stat-completed").textContent = stats.completed;
+}
+
+function copyToClipboard(text, buttonElement, message = "Đã sao chép!") {
+  navigator.clipboard.writeText(text).then(() => {
+    const originalHtml = buttonElement.innerHTML;
+    buttonElement.classList.add("success");
+    buttonElement.innerHTML = '<i class="fa-solid fa-check"></i>';
+
+    showToast(`${message}: "${text}"`);
+
+    setTimeout(() => {
+      buttonElement.classList.remove("success");
+      buttonElement.innerHTML = originalHtml;
+    }, 1500);
+  }).catch(err => {
+    showToast("Không thể sao chép! Lỗi hệ thống.", true);
+    console.error("Lỗi copy: ", err);
+  });
+}
+
+function showToast(msg, isError = false) {
+  const container = document.getElementById("toast-container");
+  if (!container) return;
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  const icon = document.createElement("i");
+  icon.className = isError ? "fa-solid fa-circle-exclamation" : "fa-solid fa-circle-check";
+  if (isError) icon.style.color = "#ef4444";
+
+  const message = document.createElement("span");
+  message.textContent = msg;
+
+  if (isError) {
+    toast.style.borderColor = "#ef4444";
+  }
+  toast.append(icon, message);
+
+  container.appendChild(toast);
+
+  setTimeout(() => toast.classList.add("show"), 50);
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 400);
+  }, 2800);
+}
+
+function getPlatformClass(platform) {
+  if (!platform) return "undecided";
+  const lower = platform.toLowerCase();
+  if (lower.includes("tencent") || lower.includes("qq")) return "tencent";
+  if (lower.includes("mango") || lower.includes("mgtv")) return "mango";
+  if (lower.includes("youku")) return "youku";
+  if (lower.includes("iqiyi")) return "iqiyi";
+  if (lower.includes("bili")) return "bilibili";
+  if (lower.includes("rumble")) return "rumble";
+  if (lower.includes("odysee")) return "odysee";
+  if (lower.includes("kisskh")) return "kisskh";
+  if (lower.includes("dtube")) return "dtube";
+  if (lower.includes("mamphim")) return "mamphim";
+  if (lower.includes("yeuphim")) return "yeuphim";
+  if (lower.includes("rophim")) return "rophim";
+  if (lower.includes("phimvietsub")) return "phimvietsub";
+  if (lower.includes("ok.ru")) return "ok.ru";
+  if (lower.includes("dailymotion")) return "dailymotion";
+  if (lower.includes("youtube")) return "youtube";
+  if (lower.includes("migu")) return "migu";
+  if (lower.includes("tvb")) return "tvb";
+  if (lower.includes("gaga")) return "gaga";
+  return "undecided";
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function applyUserEditableFields(show) {
+  const description = show.description && show.description.trim() ? show.description.trim() : getShowDescription(show);
+  const detailsHtml = renderDetailUpdates(show);
+  document.getElementById("modal-desc-el").innerHTML = `<div class="modal-desc-text">${escapeHtml(description)}</div>${detailsHtml}`;
+  renderShowPoster(show);
+  renderShowLinks(show);
+}
+
+function renderDetailUpdates(show) {
+  const chips = [];
+  if (show.episodeProgress) {
+    chips.push(`<span class="detail-info-chip"><i class="fa-solid fa-tv"></i>${escapeHtml(show.episodeProgress)}</span>`);
+  }
+  if (show.airingNote) {
+    chips.push(`<span class="detail-info-chip"><i class="fa-solid fa-clock"></i>${escapeHtml(show.airingNote)}</span>`);
   }
 
-  to {
-    transform: translateY(0);
+  const notesHtml = show.detailNotes ? `
+        <div class="couple-updates-section">
+          <div class="couple-updates-title"><i class="fa-solid fa-note-sticky"></i> Ghi chú cập nhật</div>
+          <div class="couple-updates-content">${escapeHtml(show.detailNotes.trim())}</div>
+        </div>
+      ` : "";
+
+  if (!chips.length && !notesHtml) return "";
+  return `
+        ${chips.length ? `<div class="detail-info-bar">${chips.join("")}</div>` : ""}
+        ${notesHtml}
+      `;
+}
+
+function exportUserDataStore() {
+  const json = JSON.stringify({
+    showsData,
+    hiddenShows: loadHiddenShowKeys()
+  }, null, 2);
+  navigator.clipboard.writeText(json).then(() => {
+    showToast("Đã copy JSON showsData hiện tại");
+  }).catch(err => {
+    console.error("Không copy được dữ liệu chỉnh sửa:", err);
+    showToast("Không copy được JSON. Hãy mở DevTools để lấy localStorage.", true);
+  });
+}
+
+function getPersistableShowsData() {
+  const hidden = new Set(loadHiddenShowKeys());
+  return showsData
+    .filter(show => !hidden.has(getShowKey(show)))
+    .map(show => cleanRuntimeFields(show));
+}
+
+function downloadUpdatedJson() {
+  const json = JSON.stringify(getPersistableShowsData(), null, 2) + "\n";
+  const blob = new Blob([json], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+  link.href = url;
+  link.download = `showsData_updated_${stamp}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  showToast("Đã tạo file showsData.json mới");
+}
+
+function statusLabel(status) {
+  if (status === "upcoming") return "Sắp chiếu";
+  if (status === "airing") return "Đang chiếu";
+  return "Đã xong";
+}
+
+function renderTagBadge(tags) {
+  if (tags.includes("all-female")) {
+    return `<span class="badge badge-tag"><i class="fa-solid fa-venus-double"></i> Lesbian (GL)</span>`;
+  }
+  if (tags.includes("all-male")) {
+    return `<span class="badge badge-tag"><i class="fa-solid fa-mars-double"></i> Gay (BL)</span>`;
+  }
+  if (tags.includes("bisexual")) {
+    return `<span class="badge badge-tag"><i class="fa-solid fa-venus-mars"></i> Bisexual</span>`;
+  }
+  if (tags.includes("other")) {
+    return `<span class="badge badge-tag" style="background: rgba(100, 116, 139, 0.2); color: #94a3b8; border-color: rgba(100, 116, 139, 0.3);"><i class="fa-solid fa-ellipsis"></i> Khác</span>`;
+  }
+  return "";
+}
+
+function renderStatusText(status) {
+  return status === "upcoming" ? "Sắp chiếu" : status === "airing" ? "Đang chiếu" : "Đã xong";
+}
+
+function renderTimeHtml(time) {
+  return time ? `<span class="time-note"><i class="fa-solid fa-clock"></i> ${escapeHtml(time)}</span>` : "";
+}
+
+function renderYearHtml(year) {
+  return year ? `<span class="badge badge-year"><i class="fa-regular fa-calendar"></i> ${escapeHtml(year)}</span>` : "";
+}
+
+function getSortableYear(show) {
+  const yearText = getShowYear(show);
+  const matches = String(yearText || "").match(/\b(19|20)\d{2}\b/g);
+  return matches ? Math.max(...matches.map(Number)) : -Infinity;
+}
+
+function compareShowsByVietnameseName(a, b) {
+  return removeVietnameseTones(a.vietnamese || "").localeCompare(removeVietnameseTones(b.vietnamese || ""), "vi");
+}
+
+function tagToString(tags) {
+  return Array.isArray(tags) ? tags.join(",") : (tags || "normal");
+}
+
+function stringToTags(value) {
+  const tags = String(value || "normal")
+    .split(",")
+    .map(tag => tag.trim())
+    .filter(Boolean);
+  return tags.length ? tags : ["normal"];
+}
+
+function matchesSettingsSearch(show, query) {
+  const normalizedQuery = removeVietnameseTones(String(query || "").toLowerCase().trim());
+  if (!normalizedQuery) return true;
+
+  return getShowSearchText(show, true).includes(normalizedQuery);
+}
+
+function buildShowSearchText(show, includeSettingsOnlyFields = false) {
+  const values = [
+    show.chinese,
+    show.english,
+    show.vietnamese,
+    show.platform,
+    countryLabel(getShowCountry(show)),
+    show.time,
+    show.episodeProgress,
+    show.airingNote
+  ];
+
+  if (includeSettingsOnlyFields) {
+    values.push(
+      show.detailNotes,
+      show.description || getShowDescription(show),
+      statusLabel(show.status),
+      tagToString(show.tags),
+      show._isCustom ? "tu them show moi" : ""
+    );
+  }
+
+  const raw = values.filter(Boolean).join(" ").toLowerCase();
+  return `${raw} ${removeVietnameseTones(raw)}`;
+}
+
+function getShowSearchText(show, includeSettingsOnlyFields = false) {
+  if (!includeSettingsOnlyFields && show._searchToken) {
+    return show._searchToken;
+  }
+  return buildShowSearchText(show, includeSettingsOnlyFields);
+}
+
+function openSettingsModal() {
+  settingsLocked = true;
+  settingsSearchQuery = "";
+  const settingsSearchBox = document.getElementById("settings-search-box");
+  if (settingsSearchBox) settingsSearchBox.value = "";
+
+  const settingsModal = document.getElementById("settings-modal");
+  const closeButton = settingsModal?.querySelector(".modal-close");
+  openAccessibleDialog(settingsModal, closeButton);
+
+  const list = document.getElementById("settings-list");
+  if (list) {
+    list.style.display = "";
+    list.innerHTML = `
+          <div style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 0.75rem; color: var(--accent-color); display: block;"></i>
+            Đang chuẩn bị dữ liệu cài đặt...
+          </div>
+        `;
+  }
+
+  setTimeout(() => {
+    renderSettingsList();
+    updateSettingsLockState();
+    settingsSearchBox?.focus();
+  }, 50);
+}
+
+function closeSettingsModal() {
+  const modal = document.getElementById("settings-modal");
+  closeAccessibleDialog(modal, { restoreFocus: true });
+
+  const list = document.getElementById("settings-list");
+  if (list) {
+    list.style.display = "none";
+  }
+
+  setTimeout(() => {
+    if (list) {
+      list.innerHTML = "";
+      list.style.display = "";
+    }
+  }, 250);
+}
+
+function toggleSettingsLock() {
+  settingsLocked = !settingsLocked;
+  updateSettingsLockState();
+}
+
+function updateSettingsLockState() {
+  const lockBtn = document.getElementById("settings-lock-btn");
+  if (!lockBtn) return;
+
+  lockBtn.classList.toggle("locked", settingsLocked);
+  lockBtn.innerHTML = settingsLocked
+    ? '<i class="fa-solid fa-lock"></i> Đang khóa'
+    : '<i class="fa-solid fa-unlock"></i> Đang mở khóa';
+
+  document.querySelectorAll(".settings-input, .settings-select, .settings-textarea").forEach(input => {
+    input.disabled = settingsLocked;
+  });
+  document.querySelectorAll(".settings-save-btn, .settings-delete-btn[data-delete-show]").forEach(button => {
+    button.disabled = settingsLocked;
+  });
+  const addBtn = document.getElementById("settings-add-show-btn");
+  if (addBtn) addBtn.disabled = settingsLocked;
+  document.querySelectorAll(".watch-link-label-input, .watch-link-input, .watch-link-add-btn, .watch-link-remove-btn, .watch-link-move-btn").forEach(button => {
+    button.disabled = settingsLocked;
+  });
+  document.querySelectorAll(".watch-links-editor").forEach(editor => {
+    updateWatchLinkRemoveButtons(editor);
+  });
+}
+
+function renderSettingsShowFormHtml(show) {
+  return `
+        <div class="settings-show-form-inner">
+          <div class="settings-form-grid">
+            ${settingsStarRating(show._index, getShowRating(show))}
+            ${settingsInput(show._index, "chinese", "Tên gốc", show.chinese)}
+            ${settingsInput(show._index, "english", "Tên tiếng Anh", show.english)}
+            ${settingsInput(show._index, "vietnamese", "Tên tiếng Việt", show.vietnamese)}
+            ${settingsSelect(show._index, "country", "Quốc gia / Vùng", getShowCountry(show), COUNTRY_OPTIONS.map(option => [option.code, `${option.flag} ${option.label}`]))}
+            ${settingsSelect(show._index, "status", "Trạng thái", show.status, [
+    ["upcoming", "Sắp chiếu"],
+    ["airing", "Đang chiếu"],
+    ["completed", "Đã kết thúc"]
+  ])}
+            ${settingsInput(show._index, "year", "Năm phát hành", getShowYear(show))}
+            ${settingsInput(show._index, "platform", "Nhà phát hành / Nền tảng", show.platform || "")}
+            ${settingsInput(show._index, "time", "Thời gian/Lịch chiếu", show.time || "")}
+            ${settingsSelect(show._index, "tags", "Chủ đề / Tags", Array.isArray(show.tags) ? (show.tags[0] || "normal") : (show.tags || "normal"), [
+    ["normal", "Bình thường"],
+    ["all-female", "Lesbian (GL)"],
+    ["all-male", "Gay (BL)"],
+    ["bisexual", "Bisexual / Song tính"],
+    ["other", "Khác (Không phải show hẹn hò)"]
+  ])}
+            ${settingsInput(show._index, "image", "Link hình ảnh", getShowImage(show), "span-2")}
+            ${settingsWatchLinksGroup(show._index, "chinese", getChineseWatchLinks(show), "Link gốc")}
+            ${settingsWatchLinksGroup(show._index, "vietnamese", getVietnameseWatchLinks(show), "Link xem tiếng Việt")}
+            ${settingsInput(show._index, "episodeProgress", "Đang chiếu đến tập", show.episodeProgress || "")}
+            ${settingsInput(show._index, "airingNote", "Ghi chú phát sóng", show.airingNote || "", "span-2")}
+            ${settingsTextarea(show._index, "description", "Mô tả show", show.description || getShowDescription(show), "span-3")}
+            ${settingsTextarea(show._index, "detailNotes", "Ghi chú chi tiết khác", show.detailNotes || "", "span-3")}
+          </div>
+          <div class="settings-show-actions">
+            <button class="settings-save-btn" type="button" onclick="saveSettingsShow(${show._index})">
+              <i class="fa-solid fa-floppy-disk"></i> Lưu show này
+            </button>
+            <button class="settings-delete-btn" data-delete-show type="button" onclick="deleteShow(${show._index})">
+              <i class="fa-solid fa-trash"></i> Xóa show
+            </button>
+          </div>
+        </div>
+      `;
+}
+
+function renderSettingsList() {
+  const list = document.getElementById("settings-list");
+  const meta = document.getElementById("settings-search-meta");
+  if (!list) return;
+
+  const openIndices = new Set(
+    [...document.querySelectorAll(".settings-show-item.open")].map(item => item.getAttribute("data-settings-index"))
+  );
+  const sortedShows = [...getEffectiveShows()].sort(compareShowsByRatingAndName);
+  const query = settingsSearchQuery.trim();
+  const filtered = sortedShows.filter(show => matchesSettingsSearch(show, query));
+
+  if (meta) {
+    meta.textContent = query
+      ? `Hiển thị ${filtered.length} / ${sortedShows.length} show`
+      : `${sortedShows.length} show`;
+  }
+
+  if (!filtered.length) {
+    list.innerHTML = `
+          <div class="settings-empty-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <h4>Không tìm thấy show</h4>
+            <p>Thử từ khóa khác hoặc xóa nội dung ô tìm kiếm.</p>
+          </div>
+        `;
+    updateSettingsLockState();
+    return;
+  }
+
+  list.innerHTML = filtered.map(show => {
+    const thumbUrl = getShowImage(show);
+    const thumbHtml = thumbUrl
+      ? `<img src="${escapeHtml(thumbUrl)}" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" width="44" height="44" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fa-regular fa-image\\'></i>';">`
+      : `<i class="fa-regular fa-image"></i>`;
+    const customBadge = show._isCustom ? `<span class="badge-custom">Tự thêm</span>` : "";
+    const ratingHtml = renderStarDisplay(getShowRating(show));
+    const isOpen = openIndices.has(String(show._index));
+    const formHtml = isOpen ? renderSettingsShowFormHtml(show) : "";
+
+    return `
+          <div class="settings-show-item ${isOpen ? "open" : ""}" data-settings-index="${show._index}" id="settings-item-${show._index}">
+            <div class="settings-show-header" onclick="toggleSettingsShow(${show._index})">
+              <div class="settings-show-thumb">${thumbHtml}</div>
+              <div class="settings-show-name">
+                <div class="settings-show-name-zh">${escapeHtml(show.chinese)}</div>
+                <div class="settings-show-name-vi">${escapeHtml(show.vietnamese)}${ratingHtml}</div>
+              </div>
+              <div class="settings-show-badges">
+                ${customBadge}
+                ${renderCountryBadge(show)}
+                <span class="badge badge-status ${show.status}">${statusLabel(show.status)}</span>
+                <span class="badge badge-plat ${getPlatformClass(show.platform)}">${escapeHtml(show.platform)}</span>
+              </div>
+              <i class="fa-solid fa-chevron-down settings-expand-icon"></i>
+            </div>
+            <div class="settings-show-form">
+              ${formHtml}
+            </div>
+          </div>
+        `;
+  }).join("");
+
+  updateSettingsLockState();
+}
+
+function settingsStarRating(index, rating) {
+  const current = getShowRating({ rating });
+  const stars = Array.from({ length: 5 }, (_, starIndex) => {
+    const value = starIndex + 1;
+    const active = value <= current;
+    return `<button type="button" class="star-btn ${active ? "active" : ""}" data-star-value="${value}" onclick="setSettingsRating(${index}, ${value})" title="${value} sao" aria-label="Đánh giá ${value} sao"><i class="fa-${active ? "solid" : "regular"} fa-star"></i></button>`;
+  }).join("");
+
+  return `
+        <div class="settings-field span-3">
+          <label for="settings-${index}-rating">Đánh giá sao</label>
+          <div class="star-rating-picker" data-rating-index="${index}">
+            <input type="hidden" class="settings-input" id="settings-${index}-rating" data-field="rating" value="${current}">
+            ${stars}
+            <button type="button" class="star-clear-btn" onclick="setSettingsRating(${index}, 0)" aria-label="Xóa đánh giá sao">Xóa sao</button>
+          </div>
+        </div>
+      `;
+}
+
+function setSettingsRating(index, value) {
+  saveShowRating(index, value);
+}
+
+function addNewShow() {
+  if (settingsLocked) {
+    showToast("Mở khóa cài đặt trước khi thêm show mới", true);
+    return;
+  }
+
+  const newShow = {
+    chinese: "Tên show mới",
+    english: "New Show",
+    vietnamese: "Show mới",
+    status: "upcoming",
+    platform: "TBA",
+    time: "",
+    image: "",
+    chineseWatchUrl: "",
+    vietnameseWatchUrl: "",
+    chineseWatchUrls: [],
+    vietnameseWatchUrls: [],
+    tags: ["normal"],
+    country: "china",
+    rating: 0,
+    description: ""
+  };
+
+  showsData.push(newShow);
+  invalidateSearchIndex();
+  settingsSearchQuery = "";
+  const settingsSearchBox = document.getElementById("settings-search-box");
+  if (settingsSearchBox) settingsSearchBox.value = "";
+  updateStatistics();
+  renderShows();
+  renderSettingsList();
+
+  const newIndex = getAllShowsRaw().length - 1;
+  const newItem = document.querySelector(`[data-settings-index="${newIndex}"]`);
+  if (newItem && !newItem.classList.contains("open")) {
+    toggleSettingsShow(newIndex);
+  }
+  newItem?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  showToast("Đã thêm show mới. Điền thông tin và bấm Lưu show này.");
+}
+
+function settingsInput(index, field, label, value, spanClass = "") {
+  return `
+        <div class="settings-field ${spanClass}">
+          <label for="settings-${index}-${field}">${label}</label>
+          <input class="settings-input" id="settings-${index}-${field}" data-field="${field}" value="${escapeHtml(value || "")}">
+        </div>
+      `;
+}
+
+function settingsSelect(index, field, label, value, options) {
+  return `
+        <div class="settings-field">
+          <label for="settings-${index}-${field}">${label}</label>
+          <select class="settings-select" id="settings-${index}-${field}" data-field="${field}">
+            ${options.map(([optionValue, optionLabel]) => `<option value="${optionValue}" ${value === optionValue ? "selected" : ""}>${optionLabel}</option>`).join("")}
+          </select>
+        </div>
+      `;
+}
+
+function settingsTextarea(index, field, label, value, spanClass = "") {
+  const isExpandable = field === "detailNotes" || field === "description";
+  const notesClass = field === "detailNotes" ? "notes-textarea" : "";
+  return `
+        <div class="settings-field ${spanClass}">
+          <div class="settings-label-row">
+            <label for="settings-${index}-${field}">${label}</label>
+            ${isExpandable ? `<button type="button" class="expand-field-btn" onclick="openTextareaEditor(${index}, '${field}', '${escapeHtml(label)}')"><i class="fa-solid fa-expand"></i> Mở rộng</button>` : ""}
+          </div>
+          <textarea class="settings-textarea ${notesClass}" id="settings-${index}-${field}" data-field="${field}">${escapeHtml(value || "")}</textarea>
+        </div>
+      `;
+}
+
+function settingsWatchLinksGroup(index, type, links, label, spanClass = "span-2") {
+  const linkList = links.length ? links : [{ url: "", label: "" }];
+  const rows = linkList.map((link, rowIndex) =>
+    renderWatchLinkRow(index, type, link, linkList.length > 1)
+  ).join("");
+
+  return `
+        <div class="settings-field ${spanClass}" data-watch-link-group="${type}">
+          <label>${label}</label>
+          <div class="watch-links-editor" id="watch-links-${index}-${type}">
+            ${rows}
+          </div>
+          <button type="button" class="watch-link-add-btn" onclick="addWatchLinkRow(${index}, '${type}')" aria-label="Thêm link ${escapeHtml(label)}">
+            <i class="fa-solid fa-plus"></i> Thêm link
+          </button>
+        </div>
+      `;
+}
+
+function toggleSettingsShow(index) {
+  const item = document.querySelector(`[data-settings-index="${index}"]`);
+  if (!item) return;
+
+  const isOpening = !item.classList.contains("open");
+
+  if (isOpening) {
+    const formContainer = item.querySelector(".settings-show-form");
+    if (formContainer && formContainer.innerHTML.trim() === "") {
+      const resolved = resolveShowIndex(index);
+      if (resolved) {
+        const showObj = { ...resolved.baseShow, _index: index };
+        formContainer.innerHTML = renderSettingsShowFormHtml(showObj);
+
+        formContainer.querySelectorAll(".settings-input, .settings-select, .settings-textarea").forEach(input => {
+          input.disabled = settingsLocked;
+        });
+        formContainer.querySelectorAll(".settings-save-btn, .settings-delete-btn[data-delete-show]").forEach(button => {
+          button.disabled = settingsLocked;
+        });
+        formContainer.querySelectorAll(".watch-link-label-input, .watch-link-input, .watch-link-add-btn, .watch-link-remove-btn, .watch-link-move-btn").forEach(button => {
+          button.disabled = settingsLocked;
+        });
+        updateWatchLinkRemoveButtons(formContainer.querySelector(".watch-links-editor"));
+      }
+    }
+  }
+
+  item.classList.toggle("open");
+}
+
+function saveSettingsShow(index) {
+  if (settingsLocked) return;
+
+  const resolved = resolveShowIndex(index);
+  if (!resolved) return;
+
+  const item = document.querySelector(`[data-settings-index="${index}"]`);
+  if (!item) return;
+
+  if (resolved.isCustom) {
+    // Handling custom show
+  } else {
+    const baseIndex = resolved.baseShow._showsDataIndex;
+    if (baseIndex === undefined || baseIndex < 0 || baseIndex >= showsData.length) return;
+
+    const data = { ...showsData[baseIndex] };
+
+    item.querySelectorAll("[data-field]").forEach(input => {
+      const field = input.getAttribute("data-field");
+      const value = input.value.trim();
+
+      if (field === "rating") {
+        const rating = Math.min(5, Math.max(0, parseInt(value, 10) || 0));
+        if (rating > 0) data.rating = rating;
+        else delete data.rating;
+        return;
+      }
+
+      if (field === "tags") {
+        data.tags = stringToTags(value);
+        return;
+      }
+
+      if (!value) {
+        delete data[field];
+      } else {
+        data[field] = value;
+      }
+    });
+
+    applyWatchLinksToData(data, item);
+    showsData[baseIndex] = data;
+  }
+
+  invalidateSearchIndex();
+  updateStatistics();
+  renderShows();
+  renderSettingsList();
+  document.querySelector(`[data-settings-index="${index}"]`)?.classList.add("open");
+  const savedShow = getEffectiveShows().find(show => show._index === index);
+  showToast(`Đã lưu chỉnh sửa cho "${savedShow?.vietnamese || "show"}"`);
+}
+
+function deleteShow(index) {
+  const resolved = resolveShowIndex(index);
+  if (!resolved) return;
+
+  const show = getShowWithUserData(resolved.baseShow);
+  const showName = show.vietnamese || show.chinese || "show";
+  const confirmMessage = `Xóa vĩnh viễn "${showName}" khỏi danh sách hiện tại? Nếu muốn giữ thay đổi này trong file, hãy bấm "Tải JSON đã cập nhật" sau khi xóa.`;
+
+  if (!window.confirm(confirmMessage)) return;
+
+  const baseIndex = resolved.baseShow._showsDataIndex;
+  if (baseIndex !== undefined && baseIndex >= 0 && baseIndex < showsData.length) {
+    showsData.splice(baseIndex, 1);
+  }
+  invalidateSearchIndex();
+
+  if (currentModalIndex === index) {
+    closeShowModal();
+    currentModalIndex = null;
+  }
+
+  const settingsModal = document.getElementById("settings-modal");
+  if (settingsModal.classList.contains("active")) {
+    renderSettingsList();
+  }
+
+  updateStatistics();
+  renderShows();
+  showToast(`Đã xóa "${showName}" khỏi danh sách`);
+}
+
+function openSettingsForShow(index) {
+  const show = getEffectiveShows().find(item => item._index === index);
+  if (!show) return;
+
+  closeShowModal();
+  currentModalIndex = null;
+
+  settingsLocked = false;
+  settingsSearchQuery = show.vietnamese || show.chinese || "";
+  const settingsSearchBox = document.getElementById("settings-search-box");
+  if (settingsSearchBox) settingsSearchBox.value = settingsSearchQuery;
+
+  renderSettingsList();
+  updateSettingsLockState();
+  const settingsModal = document.getElementById("settings-modal");
+  openAccessibleDialog(settingsModal, settingsSearchBox || settingsModal?.querySelector(".modal-close"));
+
+  requestAnimationFrame(() => {
+    const item = document.querySelector(`[data-settings-index="${index}"]`);
+    if (item && !item.classList.contains("open")) {
+      toggleSettingsShow(index);
+    }
+    item?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  });
+
+  showToast(`Đang chỉnh sửa "${show.vietnamese}"`);
+}
+
+function openSettingsForShowFromModal() {
+  if (currentModalIndex === null) return;
+  openSettingsForShow(currentModalIndex);
+}
+
+function deleteShowFromModal() {
+  if (currentModalIndex === null) return;
+  deleteShow(currentModalIndex);
+}
+
+function renderShowPoster(show) {
+  const posterUrl = show.image || show.poster || show.posterUrl || "";
+  const posterEl = document.getElementById("modal-poster-el");
+  if (!posterEl) return;
+
+  if (posterUrl) {
+    posterEl.innerHTML = `<img src="${escapeHtml(posterUrl)}" alt="Ảnh show ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" width="300" height="400" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'modal-poster-placeholder\\'><i class=\\'fa-regular fa-image\\'></i><div>Không tải được ảnh</div></div>';">`;
+    return;
+  }
+
+  posterEl.innerHTML = `
+        <div class="modal-poster-placeholder">
+          <i class="fa-regular fa-image"></i>
+          <div>Chưa có ảnh show</div>
+          <small>Có thể thêm trường <strong>image</strong> vào dữ liệu show.</small>
+        </div>
+      `;
+}
+
+function renderShowLinks(show) {
+  const viLinks = getVietnameseWatchLinks(show);
+  const zhLinks = getChineseWatchLinks(show);
+
+  if (Array.isArray(show.watchLinks)) {
+    show.watchLinks.forEach(link => {
+      const detected = detectPlatformFromUrl(link.url);
+      const formatted = {
+        label: link.label || "Link xem show",
+        url: link.url,
+        note: link.note || detected
+      };
+      const lowerLabel = formatted.label.toLowerCase();
+      const lowerNote = (formatted.note || "").toLowerCase();
+      if (lowerLabel.includes("trung") || lowerNote.includes("trung") || lowerNote.includes("origin")) {
+        zhLinks.push(formatted);
+      } else {
+        viLinks.push(formatted);
+      }
+    });
+  }
+
+  const linksEl = document.getElementById("modal-links-el");
+  const summaryEl = document.getElementById("modal-links-summary");
+
+  const totalLinks = viLinks.length + zhLinks.length;
+
+  if (summaryEl) {
+    summaryEl.textContent = totalLinks > 0
+      ? `${totalLinks} link`
+      : "Chưa có link";
+  }
+
+  if (!linksEl) return;
+
+  if (totalLinks === 0) {
+    linksEl.innerHTML = `
+          <div class="watch-link-item placeholder">
+            <div>
+              <span class="watch-link-label">Web chiếu tiếng Việt</span>
+              <span class="watch-link-note">Chưa thêm link</span>
+            </div>
+            <i class="fa-solid fa-closed-captioning"></i>
+          </div>
+          <div class="watch-link-item placeholder">
+            <div>
+              <span class="watch-link-label">Nơi chiếu tiếng Trung</span>
+              <span class="watch-link-note">Chưa thêm link</span>
+            </div>
+            <i class="fa-solid fa-link"></i>
+          </div>
+        `;
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+
+  // 1. Render Vietnamese Watch Links
+  if (viLinks.length > 0) {
+    const viSectionTitle = document.createElement('div');
+    viSectionTitle.className = 'modal-links-section-title';
+    viSectionTitle.innerHTML = `<i class="fa-solid fa-closed-captioning" style="color: var(--accent-color);"></i> Bản Vietsub / Thuyết minh`;
+    fragment.appendChild(viSectionTitle);
+
+    const viLinksList = document.createElement('div');
+    viLinksList.className = 'modal-links-list';
+    viLinksList.innerHTML = viLinks.map(link => `
+          <a class="watch-link-item" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">
+            <div>
+              <span class="watch-link-label">${escapeHtml(link.label || "Link xem tiếng Việt")}</span>
+              ${link.note ? `<span class="watch-link-note">${escapeHtml(link.note)}</span>` : ""}
+            </div>
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          </a>
+        `).join("");
+    fragment.appendChild(viLinksList);
+  }
+
+  // 2. Render Chinese Watch Links
+  if (zhLinks.length > 0) {
+    const zhSectionTitle = document.createElement('div');
+    zhSectionTitle.className = 'modal-links-section-title';
+    if (viLinks.length > 0) zhSectionTitle.style.marginTop = '1.25rem';
+    zhSectionTitle.innerHTML = `<i class="fa-solid fa-earth-asia" style="color: var(--accent-color);"></i> Bản gốc`;
+    fragment.appendChild(zhSectionTitle);
+
+    const zhLinksList = document.createElement('div');
+    zhLinksList.className = 'modal-links-list';
+    zhLinksList.innerHTML = zhLinks.map(link => `
+          <a class="watch-link-item" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">
+            <div>
+              <span class="watch-link-label">${escapeHtml(link.label || "Link gốc")}</span>
+              ${link.note ? `<span class="watch-link-note">${escapeHtml(link.note)}</span>` : ""}
+            </div>
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          </a>
+        `).join("");
+    fragment.appendChild(zhLinksList);
+  }
+
+  linksEl.innerHTML = '';
+  linksEl.appendChild(fragment);
+}
+
+// Modal Control Logic
+function openShowModal(index) {
+  currentModalIndex = index;
+  const els = getModalEls();
+
+  openAccessibleDialog(els.modal, els.modal.querySelector(".modal-close"));
+
+  setTimeout(() => {
+    const resolved = resolveShowIndex(index);
+    if (!resolved) return;
+    const show = getShowWithUserData(resolved.baseShow);
+
+    els.linksCard.classList.remove("open");
+    els.linksToggle.setAttribute("aria-expanded", "false");
+    els.container.setAttribute("data-plat", getPlatformClass(show.platform));
+
+    els.title.textContent = show.vietnamese;
+    els.zh.textContent = show.chinese;
+    els.en.textContent = show.english;
+    els.vi.textContent = show.vietnamese;
+    applyUserEditableFields(show);
+
+    const statusText = renderStatusText(show.status);
+    const tagBadgeHtml = renderTagBadge(show.tags || []);
+    const timeHtml = renderTimeHtml(show.time);
+    const year = getShowYear(show);
+    const yearHtml = renderYearHtml(year);
+
+    els.badges.innerHTML = `
+          ${renderCountryBadge(show)}
+          <span class="badge badge-status ${show.status}">${statusText}</span>
+          <span class="badge badge-plat ${getPlatformClass(show.platform)}">${show.platform}</span>
+          ${yearHtml}
+          ${tagBadgeHtml}
+          ${timeHtml}
+        `;
+    els.ratingSlot.innerHTML = renderInteractiveStarRating(index, getShowRating(show));
+
+    els.btnZh.onclick = () => copyToClipboard(show.chinese, els.btnZh, "Đã copy tên gốc");
+    els.btnEn.onclick = () => copyToClipboard(show.english, els.btnEn, "Đã copy tên Anh");
+    els.btnVi.onclick = () => copyToClipboard(show.vietnamese, els.btnVi, "Đã copy tên Việt");
+  }, 0);
+}
+
+function closeShowModal() {
+  const els = getModalEls();
+  closeAccessibleDialog(els.modal);
+}
+
+// Infinite Scroll: Lazy Loading DOM Nodes
+function loadMoreShows() {
+  const grid = document.getElementById("show-cards-grid");
+  if (!grid) return;
+
+  const oldSentinel = document.getElementById("shows-sentinel");
+  if (oldSentinel) oldSentinel.remove();
+
+  const start = showsRenderedCount;
+  const end = Math.min(start + SHOWS_PER_PAGE, activeFilteredShows.length);
+
+  if (start >= activeFilteredShows.length) return;
+
+  const chunk = activeFilteredShows.slice(start, end);
+  const fragment = document.createDocumentFragment();
+
+  chunk.forEach(show => {
+    const card = document.createElement("div");
+    card.className = "show-card";
+    card.setAttribute("data-plat", getPlatformClass(show.platform));
+
+    const originalIndex = show._index;
+
+    const statusText = renderStatusText(show.status);
+    const tagBadgeHtml = renderTagBadge(show.tags || []);
+    const timeHtml = renderTimeHtml(show.time);
+    const year = getShowYear(show);
+    const yearHtml = renderYearHtml(year);
+    const ratingHtml = renderInteractiveStarRating(originalIndex, getShowRating(show));
+    const thumbUrl = getShowImage(show);
+    const thumbHtml = thumbUrl
+      ? `<img src="${escapeHtml(thumbUrl)}" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" width="110" height="110" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fa-regular fa-image card-thumb-placeholder\\'></i>';">`
+      : `<i class="fa-regular fa-image card-thumb-placeholder"></i>`;
+
+    card.innerHTML = `
+          <div>
+            <div class="card-top-row">
+              <div class="card-thumb">${thumbHtml}</div>
+              <div class="card-top-info">
+                <div class="card-header">
+                  <div class="badges">
+                    ${renderCountryBadge(show)}
+                    <span class="badge badge-status ${show.status}">${statusText}</span>
+                    <span class="badge badge-plat ${getPlatformClass(show.platform)}">${escapeHtml(show.platform)}</span>
+                    ${yearHtml}
+                    ${tagBadgeHtml}
+                  </div>
+                  ${timeHtml}
+                  ${ratingHtml}
+                </div>
+              </div>
+            </div>
+
+            <div class="card-compact-title">
+              <div class="card-title-main">${escapeHtml(show.vietnamese || show.english || show.chinese)}</div>
+              <div class="card-title-sub">${escapeHtml(show.english || show.chinese)}</div>
+            </div>
+          </div>
+          
+          <button class="open-modal-btn" type="button" data-show-index="${originalIndex}" title="Mở cửa sổ chi tiết tiêu điểm show" aria-label="Xem chi tiết ${escapeHtml(show.vietnamese || show.english || show.chinese)}">
+            <i class="fa-solid fa-up-right-from-square"></i> Xem chi tiết & Tiêu điểm
+          </button>
+        `;
+
+    fragment.appendChild(card);
+  });
+
+  showsRenderedCount = end;
+
+  if (showsRenderedCount < activeFilteredShows.length) {
+    const sentinel = document.createElement("div");
+    sentinel.id = "shows-sentinel";
+    sentinel.style.height = "20px";
+    sentinel.style.width = "100%";
+    sentinel.style.gridColumn = "1 / -1";
+    fragment.appendChild(sentinel);
+
+    setupSentinelObserver(sentinel);
+  }
+
+  grid.appendChild(fragment);
+}
+
+function setupSentinelObserver(sentinel) {
+  if (sentinelObserver) {
+    sentinelObserver.disconnect();
+  }
+
+  sentinelObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      loadMoreShows();
+    }
+  }, {
+    rootMargin: "300px"
+  });
+
+  sentinelObserver.observe(sentinel);
+}
+
+function resetFilterButtonsUI() {
+  const filterGroups = [
+    { containerId: "status-filters", attr: "data-status", defaultValue: "all" },
+    { containerId: "sort-controls", attr: "data-sort", defaultValue: "name-asc" },
+    { containerId: "country-filters", attr: "data-country", defaultValue: "all" },
+    { containerId: "tag-filters", attr: "data-tag", defaultValue: "all" }
+  ];
+
+  filterGroups.forEach(({ containerId, attr, defaultValue }) => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const buttons = container.querySelectorAll(".filter-btn");
+    buttons.forEach(btn => {
+      const val = btn.getAttribute(attr);
+      const isActive = val === defaultValue;
+      btn.classList.toggle("active", isActive);
+      btn.setAttribute("aria-pressed", String(isActive));
+    });
+  });
+}
+
+function resetAllFilters() {
+  currentFilters = {
+    search: "",
+    status: "all",
+    country: "all",
+    tag: "all",
+    sort: "name-asc"
+  };
+
+  const searchBox = document.getElementById("search-box");
+  if (searchBox) searchBox.value = "";
+  const floatingSearchBox = document.getElementById("floating-search-box");
+  if (floatingSearchBox) floatingSearchBox.value = "";
+
+  resetFilterButtonsUI();
+  renderShows();
+  showToast("Đã xóa tất cả bộ lọc");
+}
+
+// Filter and Render Shows
+function renderShows() {
+  const grid = document.getElementById("show-cards-grid");
+  if (!grid) return;
+  grid.innerHTML = "";
+
+  const query = removeVietnameseTones(currentFilters.search.toLowerCase().trim());
+
+  const filtered = getEffectiveShows().filter(show => {
+    // Status Filter
+    if (currentFilters.status !== "all" && show.status !== currentFilters.status) {
+      return false;
+    }
+
+    if (currentFilters.country !== "all" && getShowCountry(show) !== currentFilters.country) {
+      return false;
+    }
+
+    // Tag Filter
+    if (currentFilters.tag !== "all") {
+      if (currentFilters.tag === "normal" && ((show.tags || []).includes("all-female") || (show.tags || []).includes("all-male") || (show.tags || []).includes("bisexual") || (show.tags || []).includes("other"))) {
+        return false;
+      }
+      if (currentFilters.tag === "all-female" && !(show.tags || []).includes("all-female")) {
+        return false;
+      }
+      if (currentFilters.tag === "all-male" && !(show.tags || []).includes("all-male")) {
+        return false;
+      }
+      if (currentFilters.tag === "bisexual" && !(show.tags || []).includes("bisexual")) {
+        return false;
+      }
+      if (currentFilters.tag === "other" && !(show.tags || []).includes("other")) {
+        return false;
+      }
+    }
+
+    // Search Query filter (Using pre-computed search token)
+    if (query !== "") {
+      const token = show._searchToken || getShowSearchText(show);
+      return token.includes(query);
+    }
+
+    return true;
+  });
+
+  // Sorting Logic
+  filtered.sort((a, b) => {
+    switch (currentFilters.sort) {
+      case "name-desc":
+        return compareShowsByVietnameseName(b, a);
+      case "stars": {
+        const ratingA = getShowRating(a);
+        const ratingB = getShowRating(b);
+        if (ratingB !== ratingA) return ratingB - ratingA;
+        return compareShowsByVietnameseName(a, b);
+      }
+      case "year": {
+        const yearA = getSortableYear(a);
+        const yearB = getSortableYear(b);
+        if (yearB !== yearA) return yearB - yearA;
+        return compareShowsByVietnameseName(a, b);
+      }
+      case "name-en": {
+        const enA = (a.english || "").toLowerCase();
+        const enB = (b.english || "").toLowerCase();
+        return enA.localeCompare(enB, "en");
+      }
+      case "watch-link": {
+        const viA = getVietnameseWatchLinks(a).length;
+        const viB = getVietnameseWatchLinks(b).length;
+        const zhA = getChineseWatchLinks(a).length;
+        const zhB = getChineseWatchLinks(b).length;
+        const hasLinkA = (viA + zhA) > 0 ? 1 : 0;
+        const hasLinkB = (viB + zhB) > 0 ? 1 : 0;
+        if (hasLinkB !== hasLinkA) return hasLinkB - hasLinkA;
+        return compareShowsByVietnameseName(a, b);
+      }
+      case "name-asc":
+      default:
+        return compareShowsByVietnameseName(a, b);
+    }
+  });
+
+  const announcer = document.getElementById("filter-status-announcer");
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `
+          <div class="empty-state">
+            <i class="fa-solid fa-ghost empty-state-icon"></i>
+            <h3 class="empty-state-title">Không tìm thấy show nào!</h3>
+            <p class="empty-state-desc">Không có kết quả phù hợp với từ khóa hoặc bộ lọc hiện tại. Hãy thử thay đổi tìm kiếm hoặc đặt lại bộ lọc.</p>
+            <button class="empty-state-reset-btn" type="button" onclick="resetAllFilters()">
+              <i class="fa-solid fa-rotate-left"></i> Xóa tất cả bộ lọc
+            </button>
+          </div>
+        `;
+    if (announcer) announcer.textContent = "Không tìm thấy show nào phù hợp.";
+    return;
+  }
+
+  if (announcer) announcer.textContent = `Hiển thị ${filtered.length} show kết quả.`;
+
+  activeFilteredShows = filtered;
+  showsRenderedCount = 0;
+
+  loadMoreShows();
+}
+
+async function loadShowsData() {
+  try {
+    const response = await fetch(`./showsData.json?v=${DATA_VERSION}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    showsData = await response.json();
+    if (!Array.isArray(showsData)) throw new Error('showsData.json must contain an array');
+    invalidateSearchIndex();
+  } catch (err) {
+    console.error('Cannot load showsData.json:', err);
+    showToast('Khong tai duoc showsData.json. Hay chay qua local server hoac kiem tra file du lieu.', true);
+    showsData = [];
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
+function setActiveFilterButton(activeButton, buttons) {
+  buttons.forEach(button => {
+    const isActive = button === activeButton;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+}
 
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
+function initializeAppEvents() {
+  getModalEls();
+  document.addEventListener("keydown", handleDialogKeydown);
+
+  updateStatistics();
+  renderShows();
+
+  const grid = document.getElementById("show-cards-grid");
+  grid?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".open-modal-btn[data-show-index]");
+    if (btn) {
+      const index = parseInt(btn.getAttribute("data-show-index"), 10);
+      if (!isNaN(index)) openShowModal(index);
+    }
+  });
+
+  const searchBox = document.getElementById("search-box");
+  const floatingSearchBox = document.getElementById("floating-search-box");
+  const floatingSearchWrapper = document.getElementById("floating-search-wrapper");
+  const floatingSearchBtn = document.getElementById("floating-search-btn");
+  const floatingSearchClearBtn = document.getElementById("floating-search-clear-btn");
+
+  function updateSearchQuery(val) {
+    if (searchBox) searchBox.value = val;
+    if (floatingSearchBox) floatingSearchBox.value = val;
+    currentFilters.search = val;
+
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      renderShows();
+    }, 250);
   }
 
-  .show-card:hover,
-  .show-card:hover .card-thumb,
-  .settings-btn:hover,
-  .modal-close:hover,
-  .copy-btn:hover,
-  .star-btn:hover:not(:disabled) {
-    transform: none;
+  searchBox?.addEventListener("input", (e) => {
+    updateSearchQuery(e.target.value);
+  });
+
+  floatingSearchBox?.addEventListener("input", (e) => {
+    updateSearchQuery(e.target.value);
+  });
+
+  floatingSearchBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isOpen = floatingSearchWrapper.classList.toggle("open");
+    if (isOpen) {
+      floatingSearchBox?.focus();
+    }
+  });
+
+  floatingSearchClearBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    updateSearchQuery("");
+    floatingSearchBox?.focus();
+  });
+
+  document.addEventListener("click", (e) => {
+    if (floatingSearchWrapper?.classList.contains("open") && !floatingSearchWrapper.contains(e.target)) {
+      floatingSearchWrapper.classList.remove("open");
+    }
+  });
+
+  let settingsSearchTimeout = null;
+  const settingsSearchBox = document.getElementById("settings-search-box");
+  settingsSearchBox?.addEventListener("input", (e) => {
+    settingsSearchQuery = e.target.value;
+    clearTimeout(settingsSearchTimeout);
+    settingsSearchTimeout = setTimeout(() => {
+      renderSettingsList();
+    }, 200);
+  });
+
+  const statusButtons = document.querySelectorAll("#status-filters .filter-btn");
+  statusButtons.forEach(btn => btn.addEventListener("click", () => {
+    setActiveFilterButton(btn, statusButtons);
+    setTimeout(() => {
+      currentFilters.status = btn.getAttribute("data-status");
+      renderShows();
+    }, 0);
+  }));
+
+  const sortButtons = document.querySelectorAll("#sort-controls .filter-btn");
+  sortButtons.forEach(btn => btn.addEventListener("click", () => {
+    setActiveFilterButton(btn, sortButtons);
+    setTimeout(() => {
+      currentFilters.sort = btn.getAttribute("data-sort");
+      renderShows();
+    }, 0);
+  }));
+
+  const countryButtons = document.querySelectorAll("#country-filters .filter-btn");
+  countryButtons.forEach(btn => btn.addEventListener("click", () => {
+    setActiveFilterButton(btn, countryButtons);
+    setTimeout(() => {
+      currentFilters.country = btn.getAttribute("data-country");
+      renderShows();
+    }, 0);
+  }));
+
+  const tagButtons = document.querySelectorAll("#tag-filters .filter-btn");
+  tagButtons.forEach(btn => btn.addEventListener("click", () => {
+    setActiveFilterButton(btn, tagButtons);
+    setTimeout(() => {
+      currentFilters.tag = btn.getAttribute("data-tag");
+      renderShows();
+    }, 0);
+  }));
+
+  document.getElementById("modal-links-toggle")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const linksCard = document.getElementById("modal-links-card");
+    const isOpen = linksCard.classList.toggle("open");
+    document.getElementById("modal-links-toggle").setAttribute("aria-expanded", String(isOpen));
+  });
+
+  const modalLinksEl = document.getElementById("modal-links-el");
+  modalLinksEl?.addEventListener("click", (e) => {
+    const link = e.target.closest(".watch-link-item");
+    if (link) {
+      e.stopPropagation();
+    }
+  });
+
+  const scrollBtn = document.getElementById("scroll-btn");
+  window.addEventListener("scroll", () => {
+    if (window.scrollY > 300) scrollBtn?.classList.add("visible");
+    else scrollBtn?.classList.remove("visible");
+  }, { passive: true });
+  scrollBtn?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+  const modal = document.getElementById("show-modal");
+  modal?.addEventListener("click", (e) => {
+    if (e.target === modal) closeShowModal();
+  });
+
+  const settingsModal = document.getElementById("settings-modal");
+  settingsModal?.addEventListener("click", (e) => {
+    if (e.target === settingsModal) closeSettingsModal();
+  });
+
+  const textareaEditorModal = document.getElementById("textarea-editor-modal");
+  textareaEditorModal?.addEventListener("click", (e) => {
+    if (e.target === textareaEditorModal) closeTextareaEditor();
+  });
+}
+
+// Textarea Editor Modal Handlers
+let activeEditorTarget = { index: null, field: null };
+
+function openTextareaEditor(index, field, label) {
+  activeEditorTarget = { index, field };
+
+  const show = getEffectiveShows().find(s => s._index === index);
+  const showName = show ? (show.vietnamese || show.chinese || "") : "";
+
+  const titleEl = document.getElementById("textarea-editor-title");
+  if (titleEl) {
+    titleEl.innerHTML = `<i class="fa-solid fa-pen-to-square" style="color: var(--accent-color);"></i> Chỉnh sửa ${label} <span style="font-size: 1.1rem; color: var(--text-muted); font-weight: normal; margin-left: 0.5rem;">— ${escapeHtml(showName)}</span>`;
+  }
+
+  const mainTextarea = document.getElementById(`settings-${index}-${field}`);
+  const modalTextarea = document.getElementById("textarea-editor-input");
+
+  if (mainTextarea && modalTextarea) {
+    modalTextarea.value = mainTextarea.value;
+  }
+
+  if (modalTextarea) {
+    modalTextarea.disabled = settingsLocked;
+  }
+  const modalActions = document.querySelector("#textarea-editor-modal .modal-action-btn.edit");
+  if (modalActions) {
+    modalActions.disabled = settingsLocked;
+  }
+
+  const modal = document.getElementById("textarea-editor-modal");
+  if (modal) {
+    openAccessibleDialog(modal, modalTextarea || modal.querySelector(".modal-close"));
   }
 }
+
+function closeTextareaEditor() {
+  const modal = document.getElementById("textarea-editor-modal");
+
+  const settingsModal = document.getElementById("settings-modal");
+  const keepScrollLocked = settingsModal && settingsModal.classList.contains("active");
+  closeAccessibleDialog(modal, { keepScrollLocked });
+  activeEditorTarget = { index: null, field: null };
+}
+
+function saveTextareaEditor() {
+  if (settingsLocked) return;
+
+  const { index, field } = activeEditorTarget;
+  if (index === null || field === null) return;
+
+  const mainTextarea = document.getElementById(`settings-${index}-${field}`);
+  const modalTextarea = document.getElementById("textarea-editor-input");
+
+  if (mainTextarea && modalTextarea) {
+    mainTextarea.value = modalTextarea.value;
+  }
+
+  closeTextareaEditor();
+  showToast("Đã cập nhật nội dung (Nhớ bấm 'Lưu show này' để lưu lại)");
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadShowsData();
+  mergeLegacyCustomShowsIntoShowsData();
+  initializeAppEvents();
+});
