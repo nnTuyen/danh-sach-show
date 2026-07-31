@@ -211,7 +211,7 @@
     "chinese": "心动双重奏",
     "english": "The Love Duet",
     "vietnamese": "Bản Song Tấu Rung Động",
-    "status": "upcoming",
+    "status": "airing",
     "platform": "Mango TV",
     "time": "Thứ 5",
     "tags": [
@@ -222,13 +222,13 @@
     "description": "là chương trình truyền hình thực tế hẹn hò liên thế hệ đầu tiên, nơi tám người trẻ độc thân bắt đầu hành trình tìm kiếm tình yêu kéo dài 13 ngày cùng với những người lớn tuổi hơn. \nTập trung vào sự thu hút ban đầu của những người trẻ, được bổ sung bởi sự đồng hành của những người lớn tuổi, chương trình ghi lại một cách chân thực các buổi hẹn hò và tương tác của họ, pha trộn bầu không khí lãng mạn, sự ấm áp của gia đình và một góc nhìn thực tế về hôn nhân và các mối quan hệ để tạo nên một câu chuyện tình yêu vừa lãng mạn vừa gần gũi.",
     "rating": 2,
     "year": "29-07-2026",
-    "chineseWatchUrls": [
+    "vietnameseWatchUrls": [
       {
-        "url": "https://w.mgtv.com/b/893741/24518312.html?lang=vn",
-        "label": "Trailer"
+        "url": "https://w.mgtv.com/b/893741/24523013.html",
+        "label": "Multi sub"
       }
     ],
-    "chineseWatchUrl": "https://w.mgtv.com/b/893741/24518312.html?lang=vn"
+    "vietnameseWatchUrl": "https://w.mgtv.com/b/893741/24523013.html"
   },
   {
     "chinese": "当爱情再次降临",
