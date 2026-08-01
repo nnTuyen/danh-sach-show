@@ -49,10 +49,10 @@
   {
     "chinese": "心动的信号9",
     "english": "Heart Signal 9",
-    "vietnamese": "Tín Hiệu Con Tim 9",
-    "status": "upcoming",
+    "vietnamese": "Tín Hiệu Con Tim S9",
+    "status": "airing",
     "platform": "Tencent Video",
-    "time": "Tháng 8",
+    "time": "Thứ 2 Thứ 3",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-1.png",
     "chineseWatchUrl": "https://v.qq.com/x/cover/mzc002003kpyd2m/m410197cfzm.html",
     "tags": [
@@ -66,7 +66,20 @@
         "label": "Nơi chiếu tiếng Trung"
       }
     ],
-    "rating": 5
+    "rating": 5,
+    "year": "31-07-2026",
+    "detailNotes": "Nữ 1 - Thôi Khải Di (崔凯怡)\nNữ 2 - Sa Nguyệt Nhi (沙玥儿)\nNữ 3 - Tôn Khải Manh (孙启萌)\nNữ 4 - Ngô Tư Dĩnh (吴思颖)\nNữ 5- Lương Nhân Phương (梁人方)\n\nNam 1 - Triệu Hy Luân (赵希伦)\nNam 2 - Tôn Bách Hàm (孙柏涵)\nNam 3 - Thôi Dịch Hàng (崔泽航)\nNam 4- Trần Hạc Văn (陈鹤文)\nNam 5- Vu Dương (于洋)\nNam 6- Tào Dĩ Hằng (曹以恒)",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://rumble.com/playlists/BmnYaLv13A0",
+        "label": "Tải app xem dễ hơn. Chất lượng tốt nhất - Nhớ bật sub"
+      },
+      {
+        "url": "https://odysee.com/T%C3%ADn-hi%E1%BB%87u-con-tim-S9---Heart-signal-(CN)-S9---%E5%BF%83%E5%8A%A8%E7%9A%84%E4%BF%A1%E5%8F%B79:712d11db29598ff30a2b1790396adbaea2e22b58",
+        "label": "Tải app xem dễ hơn. Lựa chọn thay thế"
+      }
+    ],
+    "vietnameseWatchUrl": "https://rumble.com/playlists/BmnYaLv13A0"
   },
   {
     "chinese": "日落时分说爱你2",
