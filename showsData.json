@@ -2465,5 +2465,28 @@
     "rating": 5,
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/Show-102.png",
     "description": "Nó có các trò chơi sinh tồn khắc nghiệt giữa những người mạnh nhất về trí não và khả năng thể chất.\n\nMùa giải này thoát khỏi khuôn khổ hiện có tập trung vào sự sống còn của cá nhân bằng cách giới thiệu một cấu trúc 'chiến đấu đồng đội' chính thức, hứa hẹn một mức độ căng thẳng mới."
+  },
+  {
+    "chinese": "내 남은 연애",
+    "english": "Love Against Time",
+    "vietnamese": "Tình yêu vượt thời gian",
+    "status": "airing",
+    "platform": "kocowa",
+    "time": "T4",
+    "tags": [
+      "normal"
+    ],
+    "country": "korea",
+    "rating": 4,
+    "description": "Show dành cho những người mắc bệnh nan y, những người đã từng bước qua cửa tử, những người không còn nhiều thời gian liệu họ sẽ yêu ai.",
+    "year": "4-08-2026",
+    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-103.jpg",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://kisskh.co/Drama/Love-Against-Time--2026-/Episode-1?id=13548&ep=221353&page=0&pageSize=100",
+        "label": "Auto sub"
+      }
+    ],
+    "vietnameseWatchUrl": "https://kisskh.co/Drama/Love-Against-Time--2026-/Episode-1?id=13548&ep=221353&page=0&pageSize=100"
   }
 ]
