@@ -2488,5 +2488,36 @@
       }
     ],
     "vietnameseWatchUrl": "https://kisskh.co/Drama/Love-Against-Time--2026-/Episode-1?id=13548&ep=221353&page=0&pageSize=100"
+  },
+  {
+    "chinese": "Badly in Love S2",
+    "english": "Badly in Love S2",
+    "vietnamese": "Tình yêu nổi loạn S2",
+    "status": "airing",
+    "platform": "Neflix",
+    "time": "T5",
+    "tags": [
+      "normal"
+    ],
+    "country": "japan",
+    "rating": 5,
+    "year": "5-08-2026",
+    "description": "Show dành cho dân anh chị đầu gấu.",
+    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-104.jpg",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://phimvietsub.bar/tinh-yeu-noi-loan-phan-2-10102",
+        "label": "Sub đẹp"
+      },
+      {
+        "url": "https://rophim1.vip/phim/tinh-yeu-noi-loan-phan-2",
+        "label": "Sub đẹp"
+      },
+      {
+        "url": "https://kisskh.co/Drama/Badly-in-Love-Season-2?id=13560&q=true",
+        "label": "Có sớm nhất"
+      }
+    ],
+    "vietnameseWatchUrl": "https://phimvietsub.bar/tinh-yeu-noi-loan-phan-2-10102"
   }
 ]
