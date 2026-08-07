@@ -2519,5 +2519,29 @@
       }
     ],
     "vietnameseWatchUrl": "https://phimvietsub.bar/tinh-yeu-noi-loan-phan-2-10102"
+  },
+  {
+    "chinese": "나는 SOLO 나는 솔로",
+    "english": "I am solo S33",
+    "vietnamese": "I am solo S33",
+    "status": "airing",
+    "platform": "SBS",
+    "time": "T6",
+    "tags": [
+      "normal"
+    ],
+    "country": "korea",
+    "rating": 3,
+    "description": "Mùa dành cho những người ế từ trong trứng (Mote solo)",
+    "year": "6-08-2026",
+    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-105.png",
+    "detailNotes": "Nam:\nYoung Soo (1988): \nYoung Ho (1990): \nYoung Sik (): \nYoung Chul (): Lính cứu hỏa\nKwang Soo (1995): Công chức\nSang Chul (1991): \n\nNữ:\nYoung Sook (1992): \nJung Sook (): \nSun Ja (): \nYoung Ja (): Y tá\nOk Soon (1999): \nHyun Sook (1988): Cơ quan thương mại nhà nước",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://bili.im/SXEazdg",
+        "label": "Sub auto"
+      }
+    ],
+    "vietnameseWatchUrl": "https://bili.im/SXEazdg"
   }
 ]
