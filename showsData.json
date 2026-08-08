@@ -17,7 +17,7 @@
       {
         "url": "https://v.qq.com/x/cover/mzc00200x8zylq0/c4102tnbp6u.html",
         "label": "Nơi chiếu tiếng Trung"
-      },
+      },a
       {
         "url": "https://wetv.vip/en/play/07820ipkkt3hcao/z41028e0ls3-Episode_2(Part_1)%3A_4v4_Dating!_Dance_Game_for_Casts_in_Love_Actually?brid=YWdncwHG3grpDv5dRhZo3_msQdCv",
         "label": "Multi sub"
@@ -2464,7 +2464,8 @@
     "vietnameseWatchUrl": "https://www.dailymotion.com/video/xalc3am",
     "rating": 5,
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/Show-102.png",
-    "description": "Nó có các trò chơi sinh tồn khắc nghiệt giữa những người mạnh nhất về trí não và khả năng thể chất.\n\nMùa giải này thoát khỏi khuôn khổ hiện có tập trung vào sự sống còn của cá nhân bằng cách giới thiệu một cấu trúc 'chiến đấu đồng đội' chính thức, hứa hẹn một mức độ căng thẳng mới."
+    "description": "Nó có các trò chơi sinh tồn khắc nghiệt giữa những người mạnh nhất về trí não và khả năng thể chất.\n\nMùa giải này thoát khỏi khuôn khổ hiện có tập trung vào sự sống còn của cá nhân bằng cách giới thiệu một cấu trúc 'chiến đấu đồng đội' chính thức, hứa hẹn một mức độ căng thẳng mới.",
+    "time": "18h T6"
   },
   {
     "chinese": "내 남은 연애",
@@ -2543,5 +2544,27 @@
       }
     ],
     "vietnameseWatchUrl": "https://bili.im/SXEazdg"
+  },
+  {
+    "chinese": "나는 SOLO 그 후 사랑은 계속된다",
+    "english": "I am solo, Love  Forever S15",
+    "vietnamese": "I am solo, Love  Forever S15",
+    "status": "airing",
+    "platform": "SBS",
+    "time": "T7",
+    "tags": [
+      "normal"
+    ],
+    "country": "korea",
+    "rating": 4,
+    "year": "7-08-2026",
+    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-106-v2.png",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://bili.im/qgPrEue",
+        "label": "Sub auto"
+      }
+    ],
+    "vietnameseWatchUrl": "https://bili.im/qgPrEue"
   }
 ]
