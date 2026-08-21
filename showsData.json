@@ -75,6 +75,10 @@
         "label": "Tốc độ sub nhanh"
       },
       {
+        "url": "https://t.me/linhtinhshow/59",
+        "label": "Telegram - Best"
+      },
+      {
         "url": "https://www.bilibili.tv/vi/video/4800431802423808",
         "label": "Chỉ có 720p"
       },
@@ -83,16 +87,12 @@
         "label": "Có app - Nếu chậm thì bật VPN"
       },
       {
-        "url": "https://vkvideo.ru/playlist/-240980871_1",
-        "label": "Có app - Nếu chậm thì bật VPN"
-      },
-      {
-        "url": "https://t.me/linhtinhshow/59",
-        "label": "Telegram"
+        "url": "https://dzen.ru/suite/3aa51c6c-83c3-44c9-8d6c-a585e9c7037d",
+        "label": "Tốc độ rất tốt"
       },
       {
         "url": "https://ok.ru/video/c68221451",
-        "label": "Có app - Nếu chậm thì bật VPN"
+        "label": "Dự phòng"
       },
       {
         "url": "https://wetv.vip/en/play/f5ya6dcwpdeqqfv/b41024vn789-Preview_Part_2%3A_First_Meeting_Between_the_Boys_and_Girls!_Romance_Sparks_in_the_Four-Color_Space~",
@@ -334,7 +334,7 @@
     "chinese": "喜欢你我也是6",
     "english": "Yes, I Do S6",
     "vietnamese": "Thích anh, anh cũng vậy S6",
-    "status": "airing",
+    "status": "completed",
     "platform": "iQiyi",
     "time": "21h T4 T5 hàng tuần",
     "tags": [
@@ -359,11 +359,11 @@
       },
       {
         "url": "https://t.me/linhtinhshow/18",
-        "label": "Telegram"
+        "label": "Telegram - Best"
       },
       {
         "url": "https://ok.ru/video/c68267019",
-        "label": "Có app - Nếu chậm thì bật VPN"
+        "label": "Dự phòng"
       },
       {
         "url": "https://youtube.com/playlist?list=PLduC-Rdu-8RGn-CLYboz1Jdq0w7lPJyc6",
@@ -2391,7 +2391,7 @@
     "chinese": "연애실험실",
     "english": "The Love Lab",
     "vietnamese": "The Love Lab",
-    "status": "airing",
+    "status": "completed",
     "platform": "Netflix",
     "time": "Sáng T5 hàng tuần",
     "tags": [
