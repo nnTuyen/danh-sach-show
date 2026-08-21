@@ -428,6 +428,7 @@ function detectPlatformFromUrl(url) {
   if (lower.includes("phimvietsub.site") || lower.includes("phimvietsub")) return "Phim Việt Sub";
   if (lower.includes("youtube.com") || lower.includes("youtu.be")) return "YouTube";
   if (lower.includes("ok.ru")) return "OK.ru";
+  if (lower.includes("vkvideo")) return "vkvideo";
   if (lower.includes("rumble.com") || lower.includes("rumble")) return "Rumble";
   if (lower.includes("dailymotion.com") || lower.includes("dailymotion")) return "Dailymotion";
   if (lower.includes("kisskh.co") || lower.includes("kisskh")) return "KissKh";
@@ -803,6 +804,7 @@ function getPlatformClass(platform) {
   if (lower.includes("rophim")) return "rophim";
   if (lower.includes("phimvietsub")) return "phimvietsub";
   if (lower.includes("ok.ru")) return "ok.ru";
+  if (lower.includes("vkvideo")) return "vkvideo";
   if (lower.includes("dailymotion")) return "dailymotion";
   if (lower.includes("youtube")) return "youtube";
   if (lower.includes("migu")) return "migu";
