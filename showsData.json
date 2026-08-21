@@ -80,7 +80,11 @@
       },
       {
         "url": "https://odysee.com/T%C3%ADn-hi%E1%BB%87u-con-tim-S9---Heart-signal-(CN)-S9---%E5%BF%83%E5%8A%A8%E7%9A%84%E4%BF%A1%E5%8F%B79:712d11db29598ff30a2b1790396adbaea2e22b58",
-        "label": "Tải app xem dễ hơn. Lựa chọn thay thế"
+        "label": "Có app - Nếu chậm thì bật VPN"
+      },
+      {
+        "url": "https://vkvideo.ru/playlist/-240980871_1/season_undefined",
+        "label": "Có app - Nếu chậm thì bật VPN"
       },
       {
         "url": "https://t.me/linhtinhshow/59",
@@ -88,7 +92,7 @@
       },
       {
         "url": "https://ok.ru/video/c68221451",
-        "label": "Ok.ru - Tốc độ tùy mạng. Thích hợp tải về xem"
+        "label": "Có app - Nếu chậm thì bật VPN"
       },
       {
         "url": "https://wetv.vip/en/play/f5ya6dcwpdeqqfv/b41024vn789-Preview_Part_2%3A_First_Meeting_Between_the_Boys_and_Girls!_Romance_Sparks_in_the_Four-Color_Space~",
@@ -351,7 +355,7 @@
     "vietnameseWatchUrls": [
       {
         "url": "https://odysee.com/@Nguy%E1%BB%85nNg%E1%BB%8DcTuy%C3%AAn:b/Th%C3%ADch-anh%2C-anh-c%C5%A9ng-v%E1%BA%ADy-S6---Yes%2C-I-Do-S6---%E5%96%9C%E6%AC%A2%E4%BD%A0%E6%88%91%E4%B9%9F%E6%98%AF6:3?r=289kzgext53vaS2RPNn7nmxB36Kd3bNX&lid=39286edeb542d717dbe971226e1c0dd9c909a169",
-        "label": "Tốc độ chậm - Tải app dễ dùng hơn"
+        "label": "Có app - Nếu chậm thì bật VPN"
       },
       {
         "url": "https://t.me/linhtinhshow/18",
@@ -359,7 +363,7 @@
       },
       {
         "url": "https://ok.ru/video/c68267019",
-        "label": "Ok.ru - Tốc độ chậm, phù hợp tải về xem"
+        "label": "Có app - Nếu chậm thì bật VPN"
       },
       {
         "url": "https://youtube.com/playlist?list=PLduC-Rdu-8RGn-CLYboz1Jdq0w7lPJyc6",
@@ -414,10 +418,6 @@
     "chineseWatchUrl": "https://w.mgtv.com/b/866537/24383795.html",
     "vietnameseWatchUrls": [
       {
-        "url": "https://dailymotion.com/playlist/xc5flo",
-        "label": "Dailymotion"
-      },
-      {
         "url": "https://www.bilibili.tv/vi/video/4799583013313024",
         "label": "Bilibilitv"
       },
@@ -426,7 +426,7 @@
         "label": "Odysee"
       }
     ],
-    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xc5flo",
+    "vietnameseWatchUrl": "https://www.bilibili.tv/vi/video/4799583013313024",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-20.jpg",
     "year": "27-04-2026"
   },
