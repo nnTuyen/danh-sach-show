@@ -79,11 +79,11 @@ function openAccessibleDialog(modal, focusTarget) {
 
   modal.classList.add("active");
   document.body.style.overflow = "hidden";
-  updateBackgroundInertState();
 
   requestAnimationFrame(() => {
     const target = focusTarget || getFocusableElements(modal)[0] || modal;
     target?.focus?.({ preventScroll: true });
+    updateBackgroundInertState();
   });
 }
 
@@ -529,9 +529,9 @@ function renderWatchLinkRow(index, type, link = { url: "", label: "" }, canRemov
 
   return `
         <div class="watch-link-row" data-watch-link-type="${type}">
-          <input class="settings-input watch-link-label-input" type="text" data-watch-link-label-type="${type}" placeholder="${labelPlaceholder}" value="${escapeHtml(link.label || "")}" ${settingsLocked ? "disabled" : ""}>
+          <input class="settings-input watch-link-label-input" type="text" name="watch-link-label-${type}" data-watch-link-label-type="${type}" placeholder="${labelPlaceholder}" value="${escapeHtml(link.label || "")}" ${settingsLocked ? "disabled" : ""}>
           <div class="watch-link-url-line">
-            <input class="settings-input watch-link-input" type="url" data-watch-link-url-type="${type}" placeholder="https://..." value="${escapeHtml(link.url || "")}" ${settingsLocked ? "disabled" : ""}>
+            <input class="settings-input watch-link-input" type="url" name="watch-link-url-${type}" data-watch-link-url-type="${type}" placeholder="https://..." value="${escapeHtml(link.url || "")}" ${settingsLocked ? "disabled" : ""}>
             <div class="watch-link-actions">
               <button type="button" class="watch-link-move-btn" onclick="moveWatchLinkRow(this, 'up')" title="Di chuyển lên" ${settingsLocked ? "disabled" : ""}>
                 <i class="fa-solid fa-arrow-up"></i>
@@ -1181,7 +1181,7 @@ function settingsStarRating(index, rating) {
 
   return `
         <div class="settings-field span-3">
-          <label for="settings-${index}-rating">Đánh giá sao</label>
+          <span class="field-label">Đánh giá sao</span>
           <div class="star-rating-picker" data-rating-index="${index}">
             <input type="hidden" class="settings-input" id="settings-${index}-rating" data-field="rating" value="${current}">
             ${stars}
@@ -1279,7 +1279,7 @@ function settingsWatchLinksGroup(index, type, links, label, spanClass = "span-2"
 
   return `
         <div class="settings-field ${spanClass}" data-watch-link-group="${type}">
-          <label>${label}</label>
+          <span class="field-label">${label}</span>
           <div class="watch-links-editor" id="watch-links-${index}-${type}">
             ${rows}
           </div>
@@ -1493,7 +1493,10 @@ function renderShowLinks(show) {
     summaryEl.textContent = totalLinks > 0
       ? `${totalLinks} link`
       : "Chưa có link";
+    summaryEl.classList.toggle("has-links", totalLinks > 0);
   }
+
+  document.getElementById("modal-links-card")?.classList.toggle("has-links", totalLinks > 0);
 
   if (!linksEl) return;
 
@@ -1578,8 +1581,9 @@ function openShowModal(index) {
     if (!resolved) return;
     const show = getShowWithUserData(resolved.baseShow);
 
-    els.linksCard.classList.remove("open");
-    els.linksToggle.setAttribute("aria-expanded", "false");
+    const totalLinks = getVietnameseWatchLinks(show).length + getChineseWatchLinks(show).length;
+    els.linksCard.classList.toggle("open", totalLinks > 0);
+    els.linksToggle.setAttribute("aria-expanded", String(totalLinks > 0));
     els.container.setAttribute("data-plat", getPlatformClass(show.platform));
 
     els.title.textContent = show.vietnamese;
@@ -1597,7 +1601,7 @@ function openShowModal(index) {
     els.badges.innerHTML = `
           ${renderCountryBadge(show)}
           <span class="badge badge-status ${show.status}">${statusText}</span>
-          <span class="badge badge-plat ${getPlatformClass(show.platform)}">${show.platform}</span>
+          <span class="badge badge-plat ${getPlatformClass(show.platform)}">${escapeHtml(show.platform)}</span>
           ${yearHtml}
           ${tagBadgeHtml}
           ${timeHtml}
@@ -1616,6 +1620,43 @@ function closeShowModal() {
 }
 
 // Infinite Scroll: Lazy Loading DOM Nodes
+function isSearchActive() {
+  return currentFilters.search.trim() !== "";
+}
+
+function buildSearchResultRow(show) {
+  const row = document.createElement("button");
+  row.type = "button";
+  row.className = "search-result-row";
+  row.setAttribute("data-show-index", String(show._index));
+
+  const mainName = show.vietnamese || show.english || show.chinese || "";
+  const subName = show.english && show.english !== mainName
+    ? show.english
+    : (show.chinese && show.chinese !== mainName ? show.chinese : "");
+  const thumbUrl = getShowImage(show);
+  const thumbHtml = thumbUrl
+    ? `<img src="${escapeHtml(thumbUrl)}" alt="" loading="lazy" decoding="async" width="44" height="60" onerror="this.remove()">`
+    : `<i class="fa-regular fa-image"></i>`;
+  const year = getShowYear(show);
+  const statusText = renderStatusText(show.status);
+
+  row.innerHTML = `
+        <span class="search-result-thumb">${thumbHtml}</span>
+        <span class="sr-copy">
+          <strong>${escapeHtml(mainName)}</strong>
+          ${subName ? `<span>${escapeHtml(subName)}</span>` : ""}
+        </span>
+        <span class="sr-meta">
+          ${renderStarDisplay(getShowRating(show))}
+          ${year ? `<span class="sr-year">${escapeHtml(year)}</span>` : ""}
+          <span class="badge badge-status ${show.status}">${statusText}</span>
+        </span>
+        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+      `;
+  return row;
+}
+
 function loadMoreShows() {
   const grid = document.getElementById("show-cards-grid");
   if (!grid) return;
@@ -1630,8 +1671,14 @@ function loadMoreShows() {
 
   const chunk = activeFilteredShows.slice(start, end);
   const fragment = document.createDocumentFragment();
+  const searchMode = isSearchActive();
 
   chunk.forEach(show => {
+    if (searchMode) {
+      fragment.appendChild(buildSearchResultRow(show));
+      return;
+    }
+
     const card = document.createElement("div");
     card.className = "show-card";
     card.setAttribute("data-plat", getPlatformClass(show.platform));
@@ -1733,6 +1780,8 @@ function resetFilterButtonsUI() {
       btn.setAttribute("aria-pressed", String(isActive));
     });
   });
+
+  refreshFilterGroupBadges();
 }
 
 function resetAllFilters() {
@@ -1748,6 +1797,8 @@ function resetAllFilters() {
   if (searchBox) searchBox.value = "";
   const floatingSearchBox = document.getElementById("floating-search-box");
   if (floatingSearchBox) floatingSearchBox.value = "";
+  const mobileSearchBox = document.getElementById("mobile-search-box");
+  if (mobileSearchBox) mobileSearchBox.value = "";
 
   resetFilterButtonsUI();
   renderShows();
@@ -1761,6 +1812,18 @@ function renderShows() {
   grid.innerHTML = "";
 
   const query = removeVietnameseTones(currentFilters.search.toLowerCase().trim());
+  const searchActive = query !== "";
+  const wasSearchActive = document.body.classList.contains("search-active");
+
+  document.body.classList.toggle("search-active", searchActive);
+  grid.classList.toggle("search-mode", searchActive);
+
+  if (wasSearchActive && !searchActive) {
+    // Xóa tìm kiếm: neo thẳng control-panel (thanh tìm kiếm + bộ lọc) lên sát đỉnh màn hình
+    requestAnimationFrame(() => {
+      document.querySelector(".control-panel")?.scrollIntoView({ block: "start", behavior: "instant" });
+    });
+  }
 
   const filtered = getEffectiveShows().filter(show => {
     // Status Filter
@@ -1877,12 +1940,60 @@ async function loadShowsData() {
   }
 }
 
+function refreshFilterGroupBadges() {
+  document.querySelectorAll(".filter-group").forEach(group => {
+    const badge = group.querySelector(".filter-active-count");
+    if (!badge) return;
+
+    const active = [...group.querySelectorAll(".filter-btn.active")];
+    const isFilterGroup = active.some(btn =>
+      btn.hasAttribute("data-status") || btn.hasAttribute("data-country") || btn.hasAttribute("data-tag")
+    );
+    const nonDefaultCount = active.filter(btn =>
+      btn.getAttribute("data-status") !== "all" &&
+      btn.getAttribute("data-country") !== "all" &&
+      btn.getAttribute("data-tag") !== "all"
+    ).length;
+
+    badge.textContent = isFilterGroup && nonDefaultCount > 0 ? String(nonDefaultCount) : "";
+  });
+}
+
+function setFilterGroupCollapsed(group, collapsed) {
+  if (!group) return;
+  group.classList.toggle("collapsed", collapsed);
+  group.querySelector(".filter-toggle")?.setAttribute("aria-expanded", String(!collapsed));
+}
+
+function initializeFilterCollapsible() {
+  const mq = window.matchMedia("(max-width: 768px)");
+  const groups = [...document.querySelectorAll(".filter-group")];
+
+  const applyMode = () => {
+    groups.forEach(group => setFilterGroupCollapsed(group, mq.matches));
+  };
+
+  groups.forEach(group => {
+    const toggle = group.querySelector(".filter-toggle");
+    toggle?.addEventListener("click", () => {
+      if (!mq.matches) return;
+      setFilterGroupCollapsed(group, !group.classList.contains("collapsed"));
+    });
+  });
+
+  if (mq.addEventListener) mq.addEventListener("change", applyMode);
+  else mq.addListener(applyMode);
+
+  applyMode();
+}
+
 function setActiveFilterButton(activeButton, buttons) {
   buttons.forEach(button => {
     const isActive = button === activeButton;
     button.classList.toggle("active", isActive);
     button.setAttribute("aria-pressed", String(isActive));
   });
+  refreshFilterGroupBadges();
 }
 
 function initializeAppEvents() {
@@ -1894,7 +2005,7 @@ function initializeAppEvents() {
 
   const grid = document.getElementById("show-cards-grid");
   grid?.addEventListener("click", (e) => {
-    const btn = e.target.closest(".open-modal-btn[data-show-index]");
+    const btn = e.target.closest("[data-show-index]");
     if (btn) {
       const index = parseInt(btn.getAttribute("data-show-index"), 10);
       if (!isNaN(index)) openShowModal(index);
@@ -1907,9 +2018,34 @@ function initializeAppEvents() {
   const floatingSearchBtn = document.getElementById("floating-search-btn");
   const floatingSearchClearBtn = document.getElementById("floating-search-clear-btn");
 
+  const mobileTopBar = document.getElementById("mobile-topbar");
+  const mobileSearchBtn = document.getElementById("mobile-search-btn");
+  const mobileSearchPanel = document.getElementById("mobile-search-panel");
+  const mobileSearchBox = document.getElementById("mobile-search-box");
+  const mobileSearchClearBtn = document.getElementById("mobile-search-clear-btn");
+
+  function setMobileSearchOpen(open) {
+    if (!mobileTopBar || !mobileSearchBtn || !mobileSearchPanel) return;
+    if (open && mobileSearchBox) mobileSearchBox.value = currentFilters.search;
+    mobileTopBar.classList.toggle("open", open);
+    mobileSearchBtn.setAttribute("aria-expanded", String(open));
+    mobileSearchPanel.style.maxHeight = open ? `${mobileSearchPanel.scrollHeight}px` : "0px";
+    if (open) mobileSearchBox?.focus({ preventScroll: true });
+  }
+
+  mobileSearchBtn?.addEventListener("click", () => {
+    setMobileSearchOpen(!mobileTopBar.classList.contains("open"));
+  });
+
+  mobileSearchClearBtn?.addEventListener("click", () => {
+    updateSearchQuery("");
+    mobileSearchBox?.focus({ preventScroll: true });
+  });
+
   function updateSearchQuery(val) {
     if (searchBox) searchBox.value = val;
     if (floatingSearchBox) floatingSearchBox.value = val;
+    if (mobileSearchBox) mobileSearchBox.value = val;
     currentFilters.search = val;
 
     clearTimeout(searchTimeout);
@@ -1923,6 +2059,10 @@ function initializeAppEvents() {
   });
 
   floatingSearchBox?.addEventListener("input", (e) => {
+    updateSearchQuery(e.target.value);
+  });
+
+  mobileSearchBox?.addEventListener("input", (e) => {
     updateSearchQuery(e.target.value);
   });
 
@@ -1943,6 +2083,15 @@ function initializeAppEvents() {
   document.addEventListener("click", (e) => {
     if (floatingSearchWrapper?.classList.contains("open") && !floatingSearchWrapper.contains(e.target)) {
       floatingSearchWrapper.classList.remove("open");
+    }
+    if (mobileTopBar?.classList.contains("open") && !mobileTopBar.contains(e.target)) {
+      setMobileSearchOpen(false);
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && mobileTopBar?.classList.contains("open") && !getTopActiveDialog()) {
+      setMobileSearchOpen(false);
     }
   });
 
@@ -2028,6 +2177,8 @@ function initializeAppEvents() {
   textareaEditorModal?.addEventListener("click", (e) => {
     if (e.target === textareaEditorModal) closeTextareaEditor();
   });
+
+  initializeFilterCollapsible();
 }
 
 // Textarea Editor Modal Handlers
