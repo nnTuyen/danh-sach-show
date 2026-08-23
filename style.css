@@ -2468,24 +2468,46 @@ header p {
 }
 
 /* Nút xóa nhanh trong ô tìm kiếm mobile */
+.mobile-search-panel .search-input {
+  padding-right: 3rem;
+}
+
 .mobile-search-clear {
   position: absolute;
-  right: 2.6rem;
+  right: 0.55rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 26px;
-  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   border: none;
   background: rgba(255, 255, 255, 0.1);
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+/* Chống rule toàn cục .search-wrapper i kéo icon ra khỏi nút */
+.mobile-search-clear i {
+  position: static !important;
+  left: auto !important;
+  top: auto !important;
+  transform: none !important;
 }
 
 .mobile-search-clear:hover {
   background: rgba(255, 255, 255, 0.18);
   color: var(--text-main);
+}
+
+/* Chưa gõ gì thì ẩn nút xóa */
+.mobile-search-panel .search-input:placeholder-shown ~ .mobile-search-clear {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Khi đang tìm kiếm: ẩn thống kê + header chính, chỉ còn danh sách tối giản.
