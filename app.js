@@ -710,6 +710,48 @@ function getShowImage(show) {
   return show.image || show.poster || show.posterUrl || "";
 }
 
+// Proxy resize ảnh qua wsrv.nl (WebP q80) - file nhẹ hơn 80-90%, được cache ở edge.
+// Ảnh thêm mới vào showsData.json chỉ cần dán link gốc như cũ, tự động đi qua proxy.
+// Nếu proxy lỗi -> tự fallback về link gốc; link gốc cũng lỗi -> hiện placeholder.
+const IMAGE_PROXY_BASE = "https://wsrv.nl/?";
+const IMAGE_PROXY_QUALITY = 80;
+
+function getProxiedImageUrl(url, width) {
+  if (!url || !/^https?:\/\//i.test(url)) return url;
+  if (/^https?:\/\/wsrv\.nl\//i.test(url)) return url;
+  const params = new URLSearchParams({
+    url,
+    w: String(width),
+    q: String(IMAGE_PROXY_QUALITY),
+    output: "webp"
+  });
+  return IMAGE_PROXY_BASE + params.toString();
+}
+
+function handleImageLoadError(img) {
+  img.onerror = null;
+  const original = img.getAttribute("data-original-src");
+  const current = img.getAttribute("src") || "";
+  if (img.dataset.proxyFailed !== "1" && original && current !== original) {
+    img.dataset.proxyFailed = "1";
+    img.setAttribute("src", original);
+    return;
+  }
+  switch (img.getAttribute("data-error-mode")) {
+    case "card-thumb":
+      img.parentElement.innerHTML = '<i class="fa-regular fa-image card-thumb-placeholder"></i>';
+      break;
+    case "modal-poster":
+      img.parentElement.innerHTML = '<div class=\'modal-poster-placeholder\'><i class="fa-regular fa-image"></i><div>Không tải được ảnh</div></div>';
+      break;
+    case "icon":
+      img.parentElement.innerHTML = '<i class="fa-regular fa-image"></i>';
+      break;
+    default:
+      img.remove();
+  }
+}
+
 function getShowYear(show) {
   const directYear = show.year || show.releaseYear || show.airYear || show.premiereYear;
   if (directYear) return String(directYear);
@@ -1138,7 +1180,7 @@ function renderSettingsList() {
   list.innerHTML = filtered.map(show => {
     const thumbUrl = getShowImage(show);
     const thumbHtml = thumbUrl
-      ? `<img src="${escapeHtml(thumbUrl)}" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" width="44" height="44" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fa-regular fa-image\\'></i>';">`
+      ? `<img src="${escapeHtml(getProxiedImageUrl(thumbUrl, 100))}" data-original-src="${escapeHtml(thumbUrl)}" data-error-mode="icon" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" width="44" height="44" onerror="handleImageLoadError(this)">`
       : `<i class="fa-regular fa-image"></i>`;
     const customBadge = show._isCustom ? `<span class="badge-custom">Tự thêm</span>` : "";
     const ratingHtml = renderStarDisplay(getShowRating(show));
@@ -1449,7 +1491,7 @@ function renderShowPoster(show) {
   if (!posterEl) return;
 
   if (posterUrl) {
-    posterEl.innerHTML = `<img src="${escapeHtml(posterUrl)}" alt="Ảnh show ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" width="300" height="400" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'modal-poster-placeholder\\'><i class=\\'fa-regular fa-image\\'></i><div>Không tải được ảnh</div></div>';">`;
+    posterEl.innerHTML = `<img src="${escapeHtml(getProxiedImageUrl(posterUrl, 800))}" data-original-src="${escapeHtml(posterUrl)}" data-error-mode="modal-poster" alt="Ảnh show ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" width="300" height="400" onerror="handleImageLoadError(this)">`;
     return;
   }
 
@@ -1675,7 +1717,7 @@ function buildShowCard(show) {
   const ratingHtml = renderInteractiveStarRating(originalIndex, getShowRating(show));
   const thumbUrl = getShowImage(show);
   const thumbHtml = thumbUrl
-    ? `<img src="${escapeHtml(thumbUrl)}" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" fetchpriority="low" width="110" height="110" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fa-regular fa-image card-thumb-placeholder\\'></i>';">`
+    ? `<img src="${escapeHtml(getProxiedImageUrl(thumbUrl, 220))}" data-original-src="${escapeHtml(thumbUrl)}" data-error-mode="card-thumb" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" fetchpriority="low" width="110" height="110" onerror="handleImageLoadError(this)">`
     : `<i class="fa-regular fa-image card-thumb-placeholder"></i>`;
 
   card.innerHTML = `
@@ -1722,7 +1764,7 @@ function buildSearchResultRow(show) {
     : (show.chinese && show.chinese !== mainName ? show.chinese : "");
   const thumbUrl = getShowImage(show);
   const thumbHtml = thumbUrl
-    ? `<img src="${escapeHtml(thumbUrl)}" alt="" loading="lazy" decoding="async" width="44" height="60" onerror="this.remove()">`
+    ? `<img src="${escapeHtml(getProxiedImageUrl(thumbUrl, 100))}" data-original-src="${escapeHtml(thumbUrl)}" alt="" loading="lazy" decoding="async" width="44" height="60" onerror="handleImageLoadError(this)">`
     : `<i class="fa-regular fa-image"></i>`;
   const year = getShowYear(show);
   const statusText = renderStatusText(show.status);
