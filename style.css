@@ -2523,10 +2523,83 @@ body.search-active main.container > header {
   }
 }
 
+.show-grid {
+  display: block;
+}
+
 .show-grid.search-mode {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
+}
+
+/* Khu vực nhóm theo trạng thái */
+.show-section {
+  margin-top: 1.75rem;
+}
+
+.show-section:first-child {
+  margin-top: 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding-bottom: 0.6rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.section-header i {
+  font-size: 0.95rem;
+}
+
+[data-section-key="airing"] .section-header i {
+  color: var(--status-airing);
+}
+
+[data-section-key="completed"] .section-header i {
+  color: #cbd5e1;
+}
+
+[data-section-key="upcoming"] .section-header i {
+  color: var(--status-upcoming);
+}
+
+.section-header h2 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: 0.01em;
+}
+
+.section-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: rgba(148, 163, 184, 0.14);
+  border: 1px solid var(--panel-border);
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+}
+
+.section-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .section-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .section-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .search-result-row {
