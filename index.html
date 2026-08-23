@@ -19,6 +19,8 @@
     content="Danh sách show hẹn hò có link xem, trạng thái phát sóng và ghi chú cập nhật.">
   <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg">
   <title>Tổng hợp show hẹn hò</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💕</text></svg>">
 
   <!-- Google Fonts - Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,10 +34,30 @@
 
   <link rel="preload" href="showsData.json?v=20260728-optimize" as="fetch" type="application/json"
     crossorigin="anonymous">
-  <link rel="stylesheet" href="style.css?v=20260728-optimize">
+  <link rel="stylesheet" href="style.css?v=20260823-mobile15">
 </head>
 
 <body>
+
+  <!-- Mobile Sticky Top Bar (style phim.nguonc.com) -->
+  <header class="mobile-topbar" id="mobile-topbar">
+    <div class="mobile-topbar-row">
+      <span class="mobile-topbar-title">💕 Tổng hợp show hẹn hò</span>
+      <button class="mobile-search-btn" id="mobile-search-btn" type="button" aria-label="Mở tìm kiếm"
+        aria-controls="mobile-search-panel" aria-expanded="false">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+    </div>
+    <div class="mobile-search-panel" id="mobile-search-panel">
+      <div class="search-wrapper">
+        <input type="text" id="mobile-search-box" class="search-input" placeholder="Tìm kiếm show..."
+          aria-label="Tìm kiếm show" autocomplete="off">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <button class="mobile-search-clear" id="mobile-search-clear-btn" type="button" title="Xóa tìm kiếm"
+          aria-label="Xóa tìm kiếm"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+  </header>
 
   <main class="container">
     <header>
@@ -83,7 +105,11 @@
       <div class="filter-section">
         <!-- Status Filter -->
         <div class="filter-group">
-          <div class="filter-label">Trạng thái phát sóng</div>
+          <button class="filter-toggle" type="button" aria-expanded="true" aria-controls="status-filters">
+            <span>Trạng thái phát sóng</span>
+            <span class="filter-active-count" aria-hidden="true"></span>
+            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+          </button>
           <div class="filter-buttons" id="status-filters">
             <button class="filter-btn active" type="button" data-status="all" aria-pressed="true"><i
                 class="fa-solid fa-list"></i> Tất cả</button>
@@ -98,7 +124,11 @@
 
         <!-- Sort Group -->
         <div class="filter-group">
-          <div class="filter-label">Sắp xếp theo</div>
+          <button class="filter-toggle" type="button" aria-expanded="true" aria-controls="sort-controls">
+            <span>Sắp xếp theo</span>
+            <span class="filter-active-count" aria-hidden="true"></span>
+            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+          </button>
           <div class="filter-buttons" id="sort-controls">
             <button class="filter-btn active" type="button" data-sort="name-asc" aria-pressed="true"><i
                 class="fa-solid fa-sort-alpha-down"></i> Tên A-Z</button>
@@ -117,7 +147,11 @@
 
         <!-- Country Filter -->
         <div class="filter-group">
-          <div class="filter-label">Quốc gia / Vùng</div>
+          <button class="filter-toggle" type="button" aria-expanded="true" aria-controls="country-filters">
+            <span>Quốc gia / Vùng</span>
+            <span class="filter-active-count" aria-hidden="true"></span>
+            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+          </button>
           <div class="filter-buttons" id="country-filters">
             <button class="filter-btn active" type="button" data-country="all" aria-pressed="true">Tất cả</button>
             <button class="filter-btn" type="button" data-country="china" aria-pressed="false">🇨🇳 Trung Quốc</button>
@@ -133,7 +167,11 @@
 
         <!-- Tag/Category Filter -->
         <div class="filter-group">
-          <div class="filter-label">Chủ đề đặc biệt</div>
+          <button class="filter-toggle" type="button" aria-expanded="true" aria-controls="tag-filters">
+            <span>Chủ đề đặc biệt</span>
+            <span class="filter-active-count" aria-hidden="true"></span>
+            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+          </button>
           <div class="filter-buttons" id="tag-filters">
             <button class="filter-btn active" type="button" data-tag="all" aria-pressed="true">Tất cả</button>
             <button class="filter-btn" type="button" data-tag="normal" aria-pressed="false">Bình thường</button>
@@ -408,7 +446,7 @@
     <i class="fa-solid fa-arrow-up"></i>
   </button>
 
-  <script src="app.js?v=20260728-optimize" defer></script>
+  <script src="app.js?v=20260823-mobile16" defer></script>
 </body>
 
 </html>
