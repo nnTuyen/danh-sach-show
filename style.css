@@ -133,9 +133,7 @@ header p {
 }
 
 .stat-card {
-  background: var(--panel-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(30, 41, 59, 0.92);
   border: 1px solid var(--panel-border);
   border-radius: 1rem;
   padding: 1.25rem;
@@ -185,9 +183,7 @@ header p {
 
 /* Control Panel (Search & Filters) */
 .control-panel {
-  background: var(--panel-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(30, 41, 59, 0.92);
   border: 1px solid var(--panel-border);
   border-radius: 1.25rem;
   padding: 2rem;
@@ -2417,9 +2413,7 @@ header p {
     position: sticky;
     top: 0;
     z-index: 900;
-    background: rgba(9, 13, 22, 0.88);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background: rgba(9, 13, 22, 0.96);
     border-bottom: 1px solid var(--panel-border);
     padding-top: env(safe-area-inset-top, 0px);
   }
