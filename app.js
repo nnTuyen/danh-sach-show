@@ -1675,7 +1675,7 @@ function buildShowCard(show) {
   const ratingHtml = renderInteractiveStarRating(originalIndex, getShowRating(show));
   const thumbUrl = getShowImage(show);
   const thumbHtml = thumbUrl
-    ? `<img src="${escapeHtml(thumbUrl)}" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" width="110" height="110" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fa-regular fa-image card-thumb-placeholder\\'></i>';">`
+    ? `<img src="${escapeHtml(thumbUrl)}" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" fetchpriority="low" width="110" height="110" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fa-regular fa-image card-thumb-placeholder\\'></i>';">`
     : `<i class="fa-regular fa-image card-thumb-placeholder"></i>`;
 
   card.innerHTML = `
@@ -2231,9 +2231,13 @@ function initializeAppEvents() {
   });
 
   const scrollBtn = document.getElementById("scroll-btn");
+  let scrollBtnVisible = false;
   window.addEventListener("scroll", () => {
-    if (window.scrollY > 300) scrollBtn?.classList.add("visible");
-    else scrollBtn?.classList.remove("visible");
+    const shouldShow = window.scrollY > 300;
+    if (shouldShow !== scrollBtnVisible) {
+      scrollBtnVisible = shouldShow;
+      scrollBtn?.classList.toggle("visible", shouldShow);
+    }
   }, { passive: true });
   scrollBtn?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 
