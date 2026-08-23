@@ -138,15 +138,29 @@ header p {
   border-radius: 1rem;
   padding: 1.25rem;
   text-align: center;
+  position: relative;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
+    border-color 0.3s ease;
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
   border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card:hover::after {
+  opacity: 1;
 }
 
 .stat-number {
@@ -386,12 +400,22 @@ header p {
   flex-direction: column;
   justify-content: space-between;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.3s ease,
     border-color 0.3s ease;
   position: relative;
-  overflow: hidden;
   content-visibility: auto;
   contain-intrinsic-size: auto 320px;
+}
+
+/* Bóng hover vẽ sẵn vào layer riêng, chỉ bật/tắt bằng opacity (GPU) */
+.show-card::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .show-card::before {
@@ -454,10 +478,13 @@ header p {
 .show-card:hover {
   transform: translateY(-5px);
   border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
 }
 
 .show-card:hover::before {
+  opacity: 1;
+}
+
+.show-card:hover::after {
   opacity: 1;
 }
 
@@ -1383,7 +1410,6 @@ header p {
 
 .show-card:hover .card-thumb {
   transform: scale(1.05);
-  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.2);
 }
 
 .card-thumb img {
