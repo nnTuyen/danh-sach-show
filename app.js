@@ -1619,9 +1619,95 @@ function closeShowModal() {
   closeAccessibleDialog(els.modal);
 }
 
+// Nhóm hiển thị theo trạng thái (thứ tự mặc định)
+const SECTION_ORDER = ["airing", "completed", "upcoming"];
+const SECTION_META = {
+  airing: { label: "Đang chiếu", icon: "fa-satellite-dish" },
+  completed: { label: "Đã chiếu xong", icon: "fa-circle-check" },
+  upcoming: { label: "Sắp chiếu", icon: "fa-calendar-days" }
+};
+const SHOWS_PER_SECTION = 6;
+let activeSections = [];
+
+function partitionByStatus(shows) {
+  const map = { airing: [], completed: [], upcoming: [] };
+  shows.forEach(show => {
+    if (show.status === "airing") map.airing.push(show);
+    else if (show.status === "upcoming") map.upcoming.push(show);
+    else map.completed.push(show);
+  });
+  return SECTION_ORDER
+    .map(key => ({ key, ...SECTION_META[key], items: map[key] }))
+    .filter(group => group.items.length > 0);
+}
+
+function getSectionObserver() {
+  if (!sentinelObserver) {
+    sentinelObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const key = entry.target.dataset.section;
+        if (key === "flat") loadMoreShows();
+        else if (key) loadMoreForSection(key);
+      });
+    }, { rootMargin: "300px" });
+  }
+  return sentinelObserver;
+}
+
 // Infinite Scroll: Lazy Loading DOM Nodes
 function isSearchActive() {
   return currentFilters.search.trim() !== "";
+}
+
+function buildShowCard(show) {
+  const card = document.createElement("div");
+  card.className = "show-card";
+  card.setAttribute("data-plat", getPlatformClass(show.platform));
+
+  const originalIndex = show._index;
+
+  const statusText = renderStatusText(show.status);
+  const tagBadgeHtml = renderTagBadge(show.tags || []);
+  const timeHtml = renderTimeHtml(show.time);
+  const year = getShowYear(show);
+  const yearHtml = renderYearHtml(year);
+  const ratingHtml = renderInteractiveStarRating(originalIndex, getShowRating(show));
+  const thumbUrl = getShowImage(show);
+  const thumbHtml = thumbUrl
+    ? `<img src="${escapeHtml(thumbUrl)}" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" width="110" height="110" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fa-regular fa-image card-thumb-placeholder\\'></i>';">`
+    : `<i class="fa-regular fa-image card-thumb-placeholder"></i>`;
+
+  card.innerHTML = `
+        <div>
+          <div class="card-top-row">
+            <div class="card-thumb">${thumbHtml}</div>
+            <div class="card-top-info">
+              <div class="card-header">
+                <div class="badges">
+                  ${renderCountryBadge(show)}
+                  <span class="badge badge-status ${show.status}">${statusText}</span>
+                  <span class="badge badge-plat ${getPlatformClass(show.platform)}">${escapeHtml(show.platform)}</span>
+                  ${yearHtml}
+                  ${tagBadgeHtml}
+                </div>
+                ${timeHtml}
+                ${ratingHtml}
+              </div>
+            </div>
+          </div>
+
+          <div class="card-compact-title">
+            <div class="card-title-main">${escapeHtml(show.vietnamese || show.english || show.chinese)}</div>
+            <div class="card-title-sub">${escapeHtml(show.english || show.chinese)}</div>
+          </div>
+        </div>
+
+        <button class="open-modal-btn" type="button" data-show-index="${originalIndex}" title="Mở cửa sổ chi tiết tiêu điểm show" aria-label="Xem chi tiết ${escapeHtml(show.vietnamese || show.english || show.chinese)}">
+          <i class="fa-solid fa-up-right-from-square"></i> Xem chi tiết & Tiêu điểm
+        </button>
+      `;
+  return card;
 }
 
 function buildSearchResultRow(show) {
@@ -1659,10 +1745,13 @@ function buildSearchResultRow(show) {
 
 function loadMoreShows() {
   const grid = document.getElementById("show-cards-grid");
-  if (!grid) return;
+  if (!grid || !isSearchActive()) return;
 
   const oldSentinel = document.getElementById("shows-sentinel");
-  if (oldSentinel) oldSentinel.remove();
+  if (oldSentinel) {
+    sentinelObserver?.unobserve(oldSentinel);
+    oldSentinel.remove();
+  }
 
   const start = showsRenderedCount;
   const end = Math.min(start + SHOWS_PER_PAGE, activeFilteredShows.length);
@@ -1671,94 +1760,72 @@ function loadMoreShows() {
 
   const chunk = activeFilteredShows.slice(start, end);
   const fragment = document.createDocumentFragment();
-  const searchMode = isSearchActive();
 
-  chunk.forEach(show => {
-    if (searchMode) {
-      fragment.appendChild(buildSearchResultRow(show));
-      return;
-    }
-
-    const card = document.createElement("div");
-    card.className = "show-card";
-    card.setAttribute("data-plat", getPlatformClass(show.platform));
-
-    const originalIndex = show._index;
-
-    const statusText = renderStatusText(show.status);
-    const tagBadgeHtml = renderTagBadge(show.tags || []);
-    const timeHtml = renderTimeHtml(show.time);
-    const year = getShowYear(show);
-    const yearHtml = renderYearHtml(year);
-    const ratingHtml = renderInteractiveStarRating(originalIndex, getShowRating(show));
-    const thumbUrl = getShowImage(show);
-    const thumbHtml = thumbUrl
-      ? `<img src="${escapeHtml(thumbUrl)}" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" width="110" height="110" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fa-regular fa-image card-thumb-placeholder\\'></i>';">`
-      : `<i class="fa-regular fa-image card-thumb-placeholder"></i>`;
-
-    card.innerHTML = `
-          <div>
-            <div class="card-top-row">
-              <div class="card-thumb">${thumbHtml}</div>
-              <div class="card-top-info">
-                <div class="card-header">
-                  <div class="badges">
-                    ${renderCountryBadge(show)}
-                    <span class="badge badge-status ${show.status}">${statusText}</span>
-                    <span class="badge badge-plat ${getPlatformClass(show.platform)}">${escapeHtml(show.platform)}</span>
-                    ${yearHtml}
-                    ${tagBadgeHtml}
-                  </div>
-                  ${timeHtml}
-                  ${ratingHtml}
-                </div>
-              </div>
-            </div>
-
-            <div class="card-compact-title">
-              <div class="card-title-main">${escapeHtml(show.vietnamese || show.english || show.chinese)}</div>
-              <div class="card-title-sub">${escapeHtml(show.english || show.chinese)}</div>
-            </div>
-          </div>
-          
-          <button class="open-modal-btn" type="button" data-show-index="${originalIndex}" title="Mở cửa sổ chi tiết tiêu điểm show" aria-label="Xem chi tiết ${escapeHtml(show.vietnamese || show.english || show.chinese)}">
-            <i class="fa-solid fa-up-right-from-square"></i> Xem chi tiết & Tiêu điểm
-          </button>
-        `;
-
-    fragment.appendChild(card);
-  });
+  chunk.forEach(show => fragment.appendChild(buildSearchResultRow(show)));
 
   showsRenderedCount = end;
 
   if (showsRenderedCount < activeFilteredShows.length) {
     const sentinel = document.createElement("div");
     sentinel.id = "shows-sentinel";
+    sentinel.dataset.section = "flat";
     sentinel.style.height = "20px";
     sentinel.style.width = "100%";
-    sentinel.style.gridColumn = "1 / -1";
     fragment.appendChild(sentinel);
 
-    setupSentinelObserver(sentinel);
+    getSectionObserver().observe(sentinel);
   }
 
   grid.appendChild(fragment);
 }
 
-function setupSentinelObserver(sentinel) {
-  if (sentinelObserver) {
-    sentinelObserver.disconnect();
+function buildSectionShells(grid) {
+  activeSections.forEach(section => {
+    const wrap = document.createElement("section");
+    wrap.className = "show-section";
+    wrap.dataset.sectionKey = section.key;
+    wrap.innerHTML = `
+          <div class="section-header">
+            <i class="fa-solid ${section.icon}" aria-hidden="true"></i>
+            <h2>${section.label}</h2>
+            <span class="section-count">${section.items.length} show</span>
+          </div>
+          <div class="section-grid"></div>
+        `;
+    grid.appendChild(wrap);
+    section.gridEl = wrap.querySelector(".section-grid");
+  });
+}
+
+function loadMoreForSection(key) {
+  const section = activeSections.find(group => group.key === key);
+  if (!section || !section.gridEl) return;
+
+  const gridEl = section.gridEl;
+  const oldSentinel = gridEl.querySelector(".shows-sentinel");
+  if (oldSentinel) {
+    sentinelObserver?.unobserve(oldSentinel);
+    oldSentinel.remove();
   }
 
-  sentinelObserver = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting) {
-      loadMoreShows();
-    }
-  }, {
-    rootMargin: "300px"
-  });
+  const start = section.rendered;
+  if (start >= section.items.length) return;
 
-  sentinelObserver.observe(sentinel);
+  const end = Math.min(start + SHOWS_PER_SECTION, section.items.length);
+  const fragment = document.createDocumentFragment();
+  section.items.slice(start, end).forEach(show => fragment.appendChild(buildShowCard(show)));
+  section.rendered = end;
+
+  if (end < section.items.length) {
+    const sentinel = document.createElement("div");
+    sentinel.className = "shows-sentinel";
+    sentinel.dataset.section = key;
+    sentinel.style.height = "20px";
+    fragment.appendChild(sentinel);
+    getSectionObserver().observe(sentinel);
+  }
+
+  gridEl.appendChild(fragment);
 }
 
 function resetFilterButtonsUI() {
@@ -1923,7 +1990,14 @@ function renderShows() {
   activeFilteredShows = filtered;
   showsRenderedCount = 0;
 
-  loadMoreShows();
+  if (searchActive) {
+    loadMoreShows();
+    return;
+  }
+
+  activeSections = partitionByStatus(filtered).map(group => ({ ...group, rendered: 0 }));
+  buildSectionShells(grid);
+  activeSections.forEach(group => loadMoreForSection(group.key));
 }
 
 async function loadShowsData() {
