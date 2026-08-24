@@ -2,7 +2,7 @@
   {
     "chinese": "半熟恋人5",
     "english": "Love Actually S5",
-    "vietnamese": "Người Yêu Một Nửa Thân Thuộc 5",
+    "vietnamese": "Người Yêu Một Nửa Thân Thuộc S5",
     "status": "completed",
     "platform": "Tencent Video",
     "time": "18h T3 T4 T6 T7",
@@ -89,10 +89,6 @@
       {
         "url": "https://dzen.ru/suite/3aa51c6c-83c3-44c9-8d6c-a585e9c7037d",
         "label": "Tốc độ rất tốt"
-      },
-      {
-        "url": "https://d.tube/watch/2ZwcchdDof9VGhrxqzRBCg?playlist=TNzG4E4GgvztUjmFoz8Fcu",
-        "label": "Dự phòng"
       },
       {
         "url": "https://wetv.vip/en/play/f5ya6dcwpdeqqfv/b41024vn789-Preview_Part_2%3A_First_Meeting_Between_the_Boys_and_Girls!_Romance_Sparks_in_the_Four-Color_Space~",
@@ -1325,13 +1321,6 @@
     "status": "completed",
     "platform": "Mangotv",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-57.jpg",
-    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xa0hbc",
-    "vietnameseWatchUrls": [
-      {
-        "url": "https://dailymotion.com/playlist/xa0hbc",
-        "label": "Dailymotion"
-      }
-    ],
     "tags": [
       "normal"
     ],
@@ -2449,6 +2438,10 @@
       {
         "url": "https://kisskh.co/Drama/Bloody-Game-X--2026-/Episode-1?id=13307&ep=217987&page=0&pageSize=100",
         "label": "Sub auto"
+      },
+      {
+        "url": "https://bili.im/Gl3wsM5",
+        "label": "Chỉ 720p"
       }
     ],
     "vietnameseWatchUrl": "https://www.dailymotion.com/video/xalc3am",
