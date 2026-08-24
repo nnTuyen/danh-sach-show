@@ -30,13 +30,22 @@
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
+  <script>
+    // Che trang trong lúc khôi phục vị trí cuộn sau F5 (tối đa ~vài chục ms,
+    // app.js sẽ mở lại ngay khi căn xong; có timeout an toàn phòng treo)
+    try {
+      if (sessionStorage.getItem("showsite:scrollAnchor")) {
+        document.documentElement.classList.add("restore-hold");
+      }
+    } catch (e) {}
+  </script>
 
   <!-- FontAwesome Icons for clipboard and UI -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <link rel="preload" href="showsData.json?v=20260728-optimize" as="fetch" type="application/json"
-    crossorigin="anonymous">
-  <link rel="stylesheet" href="style.css?v=20260823-mobile20">
+  <!-- (Đã bỏ preload showsData.json: chế độ không khớp với fetch() gây cảnh báo
+       "preloaded but not used"; dữ liệu đã có cache phiên nên preload không cần thiết) -->
+  <link rel="stylesheet" href="style.css?v=20260824-mobile27">
 </head>
 
 <body>
@@ -195,79 +204,52 @@
 
     <!-- Cards Grid -->
     <div class="show-grid" id="show-cards-grid">
-      <!-- Initial Skeleton Loading Cards (Match actual .show-card structure) -->
-      <div class="skeleton-card" aria-hidden="true">
-        <div class="skeleton-top-row">
-          <div class="skeleton-shimmer skeleton-thumb"></div>
-          <div class="skeleton-top-info">
-            <div class="skeleton-shimmer skeleton-line short"></div>
-            <div class="skeleton-shimmer skeleton-line medium"></div>
-          </div>
+      <!-- Skeleton tĩnh mô phỏng đúng cấu trúc 3 khu vực để tránh CLS khi dữ liệu tải về -->
+      <section class="show-section" data-section-key="airing">
+        <div class="section-header">
+          <i class="fa-solid fa-satellite-dish" aria-hidden="true"></i>
+          <h2>Đang chiếu</h2>
+          <span class="section-count">…</span>
         </div>
-        <div class="skeleton-shimmer skeleton-line title"></div>
-        <div class="skeleton-shimmer skeleton-line medium"></div>
-        <div class="skeleton-shimmer skeleton-btn"></div>
-      </div>
-      <div class="skeleton-card" aria-hidden="true">
-        <div class="skeleton-top-row">
-          <div class="skeleton-shimmer skeleton-thumb"></div>
-          <div class="skeleton-top-info">
-            <div class="skeleton-shimmer skeleton-line short"></div>
-            <div class="skeleton-shimmer skeleton-line medium"></div>
-          </div>
+        <div class="section-grid">
+          <div class="skeleton-card" aria-hidden="true"><div class="skeleton-top-row"><div class="skeleton-shimmer skeleton-thumb"></div><div class="skeleton-top-info"><div class="skeleton-shimmer skeleton-line short"></div><div class="skeleton-shimmer skeleton-line medium"></div></div></div><div class="skeleton-shimmer skeleton-line title"></div><div class="skeleton-shimmer skeleton-line medium"></div><div class="skeleton-shimmer skeleton-btn"></div></div>
+          <div class="skeleton-card" aria-hidden="true"><div class="skeleton-top-row"><div class="skeleton-shimmer skeleton-thumb"></div><div class="skeleton-top-info"><div class="skeleton-shimmer skeleton-line short"></div><div class="skeleton-shimmer skeleton-line medium"></div></div></div><div class="skeleton-shimmer skeleton-line title"></div><div class="skeleton-shimmer skeleton-line medium"></div><div class="skeleton-shimmer skeleton-btn"></div></div>
+          <div class="skeleton-card" aria-hidden="true"><div class="skeleton-top-row"><div class="skeleton-shimmer skeleton-thumb"></div><div class="skeleton-top-info"><div class="skeleton-shimmer skeleton-line short"></div><div class="skeleton-shimmer skeleton-line medium"></div></div></div><div class="skeleton-shimmer skeleton-line title"></div><div class="skeleton-shimmer skeleton-line medium"></div><div class="skeleton-shimmer skeleton-btn"></div></div>
+          <div class="skeleton-card" aria-hidden="true"><div class="skeleton-top-row"><div class="skeleton-shimmer skeleton-thumb"></div><div class="skeleton-top-info"><div class="skeleton-shimmer skeleton-line short"></div><div class="skeleton-shimmer skeleton-line medium"></div></div></div><div class="skeleton-shimmer skeleton-line title"></div><div class="skeleton-shimmer skeleton-line medium"></div><div class="skeleton-shimmer skeleton-btn"></div></div>
+          <div class="skeleton-card" aria-hidden="true"><div class="skeleton-top-row"><div class="skeleton-shimmer skeleton-thumb"></div><div class="skeleton-top-info"><div class="skeleton-shimmer skeleton-line short"></div><div class="skeleton-shimmer skeleton-line medium"></div></div></div><div class="skeleton-shimmer skeleton-line title"></div><div class="skeleton-shimmer skeleton-line medium"></div><div class="skeleton-shimmer skeleton-btn"></div></div>
+          <div class="skeleton-card" aria-hidden="true"><div class="skeleton-top-row"><div class="skeleton-shimmer skeleton-thumb"></div><div class="skeleton-top-info"><div class="skeleton-shimmer skeleton-line short"></div><div class="skeleton-shimmer skeleton-line medium"></div></div></div><div class="skeleton-shimmer skeleton-line title"></div><div class="skeleton-shimmer skeleton-line medium"></div><div class="skeleton-shimmer skeleton-btn"></div></div>
         </div>
-        <div class="skeleton-shimmer skeleton-line title"></div>
-        <div class="skeleton-shimmer skeleton-line medium"></div>
-        <div class="skeleton-shimmer skeleton-btn"></div>
-      </div>
-      <div class="skeleton-card" aria-hidden="true">
-        <div class="skeleton-top-row">
-          <div class="skeleton-shimmer skeleton-thumb"></div>
-          <div class="skeleton-top-info">
-            <div class="skeleton-shimmer skeleton-line short"></div>
-            <div class="skeleton-shimmer skeleton-line medium"></div>
-          </div>
+      </section>
+      <section class="show-section" data-section-key="completed">
+        <div class="section-header">
+          <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+          <h2>Đã chiếu xong</h2>
+          <span class="section-count">…</span>
         </div>
-        <div class="skeleton-shimmer skeleton-line title"></div>
-        <div class="skeleton-shimmer skeleton-line medium"></div>
-        <div class="skeleton-shimmer skeleton-btn"></div>
-      </div>
-      <div class="skeleton-card" aria-hidden="true">
-        <div class="skeleton-top-row">
-          <div class="skeleton-shimmer skeleton-thumb"></div>
-          <div class="skeleton-top-info">
-            <div class="skeleton-shimmer skeleton-line short"></div>
-            <div class="skeleton-shimmer skeleton-line medium"></div>
-          </div>
+        <div class="section-grid">
+          <div class="skeleton-card" aria-hidden="true"><div class="skeleton-top-row"><div class="skeleton-shimmer skeleton-thumb"></div><div class="skeleton-top-info"><div class="skeleton-shimmer skeleton-line short"></div><div class="skeleton-shimmer skeleton-line medium"></div></div></div><div class="skeleton-shimmer skeleton-line title"></div><div class="skeleton-shimmer skeleton-line medium"></div><div class="skeleton-shimmer skeleton-btn"></div></div>
+          <div class="skeleton-card" aria-hidden="true"><div class="skeleton-top-row"><div class="skeleton-shimmer skeleton-thumb"></div><div class="skeleton-top-info"><div class="skeleton-shimmer skeleton-line short"></div><div class="skeleton-shimmer skeleton-line medium"></div></div></div><div class="skeleton-shimmer skeleton-line title"></div><div class="skeleton-shimmer skeleton-line medium"></div><div class="skeleton-shimmer skeleton-btn"></div></div>
+          <div class="skeleton-card" aria-hidden="true"><div class="skeleton-top-row"><div class="skeleton-shimmer skeleton-thumb"></div><div class="skeleton-top-info"><div class="skeleton-shimmer skeleton-line short"></div><div class="skeleton-shimmer skeleton-line medium"></div></div></div><div class="skeleton-shimmer skeleton-line title"></div><div class="skeleton-shimmer skeleton-line medium"></div><div class="skeleton-shimmer skeleton-btn"></div></div>
+          <div class="skeleton-card" aria-hidden="true"><div class="skeleton-top-row"><div class="skeleton-shimmer skeleton-thumb"></div><div class="skeleton-top-info"><div class="skeleton-shimmer skeleton-line short"></div><div class="skeleton-shimmer skeleton-line medium"></div></div></div><div class="skeleton-shimmer skeleton-line title"></div><div class="skeleton-shimmer skeleton-line medium"></div><div class="skeleton-shimmer skeleton-btn"></div></div>
+          <div class="skeleton-card" aria-hidden="true"><div class="skeleton-top-row"><div class="skeleton-shimmer skeleton-thumb"></div><div class="skeleton-top-info"><div class="skeleton-shimmer skeleton-line short"></div><div class="skeleton-shimmer skeleton-line medium"></div></div></div><div class="skeleton-shimmer skeleton-line title"></div><div class="skeleton-shimmer skeleton-line medium"></div><div class="skeleton-shimmer skeleton-btn"></div></div>
+          <div class="skeleton-card" aria-hidden="true"><div class="skeleton-top-row"><div class="skeleton-shimmer skeleton-thumb"></div><div class="skeleton-top-info"><div class="skeleton-shimmer skeleton-line short"></div><div class="skeleton-shimmer skeleton-line medium"></div></div></div><div class="skeleton-shimmer skeleton-line title"></div><div class="skeleton-shimmer skeleton-line medium"></div><div class="skeleton-shimmer skeleton-btn"></div></div>
         </div>
-        <div class="skeleton-shimmer skeleton-line title"></div>
-        <div class="skeleton-shimmer skeleton-line medium"></div>
-        <div class="skeleton-shimmer skeleton-btn"></div>
-      </div>
-      <div class="skeleton-card" aria-hidden="true">
-        <div class="skeleton-top-row">
-          <div class="skeleton-shimmer skeleton-thumb"></div>
-          <div class="skeleton-top-info">
-            <div class="skeleton-shimmer skeleton-line short"></div>
-            <div class="skeleton-shimmer skeleton-line medium"></div>
-          </div>
+      </section>
+      <section class="show-section" data-section-key="upcoming">
+        <div class="section-header">
+          <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+          <h2>Sắp chiếu</h2>
+          <span class="section-count">…</span>
         </div>
-        <div class="skeleton-shimmer skeleton-line title"></div>
-        <div class="skeleton-shimmer skeleton-line medium"></div>
-        <div class="skeleton-shimmer skeleton-btn"></div>
-      </div>
-      <div class="skeleton-card" aria-hidden="true">
-        <div class="skeleton-top-row">
-          <div class="skeleton-shimmer skeleton-thumb"></div>
-          <div class="skeleton-top-info">
-            <div class="skeleton-shimmer skeleton-line short"></div>
-            <div class="skeleton-shimmer skeleton-line medium"></div>
-          </div>
+        <div class="section-grid">
+          <div class="skeleton-card" aria-hidden="true"><div class="skeleton-top-row"><div class="skeleton-shimmer skeleton-thumb"></div><div class="skeleton-top-info"><div class="skeleton-shimmer skeleton-line short"></div><div class="skeleton-shimmer skeleton-line medium"></div></div></div><div class="skeleton-shimmer skeleton-line title"></div><div class="skeleton-shimmer skeleton-line medium"></div><div class="skeleton-shimmer skeleton-btn"></div></div>
+          <div class="skeleton-card" aria-hidden="true"><div class="skeleton-top-row"><div class="skeleton-shimmer skeleton-thumb"></div><div class="skeleton-top-info"><div class="skeleton-shimmer skeleton-line short"></div><div class="skeleton-shimmer skeleton-line medium"></div></div></div><div class="skeleton-shimmer skeleton-line title"></div><div class="skeleton-shimmer skeleton-line medium"></div><div class="skeleton-shimmer skeleton-btn"></div></div>
+          <div class="skeleton-card" aria-hidden="true"><div class="skeleton-top-row"><div class="skeleton-shimmer skeleton-thumb"></div><div class="skeleton-top-info"><div class="skeleton-shimmer skeleton-line short"></div><div class="skeleton-shimmer skeleton-line medium"></div></div></div><div class="skeleton-shimmer skeleton-line title"></div><div class="skeleton-shimmer skeleton-line medium"></div><div class="skeleton-shimmer skeleton-btn"></div></div>
+          <div class="skeleton-card" aria-hidden="true"><div class="skeleton-top-row"><div class="skeleton-shimmer skeleton-thumb"></div><div class="skeleton-top-info"><div class="skeleton-shimmer skeleton-line short"></div><div class="skeleton-shimmer skeleton-line medium"></div></div></div><div class="skeleton-shimmer skeleton-line title"></div><div class="skeleton-shimmer skeleton-line medium"></div><div class="skeleton-shimmer skeleton-btn"></div></div>
+          <div class="skeleton-card" aria-hidden="true"><div class="skeleton-top-row"><div class="skeleton-shimmer skeleton-thumb"></div><div class="skeleton-top-info"><div class="skeleton-shimmer skeleton-line short"></div><div class="skeleton-shimmer skeleton-line medium"></div></div></div><div class="skeleton-shimmer skeleton-line title"></div><div class="skeleton-shimmer skeleton-line medium"></div><div class="skeleton-shimmer skeleton-btn"></div></div>
+          <div class="skeleton-card" aria-hidden="true"><div class="skeleton-top-row"><div class="skeleton-shimmer skeleton-thumb"></div><div class="skeleton-top-info"><div class="skeleton-shimmer skeleton-line short"></div><div class="skeleton-shimmer skeleton-line medium"></div></div></div><div class="skeleton-shimmer skeleton-line title"></div><div class="skeleton-shimmer skeleton-line medium"></div><div class="skeleton-shimmer skeleton-btn"></div></div>
         </div>
-        <div class="skeleton-shimmer skeleton-line title"></div>
-        <div class="skeleton-shimmer skeleton-line medium"></div>
-        <div class="skeleton-shimmer skeleton-btn"></div>
-      </div>
+      </section>
     </div>
   </main>
 
@@ -448,7 +430,7 @@
     <i class="fa-solid fa-arrow-up"></i>
   </button>
 
-  <script src="app.js?v=20260823-mobile21" defer></script>
+  <script src="app.js?v=20260824-mobile42" defer></script>
 </body>
 
 </html>
