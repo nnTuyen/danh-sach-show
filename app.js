@@ -8,6 +8,288 @@ const SHOWS_PER_PAGE = 12; // Số lượng show hiển thị mỗi lần cuộn
 const DATA_VERSION = "20260728-optimize";
 let sentinelObserver = null;
 let searchTimeout = null; // Quản lý debounce tìm kiếm tránh lag phím
+
+// Tự quản lý khôi phục vị trí cuộn khi F5 giữa trang, tránh "nhảy kép"
+// Neo theo ĐỊNH DANH SHOW (card đầu màn hình + lệch px) thay vì tọa độ pixel,
+// nên không phụ thuộc việc card/chunk nạp xong sớm hay muộn.
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+
+let _savedScrollY = 0;
+let _savedAnchor = null; // { index: string, offset: number }
+let _userInteractedDuringLoad = false;
+let _restoringScroll = true;
+
+function releaseRestoreHold() {
+  document.documentElement.classList.remove("restore-hold");
+}
+if (document.documentElement.classList.contains("restore-hold")) {
+  // An toàn tuyệt đối: dù có gì trục trặc cũng mở trang sau 1.5s
+  setTimeout(releaseRestoreHold, 1500);
+}
+["wheel", "touchmove", "keydown"].forEach(evt => {
+  window.addEventListener(evt, () => {
+    _userInteractedDuringLoad = true;
+    _restoringScroll = false;
+    releaseRestoreHold();
+  }, { passive: true, once: true });
+});
+try {
+  _savedScrollY = Number(sessionStorage.getItem("showsite:scrollY") || 0);
+  _savedAnchor = JSON.parse(sessionStorage.getItem("showsite:scrollAnchor") || "null");
+} catch (e) {}
+
+// KHÔNG cuộn thô tại đây — khôi phục diễn ra ĐỒNG BỘ trong bootAppOnce sau khi
+// dựng nội dung từ cache; trình duyệt không thể vẽ trạng thái trung gian vì
+// body đang bị .restore-hold che cho tới khi căn xong.
+if (!_savedAnchor || (_savedAnchor.index === null && _savedAnchor.type !== "section") || _savedScrollY <= 0) {
+  _restoringScroll = false;
+}
+
+function getShowStableId(show) {
+  return [show.chinese || "", show.english || "", show.vietnamese || ""].join("||");
+}
+
+function captureScrollAnchor() {
+  let index = null;
+  let offset = 0;
+  let sectionKey = null;
+  let id = null;
+  const candidates = document.querySelectorAll("#show-cards-grid .show-card, #show-cards-grid .search-result-row");
+  // Chọn card GẦN MÉP TRÊN màn hình nhất trong 2 ứng viên:
+  //  - card cuối cùng có top <= 0 (đang ôm/qua mép)
+  //  - card đầu tiên có top > 0 (nằm dưới mép, thường đứng ngay dưới tiêu đề khu)
+  // Nhờ vậy dừng ở tiêu đề khu mới sẽ neo vào card khu mới thay vì đuôi khu trước.
+  let prevPicked = null;
+  let nextPicked = null;
+  for (const el of candidates) {
+    const top = el.getBoundingClientRect().top;
+    if (top <= 0) {
+      prevPicked = { el, top };
+      continue;
+    }
+    nextPicked = { el, top };
+    break;
+  }
+  let picked = null;
+  if (prevPicked && nextPicked) {
+    picked = Math.abs(prevPicked.top) <= nextPicked.top ? prevPicked : nextPicked;
+  } else {
+    picked = prevPicked || nextPicked;
+  }
+  if (picked) {
+    const holder = picked.el.matches(".search-result-row") ? picked.el : picked.el.querySelector("[data-show-index]");
+    const idx = holder?.getAttribute("data-show-index");
+    if (idx !== null && idx !== undefined) {
+      index = idx;
+      offset = Math.round(picked.top);
+      const numIdx = Number(idx);
+      const show = getEffectiveShows()[numIdx];
+      if (show) {
+        id = getShowStableId(show);
+        const grp = activeSections.find(g => g.items.some(it => it._index === numIdx));
+        sectionKey = grp ? grp.key : (isSearchActive() ? "flat" : null);
+      }
+    }
+  }
+
+  // (Đã bỏ neo theo tiêu đề khu vực — logic "card gần mép màn hình" phía trên
+  // đã xử lý tốt case dừng ở tiêu đề; nhánh type:"section" gây lỗi khó lường.)
+  try {
+    sessionStorage.setItem("showsite:scrollAnchor", JSON.stringify({ type: "card", index, id, section: sectionKey, offset }));
+    sessionStorage.setItem("showsite:scrollY", String(Math.round(window.scrollY)));
+  } catch (e) {}
+  if (id !== _lastLoggedAnchorIdx) {
+    _lastLoggedAnchorIdx = id;
+    console.log("[Anchor] lưu khu=", sectionKey, "offset", offset, "id=", JSON.stringify(id));
+  }
+}
+let _lastLoggedAnchorIdx = null;
+
+let _saveScrollPending = false;
+window.addEventListener("scroll", () => {
+  if (_saveScrollPending || _restoringScroll) return;
+  _saveScrollPending = true;
+  requestAnimationFrame(() => {
+    _saveScrollPending = false;
+    captureScrollAnchor();
+  });
+}, { passive: true });
+
+// Chống race: nếu người dùng bấm F5 ngay sau khi cuộn, rAF có thể chưa kịp chạy.
+// Flush anchor ĐỒNG BỘ ngay trước khi trang unload để luôn lưu đúng điểm dừng cuối.
+function flushScrollAnchor() {
+  if (_restoringScroll) return;
+  try {
+    captureScrollAnchor();
+    describeViewportSection("@LƯU(trước F5)");
+  } catch (e) {}
+}
+
+// In khu vực đang ở đỉnh màn hình để đối chiếu trước/sau F5
+function describeViewportSection(tag) {
+  const headers = document.querySelectorAll(".show-section .section-header");
+  let current = null;
+  headers.forEach(h => {
+    const t = h.getBoundingClientRect().top;
+    if (t <= 120) current = h.querySelector("h2")?.textContent || current;
+  });
+  console.log(`[View ${tag}] khu=${current || "(đầu trang)"} Y=${Math.round(window.scrollY)} docH=${document.documentElement.scrollHeight}`);
+}
+window.addEventListener("pagehide", flushScrollAnchor);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") flushScrollAnchor();
+});
+
+let _cachedAnchorEl = null;
+let _cachedAnchorLabel = "";
+
+// Heavier: xác định phần tử card tương ứng anchor (ép nạp chunk nếu chưa render)
+function resolveSavedAnchorEl() {
+  _cachedAnchorEl = null;
+  if (!_savedAnchor) return null;
+
+  if (_savedAnchor.type === "section") {
+    const section = activeSections.find(group => group.key === _savedAnchor.section);
+    _cachedAnchorLabel = `${_savedAnchor.section} header`;
+    _cachedAnchorEl = section?.gridEl?.closest(".show-section")?.querySelector(".section-header") || null;
+    if (!_cachedAnchorEl) console.warn("[Restore] Không tìm thấy tiêu đề khu vực:", _savedAnchor.section);
+    return _cachedAnchorEl;
+  }
+
+  if (_savedAnchor.id === null && _savedAnchor.index === null) return null;
+
+  const useId = typeof _savedAnchor.id === "string" && _savedAnchor.id.length > 0;
+
+  if (isSearchActive() || _savedAnchor.section === "flat") {
+    let pos = -1;
+    if (useId) {
+      for (let i = 0; i < activeFilteredShows.length; i++) {
+        if (getShowStableId(activeFilteredShows[i]) === _savedAnchor.id) { pos = i; break; }
+      }
+    } else {
+      pos = Number(_savedAnchor.index);
+    }
+    if (pos < 0) { console.warn("[Restore] không thấy show trong danh sách tìm kiếm"); return null; }
+    _cachedAnchorLabel = `flat#${pos}`;
+    // Nạp HẾT danh sách trước khi cuộn — chống việc tài liệu thấp hơn vị trí
+    // đích bị trình duyệt kẹp lại (nguyên nhân "nhảy về ô đã chiếu")
+    let guard = 0;
+    while (showsRenderedCount < activeFilteredShows.length && guard++ < 500) {
+      loadMoreShows();
+    }
+    _cachedAnchorEl = document.querySelectorAll("#show-cards-grid .search-result-row")[pos] || null;
+    if (!_cachedAnchorEl) console.warn("[Restore] hàng kết quả chưa render:", pos);
+  } else {
+    // Nạp HẾT mọi khu vực trước khi cuộn tới anchor sâu — nếu không, tài liệu
+    // chưa đủ cao -> scrollTo bị kẹp -> đáp sai khu vực sau khi co giãn.
+    for (const g of activeSections) {
+      let guard = 0;
+      while (g.rendered < g.items.length && guard++ < 500) {
+        loadMoreForSection(g.key);
+      }
+    }
+    const targetId = useId ? _savedAnchor.id : null;
+    const targetIndex = Number(_savedAnchor.index);
+    let group = null;
+    if (useId) {
+      group = activeSections.find(g => g.items.some(it => getShowStableId(it) === targetId))
+        || activeSections.find(g => g.key === _savedAnchor.section);
+    } else {
+      group = activeSections.find(g => g.items.some(it => it._index === targetIndex));
+    }
+    if (!group || !group.gridEl) {
+      console.warn("[Restore] Không tìm thấy khu vực chứa show");
+      return null;
+    }
+    let localIdx = -1;
+    if (useId) {
+      for (let i = 0; i < group.items.length; i++) {
+        if (getShowStableId(group.items[i]) === targetId) { localIdx = i; break; }
+      }
+    } else {
+      localIdx = group.items.findIndex(it => it._index === targetIndex);
+    }
+    if (localIdx < 0) {
+      console.warn("[Restore] Không thấy show trong khu vực", group.key);
+      return null;
+    }
+    _cachedAnchorLabel = `${group.key}#local${localIdx}`;
+    let guard = 0;
+    while (localIdx >= group.rendered && group.rendered < group.items.length && guard++ < 200) {
+      loadMoreForSection(group.key);
+    }
+    const child = group.gridEl.children[localIdx];
+    _cachedAnchorEl = child && child.classList.contains("show-card") ? child : null;
+    if (!_cachedAnchorEl) console.warn("[Restore] Card chưa render dù đã nạp chunk:", _cachedAnchorLabel);
+  }
+
+  return _cachedAnchorEl;
+}
+
+// Nhẹ: dùng el đã cache, cuộn về vị trí anchor. silent=true bỏ log mỗi frame.
+function scrollToSavedAnchor(silent) {
+  if (!_cachedAnchorEl || !_cachedAnchorEl.isConnected) {
+    if (!resolveSavedAnchorEl()) return false;
+  }
+  const docTop = _cachedAnchorEl.getBoundingClientRect().top + window.scrollY;
+  const targetY = Math.max(0, docTop - (_savedAnchor.offset || 0));
+  window.scrollTo(0, targetY);
+  if (!silent) {
+    console.log("[Restore] neo", _cachedAnchorLabel, "offset", _savedAnchor.offset, "docTop", Math.round(docTop), "-> Y", Math.round(targetY));
+  }
+  return true;
+}
+
+let _initialRestored = false;
+function restoreScrollFromAnchorSync() {
+  if (_initialRestored) return;
+  _initialRestored = true;
+
+  if (_userInteractedDuringLoad) {
+    _restoringScroll = false;
+    releaseRestoreHold();
+    return;
+  }
+
+  if (_savedAnchor && (_savedAnchor.type === "section" || _savedAnchor.id || _savedAnchor.index !== null) && _savedScrollY > 0) {
+    console.log("[Restore] bắt đầu — anchor:", JSON.stringify(_savedAnchor), "savedY:", _savedScrollY);
+
+    // Vòng lặp ổn định: căn anchor MỖI FRAME trong lúc trang còn ẩn, chỉ mở khóa
+    // khi bố cục ngừng trôi (font subset nạp muộn, ảnh hoãn của Edge,
+    // content-visibility thay kích thước ước lượng bằng kích thước thật...).
+    // Điều kiện mở: vị trí đứng yên 6 frame liên tiếp, hoặc quá 2s.
+    const start = performance.now();
+    let lastTop = null;
+    let stableFrames = 0;
+    const step = () => {
+      if (_userInteractedDuringLoad) {
+        _restoringScroll = false;
+        releaseRestoreHold();
+        return;
+      }
+      scrollToSavedAnchor(true);
+      const el = _cachedAnchorEl;
+      const top = el && el.isConnected ? el.getBoundingClientRect().top : null;
+      if (top !== null && lastTop !== null && Math.abs(top - lastTop) <= 1) stableFrames++;
+      else stableFrames = 0;
+      lastTop = top;
+      if (stableFrames >= 6 || performance.now() - start > 2000) {
+        console.log("[Restore] chốt sau", Math.round(performance.now() - start), "ms — docTop", top === null ? "?" : Math.round(top), "-> Y", Math.round(window.scrollY));
+        describeViewportSection("@MỞ (sau F5)");
+        _restoringScroll = false;
+        releaseRestoreHold();
+        return;
+      }
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+    return;
+  }
+
+  _restoringScroll = false;
+  releaseRestoreHold();
+}
+
 let _searchIndexCache = new Map();
 const dialogState = {
   stack: [],
@@ -1688,6 +1970,9 @@ function getSectionObserver() {
     sentinelObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
+        // Sentinel nằm hoàn toàn TRÊN màn hình (F5 giữa trang): nạp thêm sẽ đẩy
+        // nội dung đang xem xuống -> layout shift. Bỏ qua, sẽ nạp khi cuộn tới.
+        if (entry.boundingClientRect.bottom <= 0) return;
         const key = entry.target.dataset.section;
         if (key === "flat") loadMoreShows();
         else if (key) loadMoreForSection(key);
@@ -2033,6 +2318,7 @@ function renderShows() {
   showsRenderedCount = 0;
 
   if (searchActive) {
+    restoreScrollFromAnchorSync();
     loadMoreShows();
     return;
   }
@@ -2040,20 +2326,60 @@ function renderShows() {
   activeSections = partitionByStatus(filtered).map(group => ({ ...group, rendered: 0 }));
   buildSectionShells(grid);
   activeSections.forEach(group => loadMoreForSection(group.key));
+  restoreScrollFromAnchorSync();
 }
 
-async function loadShowsData() {
+// Cache dữ liệu trong sessionStorage: F5 render tức thì từ cache (0ms chờ mạng),
+// sau đó tải nền bản mới nhất - nếu khác mới cập nhật giao diện im lặng.
+let _bootedWithCache = false;
+let _cachedApplied = null;
+let _appBooted = false;
+
+function applyCachedShowsData() {
+  try {
+    const cached = JSON.parse(sessionStorage.getItem("showsite:data") || "null");
+    if (Array.isArray(cached) && cached.length > 0) {
+      showsData = cached;
+      _cachedApplied = cached;
+      invalidateSearchIndex();
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+
+async function fetchLatestShowsData() {
   try {
     const response = await fetch(`./showsData.json?v=${DATA_VERSION}`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    showsData = await response.json();
-    if (!Array.isArray(showsData)) throw new Error('showsData.json must contain an array');
+    const fresh = await response.json();
+    if (!Array.isArray(fresh)) throw new Error('showsData.json must contain an array');
+
+    showsData = fresh;
     invalidateSearchIndex();
+    try { sessionStorage.setItem("showsite:data", JSON.stringify(fresh)); } catch (e) {}
+
+    // Đã render từ cache mà bản mới khác bản cache -> re-render nhẹ nhàng
+    if (_bootedWithCache && JSON.stringify(fresh) !== JSON.stringify(_cachedApplied)) {
+      mergeLegacyCustomShowsIntoShowsData();
+      renderShows();
+      updateStatistics();
+      refreshFilterGroupBadges();
+    }
   } catch (err) {
-    console.error('Cannot load showsData.json:', err);
-    showToast('Khong tai duoc showsData.json. Hay chay qua local server hoac kiem tra file du lieu.', true);
-    showsData = [];
+    if (!_bootedWithCache) {
+      console.error('Cannot load showsData.json:', err);
+      showToast('Khong tai duoc showsData.json. Hay chay qua local server hoac kiem tra file du lieu.', true);
+      showsData = [];
+    }
   }
+}
+
+function bootAppOnce() {
+  if (_appBooted) return;
+  _appBooted = true;
+  mergeLegacyCustomShowsIntoShowsData();
+  initializeAppEvents();
 }
 
 function refreshFilterGroupBadges() {
@@ -2363,7 +2689,8 @@ function saveTextareaEditor() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await loadShowsData();
-  mergeLegacyCustomShowsIntoShowsData();
-  initializeAppEvents();
+  _bootedWithCache = applyCachedShowsData();
+  if (_bootedWithCache) bootAppOnce();
+  await fetchLatestShowsData();
+  if (!_appBooted) bootAppOnce();
 });
