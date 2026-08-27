@@ -1243,11 +1243,15 @@
     "rating": 5,
     "vietnameseWatchUrls": [
       {
-        "url": "https://rophim1.vip/tim-kiem?q=heart%20signal",
+        "url": "https://onflix.lat/tim-kiem?q=heart%20signal",
+        "label": "Onflix - Sub chuẩn"
+      },
+      {
+        "url": "https://rophim1.vip/xem-phim/tin-hieu-con-tim-phan-7.75910",
         "label": "Rophim - Sub chuẩn"
       }
     ],
-    "vietnameseWatchUrl": "https://rophim1.vip/tim-kiem?q=heart%20signal",
+    "vietnameseWatchUrl": "https://onflix.lat/tim-kiem?q=heart%20signal",
     "year": "2018-2025",
     "platform": "tencent"
   },
@@ -2549,5 +2553,27 @@
       }
     ],
     "vietnameseWatchUrl": "https://bili.im/qgPrEue"
+  },
+  {
+    "chinese": "전과팅 시즌2",
+    "english": "Jeongwating S2",
+    "vietnamese": "Jeongwating S2",
+    "status": "airing",
+    "platform": "Youtube",
+    "vietnameseWatchUrl": "https://youtube.com/playlist?list=PLL8Ck3RZ-liVgJLF72I7q20NywZfvBYq8&si=sJRvMf-79haVyRS-",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://youtube.com/playlist?list=PLL8Ck3RZ-liVgJLF72I7q20NywZfvBYq8&si=sJRvMf-79haVyRS-",
+        "label": "Muilti sub"
+      }
+    ],
+    "tags": [
+      "normal"
+    ],
+    "country": "korea",
+    "year": "2026",
+    "rating": 5,
+    "detailNotes": "Đây là show hẹn hò cho các sinh viên đại học, sau mùa 1 rất thành công, mùa 2 đã trở lại với sự đa dạng hơn.\nShow chiếu trên kênh YouTube ootb STUDIO do\nKai (EXO) và Lee Changsub (BTOB) làm MC.\nHiện tại đã chiếu được 5 tập:\nTập 1 – Hội \"Motae Solo\" (Ế từ trong trứng)\nTập 2 – Cuộc chiến nhân tài (Khoa Y vs Bán dẫn / SK hynix)\nTập 3 – Khoa Thể Thao (PE) x Khoa Múa (Dance) tại Resort.\nTập 4 – Giấc mơ Campus Couple (Đại học Hanyang)\nTập 5 & 6 – Chuyến dã ngoại liên khoa (과팅 MT)",
+    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-107.png"
   }
 ]
