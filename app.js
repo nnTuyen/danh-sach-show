@@ -36,7 +36,7 @@ if (document.documentElement.classList.contains("restore-hold")) {
 try {
   _savedScrollY = Number(sessionStorage.getItem("showsite:scrollY") || 0);
   _savedAnchor = JSON.parse(sessionStorage.getItem("showsite:scrollAnchor") || "null");
-} catch (e) {}
+} catch (e) { }
 
 // KHÔNG cuộn thô tại đây — khôi phục diễn ra ĐỒNG BỘ trong bootAppOnce sau khi
 // dựng nội dung từ cache; trình duyệt không thể vẽ trạng thái trung gian vì
@@ -97,7 +97,7 @@ function captureScrollAnchor() {
   try {
     sessionStorage.setItem("showsite:scrollAnchor", JSON.stringify({ type: "card", index, id, section: sectionKey, offset }));
     sessionStorage.setItem("showsite:scrollY", String(Math.round(window.scrollY)));
-  } catch (e) {}
+  } catch (e) { }
   if (id !== _lastLoggedAnchorIdx) {
     _lastLoggedAnchorIdx = id;
     console.log("[Anchor] lưu khu=", sectionKey, "offset", offset, "id=", JSON.stringify(id));
@@ -122,7 +122,7 @@ function flushScrollAnchor() {
   try {
     captureScrollAnchor();
     describeViewportSection("@LƯU(trước F5)");
-  } catch (e) {}
+  } catch (e) { }
 }
 
 // In khu vực đang ở đỉnh màn hình để đối chiếu trước/sau F5
@@ -700,7 +700,7 @@ function detectPlatformFromUrl(url) {
   if (!url) return "";
   const lower = url.toLowerCase();
   if (lower.includes("iqiyi.com") || lower.includes("iqiyi")) return "iQiyi";
-  if (lower.includes("v.qq.com") || lower.includes("tencent")) return "Tencent Video";
+  if (lower.includes("v.qq.com") || lower.includes("tencent")) return "v.qq";
   if (lower.includes("mgtv.com") || lower.includes("mango")) return "Mango TV";
   if (lower.includes("youku.com") || lower.includes("youku")) return "Youku";
   if (lower.includes("bilibili.com") || lower.includes("bili")) return "Bilibili";
@@ -712,6 +712,9 @@ function detectPlatformFromUrl(url) {
   if (lower.includes("ok.ru")) return "OK.ru";
   if (lower.includes("vkvideo")) return "vkvideo";
   if (lower.includes("dzen.ru")) return "dzen.ru";
+  if (lower.includes("onflix.lat")) return "Onflix";
+  if (lower.includes("t.me")) return "Telegram";
+  if (lower.includes("wetv.vip")) return "Wetv";
   if (lower.includes("rumble.com") || lower.includes("rumble")) return "Rumble";
   if (lower.includes("dailymotion.com") || lower.includes("dailymotion")) return "Dailymotion";
   if (lower.includes("kisskh.co") || lower.includes("kisskh")) return "KissKh";
@@ -1115,7 +1118,7 @@ function showToast(msg, isError = false) {
 function getPlatformClass(platform) {
   if (!platform) return "undecided";
   const lower = platform.toLowerCase();
-  if (lower.includes("tencent") || lower.includes("qq")) return "tencent";
+  if (lower.includes("tencent") || lower.includes("qq")) return "v.qq";
   if (lower.includes("mango") || lower.includes("mgtv")) return "mango";
   if (lower.includes("youku")) return "youku";
   if (lower.includes("iqiyi")) return "iqiyi";
@@ -1131,6 +1134,9 @@ function getPlatformClass(platform) {
   if (lower.includes("ok.ru")) return "ok.ru";
   if (lower.includes("vkvideo")) return "vkvideo";
   if (lower.includes("dzen.ru")) return "dzen.ru";
+  if (lower.includes("onflix")) return "onflix";
+  if (lower.includes("t.me")) return "telegram";
+  if (lower.includes("wetv")) return "wetv";
   if (lower.includes("dailymotion")) return "dailymotion";
   if (lower.includes("youtube")) return "youtube";
   if (lower.includes("migu")) return "migu";
@@ -2344,7 +2350,7 @@ function applyCachedShowsData() {
       invalidateSearchIndex();
       return true;
     }
-  } catch (e) {}
+  } catch (e) { }
   return false;
 }
 
@@ -2357,7 +2363,7 @@ async function fetchLatestShowsData() {
 
     showsData = fresh;
     invalidateSearchIndex();
-    try { sessionStorage.setItem("showsite:data", JSON.stringify(fresh)); } catch (e) {}
+    try { sessionStorage.setItem("showsite:data", JSON.stringify(fresh)); } catch (e) { }
 
     // Đã render từ cache mà bản mới khác bản cache -> re-render nhẹ nhàng
     if (_bootedWithCache && JSON.stringify(fresh) !== JSON.stringify(_cachedApplied)) {
