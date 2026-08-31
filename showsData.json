@@ -1829,16 +1829,8 @@
     "status": "completed",
     "platform": "Tving",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-80.png",
-    "vietnameseWatchUrl": "https://phimvietsub.click/?search=transit%20love",
+    "vietnameseWatchUrl": "https://kisskh.co/Drama/EXchange-3---Transit-Love-Season-3?id=8502&q=true",
     "vietnameseWatchUrls": [
-      {
-        "url": "https://phimvietsub.click/?search=transit%20love",
-        "label": "Mùa 1 và 4 - Yêu Phim sub chuẩn"
-      },
-      {
-        "url": "https://mamphim.site/tim-kiem?q=transit%20love",
-        "label": "Mùa 1 và 4 - Mâm Phim sub chuẩn"
-      },
       {
         "url": "https://kisskh.co/Drama/EXchange-3---Transit-Love-Season-3?id=8502&q=true",
         "label": "Mùa 3 - Kisskh auto sub"
@@ -1846,6 +1838,10 @@
       {
         "url": "https://kisskh.co/Drama/EXchange-2---Transit-Love-Season-2?id=5819&q=true",
         "label": "Mùa 2 - Chỉ có sub Tiếng Anh"
+      },
+      {
+        "url": "https://www.bilibili.tv/vi/video/4800658143845376",
+        "label": "Mùa 1"
       }
     ],
     "tags": [
