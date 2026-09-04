@@ -2590,5 +2590,28 @@
     "year": "2026",
     "time": "Đang casting",
     "description": "Phát sóng lần đầu vào năm 2021, \"Transit Love\" là chương trình thực tế về hẹn hò, nơi các cặp đôi chia tay vì nhiều lý do khác nhau cùng sống chung trong một ngôi nhà để nhìn lại tình yêu đã qua, đối mặt với những mối nhân duyên mới và tìm kiếm tình yêu của riêng mình."
+  },
+  {
+    "chinese": "더 커뮤니티 2- 보이지 않는 손",
+    "english": "The Community 2: Invisible Hand",
+    "vietnamese": "Cộng đồng 2: Bàn tay vô hình",
+    "status": "airing",
+    "platform": "Kocowa",
+    "time": "Thứ 6",
+    "tags": [
+      "other"
+    ],
+    "country": "korea",
+    "rating": 4,
+    "description": "“The Community” là show sinh tồn đầu tiên tại Hàn Quốc về ý thức hệ. Tại đây tập hợp những con người mang các hệ giá trị khác nhau về chính trị, giới tính, giai cấp, từ đó hình thành quyền lực và chính trị. “The Community 2: Bàn tay vô hình” sẽ là nơi để những người chơi nắm giữ các nguồn lực khác nhau và phải sống sót chỉ bằng các giao dịch. Nếu mùa 1 khắc họa sự va chạm giữa ý thức hệ và các hệ giá trị, thì mùa 2 sẽ mở rộng thành một cuộc chơi sinh tồn mà tại đó, những giao dịch và lựa chọn liên quan đến sống còn liên tục diễn ra. Những người chơi được trao các nguồn lực và quyền hạn khác nhau sẽ phải không ngừng giao dịch, hợp tác, xung đột và lựa chọn, từ đó tạo nên trật tự mới cho cộng đồng để sống sót. Điểm đáng chú ý nhất của mùa này là “nguyên lý thị trường”, được hình thành từ ham muốn cá nhân và các giao dịch tự do của từng người chơi, sẽ quyết định hướng đi của cả cộng đồng. Chương trình hứa hẹn sẽ mở ra một cuộc chiến tâm lý khốc liệt, đồng thời đặt ra những câu hỏi tàn khốc: để sinh tồn và giành lợi ích, người chơi sẽ rơi vào những tình thế tiến thoái lưỡng nan nào? Và khi đối mặt với việc sinh tồn cũng như lợi ích cá nhân, liệu họ còn giữ được niềm tin của chính mình hay không?",
+    "year": "3-09-2026",
+    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-108.png",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://bili.im/qohUzFI",
+        "label": "Auto sub"
+      }
+    ],
+    "vietnameseWatchUrl": "https://bili.im/qohUzFI"
   }
 ]
