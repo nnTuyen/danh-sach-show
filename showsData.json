@@ -2467,11 +2467,15 @@
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-103-v2.jpg",
     "vietnameseWatchUrls": [
       {
+        "url": "https://www.bilibili.tv/vi/video/4800564258675712?bstar_from=bstar-web.ugc-video-detail.playlist.all",
+        "label": "Sub chuẩn"
+      },
+      {
         "url": "https://kisskh.co/Drama/Love-Against-Time--2026-/Episode-1?id=13548&ep=221353&page=0&pageSize=100",
         "label": "Auto sub"
       }
     ],
-    "vietnameseWatchUrl": "https://kisskh.co/Drama/Love-Against-Time--2026-/Episode-1?id=13548&ep=221353&page=0&pageSize=100"
+    "vietnameseWatchUrl": "https://www.bilibili.tv/vi/video/4800564258675712?bstar_from=bstar-web.ugc-video-detail.playlist.all"
   },
   {
     "chinese": "Badly in Love S2",
@@ -2523,7 +2527,7 @@
     "description": "Mùa dành cho những người ế từ trong trứng (Mote solo)",
     "year": "6-08-2026",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-105.png",
-    "detailNotes": "Nam:\nYoung Soo (1988): \nYoung Ho (1990): \nYoung Sik (): \nYoung Chul (): Lính cứu hỏa\nKwang Soo (1995): Công chức\nSang Chul (1991): \n\nNữ:\nYoung Sook (1992): \nJung Sook (): \nSun Ja (): \nYoung Ja (): Y tá\nOk Soon (1999): \nHyun Sook (1988): Cơ quan thương mại nhà nước",
+    "detailNotes": "Nam:\nYoung Soo (1988):  Sĩ quan cảnh sát.\nYoung Ho (1990):  Ảo thuật gia.\nYoung Sik (1992):  Phiên dịch viên và biên dịch viên tự do.\nYoung Chul (1991): Lính cứu hỏa.\nKwang Soo (1995): Công chức.\nSang Chul (1991):  Công chức.\n\nNữ:\nYoung Sook (1992):  Điều hành một trung tâm chăm sóc sức khỏe.\nJung Sook (1993): Trưởng nhóm marketing tại một công ty quản lý bệnh viện.\nSun Ja (1997): Làm việc trong lĩnh vực marketing tại một công ty khởi nghiệp thực phẩm.\nYoung Ja (1994): Y tá.\nOk Soon (1999): Nghệ sĩ cello.\nHyun Sook (1988): Cơ quan thương mại nhà nước.",
     "vietnameseWatchUrls": [
       {
         "url": "https://bili.im/SXEazdg",
@@ -2552,7 +2556,8 @@
         "label": "Sub auto"
       }
     ],
-    "vietnameseWatchUrl": "https://bili.im/qgPrEue"
+    "vietnameseWatchUrl": "https://bili.im/qgPrEue",
+    "detailNotes": "Nữ:\nS7 OS (1984) Làm việc trong lĩnh vực lập kế hoạch tài chính tại eBay.\nS14 YJ (1984) Thư ký, Tập đoàn Hyundai Heavy Industries.\nS24 HS\t(1990) Dược sĩ.\nS26 JS (1986) Luật sư.\nS26 YJ (1986) Kế toán.\nSGH9 Guk Hwa (1985) Từng là tiếp viên hàng không, hiện đang điều hành một viện đào tạo.\n\nNam:\nMr. Gong (1985) Quản lý kinh doanh vật tư tiêu hao tại một công ty thiết bị y tế nước ngoài.\nMr. Seo (1980) Chuyên viên phiên dịch thiết kế tại Phòng Thiết kế của S Electronics.\nMr. Jo (1978) Giám đốc thời trang.\nMr. Ji (1984) Làm việc tại bộ phận quản lý ứng dụng di động/trang web tại N Financial G.\nMr. Cha (1981) Giám đốc học viện nghệ thuật của riêng mình\nMr. Choi (1984) Làm việc tại bộ phận dịch vụ CNTT của Tập đoàn Hyundai Motor."
   },
   {
     "chinese": "전과팅 시즌2",
@@ -2608,10 +2613,14 @@
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-108.png",
     "vietnameseWatchUrls": [
       {
+        "url": "https://kisskh.co/Drama/The-Community-2--Invisible-Hand/Episode-2?id=13709&ep=223879&page=0&pageSize=100",
+        "label": "Sub nhanh"
+      },
+      {
         "url": "https://bili.im/qohUzFI",
         "label": "Auto sub"
       }
     ],
-    "vietnameseWatchUrl": "https://bili.im/qohUzFI"
+    "vietnameseWatchUrl": "https://kisskh.co/Drama/The-Community-2--Invisible-Hand/Episode-2?id=13709&ep=223879&page=0&pageSize=100"
   }
 ]
