@@ -410,6 +410,10 @@
     "chineseWatchUrl": "https://w.mgtv.com/b/866537/24383795.html",
     "vietnameseWatchUrls": [
       {
+        "url": "https://dailymotion.com/playlist/xc5flo",
+        "label": "Auto sub"
+      },
+      {
         "url": "https://www.bilibili.tv/vi/video/4799583013313024",
         "label": "Bilibilitv"
       },
@@ -418,7 +422,7 @@
         "label": "Odysee"
       }
     ],
-    "vietnameseWatchUrl": "https://www.bilibili.tv/vi/video/4799583013313024",
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xc5flo",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-20.jpg",
     "year": "27-04-2026"
   },
@@ -530,6 +534,10 @@
       {
         "url": "https://phimvietsub.click/ban-than-yeu-thuong-mua-3/tap-1a-60949",
         "label": "Mùa 3 - Yeuphim sub chuẩn"
+      },
+      {
+        "url": "https://dailymotion.com/playlist/x8b29s",
+        "label": "Mùa 2"
       }
     ],
     "vietnameseWatchUrl": "https://phimvietsub.click/ban-than-yeu-thuong-mua-3/tap-1a-60949",
@@ -724,7 +732,14 @@
       }
     ],
     "chineseWatchUrl": "https://w.mgtv.com/b/792166/23619460.html?fpa=1413&fpos=6",
-    "year": "2025"
+    "year": "2025",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://dailymotion.com/playlist/xah0i2",
+        "label": "Auto sub"
+      }
+    ],
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xah0i2"
   },
   {
     "chinese": "恋爱特别邀请",
@@ -1267,6 +1282,10 @@
       {
         "url": "https://kisskh.co/Drama/Heart-Signal-2/Episode-1?id=301&ep=8768",
         "label": "Chỉ có tiếng anh"
+      },
+      {
+        "url": "https://dailymotion.com/playlist/xbsjhk",
+        "label": "Mùa 2"
       }
     ],
     "tags": [
@@ -1291,6 +1310,10 @@
       {
         "url": "https://goplay.ml/4b2d3631303337373132/Change-Days/Episode-17/",
         "label": "Chỉ có tiếng anh"
+      },
+      {
+        "url": "https://dailymotion.com/playlist/x9c694",
+        "label": "Mùa 1"
       }
     ],
     "tags": [
@@ -1316,7 +1339,14 @@
     "country": "korea",
     "rating": 2,
     "description": "Show hẹn hò giảm cân. Sẽ ra sao nếu những người đang muốn giảm cân mà vẫn có thể hẹn hò. Show hướng đến những người tự ti về cân nặng của mình, giúp họ vừa giảm cân mà vẫn có cơ hội yêu đương.",
-    "year": "2025"
+    "year": "2025",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://dailymotion.com/playlist/xapn0g",
+        "label": "Auto sub"
+      }
+    ],
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xapn0g"
   },
   {
     "chinese": "再次心動 2",
@@ -1331,7 +1361,14 @@
     "country": "china",
     "rating": 3,
     "description": "Show dành cho những người gặp vấn đề trong tình yêu như tự ti, ly hôn...",
-    "year": "2025"
+    "year": "2025",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://dailymotion.com/playlist/xa0hbc",
+        "label": "Auto sub"
+      }
+    ],
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xa0hbc"
   },
   {
     "chinese": "非日常恋爱",
@@ -1346,7 +1383,14 @@
     "country": "china",
     "rating": 3,
     "description": "là một chương trình truyền hình thực tế hẹn hò dựa trên quan sát xã hội do Tencent Video ra mắt năm 2025. Chương trình tập trung vào nhóm người \"gặp khó khăn trong chuyện tình cảm\", những người không giỏi hẹn hò, và thúc đẩy sự phát triển của các mối quan hệ thực sự giữa các khách mời trong những tình huống không thường ngày thông qua một cơ chế đặc biệt.",
-    "year": "2025"
+    "year": "2025",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://dailymotion.com/playlist/x9p5pw",
+        "label": "Auto sub"
+      }
+    ],
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/x9p5pw"
   },
   {
     "chinese": "돌싱글즈 시즌7",
@@ -1368,7 +1412,14 @@
         "label": "Chỉ có tiếng anh"
       }
     ],
-    "chineseWatchUrl": "https://goplay.ml/562d32363931303631/Love-After-Divorce-7/Episode-12/"
+    "chineseWatchUrl": "https://goplay.ml/562d32363931303631/Love-After-Divorce-7/Episode-12/",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://dailymotion.com/playlist/xa0hb2",
+        "label": "Auto sub"
+      }
+    ],
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xa0hb2"
   },
   {
     "chinese": "Perfect Match S1-4",
