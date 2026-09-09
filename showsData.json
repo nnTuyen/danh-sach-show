@@ -2658,7 +2658,7 @@
       "other"
     ],
     "country": "korea",
-    "rating": 4,
+    "rating": 5,
     "description": "“The Community” là show sinh tồn đầu tiên tại Hàn Quốc về ý thức hệ. Tại đây tập hợp những con người mang các hệ giá trị khác nhau về chính trị, giới tính, giai cấp, từ đó hình thành quyền lực và chính trị. “The Community 2: Bàn tay vô hình” sẽ là nơi để những người chơi nắm giữ các nguồn lực khác nhau và phải sống sót chỉ bằng các giao dịch. Nếu mùa 1 khắc họa sự va chạm giữa ý thức hệ và các hệ giá trị, thì mùa 2 sẽ mở rộng thành một cuộc chơi sinh tồn mà tại đó, những giao dịch và lựa chọn liên quan đến sống còn liên tục diễn ra. Những người chơi được trao các nguồn lực và quyền hạn khác nhau sẽ phải không ngừng giao dịch, hợp tác, xung đột và lựa chọn, từ đó tạo nên trật tự mới cho cộng đồng để sống sót. Điểm đáng chú ý nhất của mùa này là “nguyên lý thị trường”, được hình thành từ ham muốn cá nhân và các giao dịch tự do của từng người chơi, sẽ quyết định hướng đi của cả cộng đồng. Chương trình hứa hẹn sẽ mở ra một cuộc chiến tâm lý khốc liệt, đồng thời đặt ra những câu hỏi tàn khốc: để sinh tồn và giành lợi ích, người chơi sẽ rơi vào những tình thế tiến thoái lưỡng nan nào? Và khi đối mặt với việc sinh tồn cũng như lợi ích cá nhân, liệu họ còn giữ được niềm tin của chính mình hay không?",
     "year": "3-09-2026",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-108.png",
@@ -2673,5 +2673,36 @@
       }
     ],
     "vietnameseWatchUrl": "https://kisskh.co/Drama/The-Community-2--Invisible-Hand/Episode-2?id=13709&ep=223879&page=0&pageSize=100"
+  },
+  {
+    "chinese": "喜歡請點頭",
+    "english": "I lup you",
+    "vietnamese": "Thích thì hãy gật đầu",
+    "status": "airing",
+    "platform": "Youtube",
+    "time": "T7",
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xdeaga",
+    "vietnameseWatchUrls": [
+      {
+        "url": "https://dailymotion.com/playlist/xdeaga",
+        "label": "Auto sub"
+      },
+      {
+        "url": "https://t.me/linhtinhshow/168",
+        "label": "Tốc độ nhanh"
+      },
+      {
+        "url": "https://bili.im/2p4smLa",
+        "label": "Chỉ 720p"
+      }
+    ],
+    "tags": [
+      "normal"
+    ],
+    "country": "other",
+    "description": "Show hẹn hò của Malaysia",
+    "year": "29-8-2026",
+    "rating": 5,
+    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/Show-109.jpg"
   }
 ]
