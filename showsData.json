@@ -837,11 +837,15 @@
     "description": "Chương trình quy tụ những nam thanh nữ tú độc thân cùng sống chung trong \"Nhà chung nhịp tim\". Trải qua các tập phim, họ cùng nhau mở \"hộp mù điện ảnh\", hẹn hò ngẫu nhiên và dần tìm thấy người phù hợp",
     "vietnameseWatchUrls": [
       {
-        "url": "https://www.youtube.com/hashtag/%E6%9C%AA%E7%9F%A5%E7%9A%84%E5%BF%83%E8%B7%B3",
+        "url": "https://www.youku.tv/v/v_show/id_XNjQ1MzQ3NjE3Ng==.html",
+        "label": "Sub auto"
+      },
+      {
+        "url": "https://youtube.com/playlist?list=PLB_lie3fxsakd4n0LOQQWkP2yJ95Y4UYw&si=CsaLUc0oxcrerbCd",
         "label": "Sub auto Youtube"
       }
     ],
-    "vietnameseWatchUrl": "https://www.youtube.com/hashtag/%E6%9C%AA%E7%9F%A5%E7%9A%84%E5%BF%83%E8%B7%B3",
+    "vietnameseWatchUrl": "https://www.youku.tv/v/v_show/id_XNjQ1MzQ3NjE3Ng==.html",
     "year": "2024",
     "rating": 2
   },
@@ -2532,7 +2536,7 @@
     "chinese": "Badly in Love S2",
     "english": "Badly in Love S2",
     "vietnamese": "Tình yêu nổi loạn S2",
-    "status": "airing",
+    "status": "completed",
     "platform": "Neflix",
     "time": "T5",
     "tags": [
