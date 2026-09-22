@@ -2509,7 +2509,7 @@
     "chinese": "내 남은 연애",
     "english": "Love Against Time",
     "vietnamese": "Tình yêu vượt thời gian",
-    "status": "airing",
+    "status": "completed",
     "platform": "kocowa",
     "time": "T4",
     "tags": [
@@ -2522,15 +2522,11 @@
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-103-v2.jpg",
     "vietnameseWatchUrls": [
       {
-        "url": "https://www.bilibili.tv/vi/video/4800564258675712?bstar_from=bstar-web.ugc-video-detail.playlist.all",
-        "label": "Sub chuẩn"
-      },
-      {
         "url": "https://kisskh.co/Drama/Love-Against-Time--2026-/Episode-1?id=13548&ep=221353&page=0&pageSize=100",
         "label": "Auto sub"
       }
     ],
-    "vietnameseWatchUrl": "https://www.bilibili.tv/vi/video/4800564258675712?bstar_from=bstar-web.ugc-video-detail.playlist.all"
+    "vietnameseWatchUrl": "https://kisskh.co/Drama/Love-Against-Time--2026-/Episode-1?id=13548&ep=221353&page=0&pageSize=100"
   },
   {
     "chinese": "Badly in Love S2",
