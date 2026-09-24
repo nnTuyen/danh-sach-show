@@ -44,7 +44,7 @@
         </div>
       </div>
 
-      <!-- Quick Search Bar -->
+      <!-- Quick Search Bar (Desktop) -->
       <div class="header-search-wrapper">
         <i class="fa-solid fa-magnifying-glass header-search-icon"></i>
         <input type="text" id="searchInput" class="header-search-input"
@@ -56,6 +56,11 @@
 
       <!-- Header Quick Actions -->
       <div class="header-actions">
+        <!-- Mobile Search Button -->
+        <button class="btn-icon btn-mobile-search-toggle" id="btnMobileSearchToggle" title="Tìm kiếm" style="display: none;">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+
         <!-- Random Show Button -->
         <button class="btn-icon" id="btnRandomShow" title="Khám phá show ngẫu nhiên 🎲">
           <i class="fa-solid fa-dice"></i>
@@ -67,9 +72,25 @@
           <span class="badge-count" id="favCountBadge" style="display: none;">0</span>
         </button>
 
+        <!-- Settings Button -->
+        <button class="btn-icon" id="btnOpenSettings" title="Cài đặt & Quản lý Show ⚙️">
+          <i class="fa-solid fa-gear"></i>
+        </button>
+
         <!-- Dark / Light Theme Toggle -->
         <button class="btn-icon" id="themeToggleBtn" title="Chuyển chế độ Sáng / Tối">
           <i class="fa-solid fa-moon" id="themeIcon"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Collapsible Search Row -->
+    <div class="mobile-search-bar" id="mobileSearchBar">
+      <div style="position: relative;">
+        <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px;"></i>
+        <input type="text" id="mobileSearchInput" class="header-search-input" placeholder="Tìm tên show (Việt, Trung, Anh)..." autocomplete="off">
+        <button id="mobileSearchClearBtn" class="header-search-clear" title="Xóa tìm kiếm">
+          <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
     </div>
@@ -109,10 +130,12 @@
           <img src="https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg" alt="Spotlight Show" class="spotlight-poster" id="spotlightPoster">
           <div class="spotlight-info">
             <span class="spotlight-badge">
-              <i class="fa-solid fa-fire"></i> Đang nổi bật
+              <i class="fa-solid fa-fire"></i> Đang ghim nổi bật
             </span>
             <h2 class="spotlight-title" id="spotlightTitle">Người Yêu Một Nửa Thân Thuộc S5</h2>
-            <div class="spotlight-subtitles" id="spotlightSubs">半熟恋人5 • Love Actually S5</div>
+            <div class="spotlight-subtitles" id="spotlightSubs">
+              <!-- Rendered with copy buttons -->
+            </div>
             <p class="spotlight-desc" id="spotlightDesc">
               Chương trình thực tế dành cho người độc thân trưởng thành tìm kiếm tình yêu đích thực nơi thành thị...
             </p>
@@ -138,7 +161,7 @@
   <!-- Sticky Filter Bar -->
   <section class="filter-section">
     <div class="container filter-wrapper">
-      <!-- Country Tabs -->
+      <!-- Country Tabs (Always visible & swipable) -->
       <div class="filter-row-countries" id="countryPillsContainer">
         <button class="pill-country active" data-country="all">
           <span>🌏 Tất cả</span>
@@ -163,16 +186,27 @@
         </button>
       </div>
 
+      <!-- Mobile Filter Accordion Toggle Button (Shown only on small screens) -->
+      <button class="btn-mobile-filter-toggle" id="btnMobileFilterToggle">
+        <span>
+          <i class="fa-solid fa-sliders" style="color: var(--primary-pink); margin-right: 6px;"></i>
+          Bộ lọc & Sắp xếp <span id="mobileFilterBadge" style="color: var(--primary-pink); font-size: 11px;">(Đang chiếu)</span>
+        </span>
+        <i class="fa-solid fa-chevron-down"></i>
+      </button>
+
       <!-- Controls Row: Status, Platform, Tag, Sort, View Toggle -->
-      <div class="filter-row-controls">
+      <div class="filter-row-controls" id="filterRowControls">
         <div class="filter-group-left">
           <!-- Status Pills -->
-          <button class="btn-filter-pill active" data-status="all">Tất cả</button>
-          <button class="btn-filter-pill" data-status="airing">
-            <span class="stat-pulse-dot"></span> Đang chiếu
-          </button>
-          <button class="btn-filter-pill" data-status="completed">🏁 Đã hoàn thành</button>
-          <button class="btn-filter-pill" data-status="upcoming">⏳ Sắp chiếu</button>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button class="btn-filter-pill active" data-status="all">Tất cả</button>
+            <button class="btn-filter-pill" data-status="airing">
+              <span class="stat-pulse-dot"></span> Đang chiếu
+            </button>
+            <button class="btn-filter-pill" data-status="completed">🏁 Đã hoàn thành</button>
+            <button class="btn-filter-pill" data-status="upcoming">⏳ Sắp chiếu</button>
+          </div>
 
           <!-- Platform Dropdown -->
           <select id="platformSelect" class="select-filter" aria-label="Lọc theo nền tảng">
@@ -190,12 +224,12 @@
         </div>
 
         <div class="filter-group-right">
-          <!-- Sort Dropdown -->
+          <!-- Sort Dropdown (Default: airing-first) -->
           <select id="sortSelect" class="select-filter" aria-label="Sắp xếp danh sách">
-            <option value="default">Sắp xếp: Mặc định</option>
+            <option value="airing-first" selected>Sắp xếp: Đang chiếu trước</option>
+            <option value="none">Không sắp xếp (Thứ tự gốc)</option>
             <option value="rating-desc">Đánh giá sao: Cao ➔ Thấp</option>
             <option value="title-asc">Tên show: A ➔ Z</option>
-            <option value="airing-first">Ưu tiên đang chiếu</option>
           </select>
 
           <!-- View Mode Toggle (Grid / List) -->
@@ -246,100 +280,348 @@
     </div>
   </main>
 
-  <!-- Show Detail & Watch Links Modal -->
+  <!-- Show Detail & Watch Links Modal (With Scrollbar Corner Fix) -->
   <div class="modal-overlay" id="detailModal">
     <div class="modal-content">
       <button class="btn-modal-close" id="btnModalClose" title="Đóng">
         <i class="fa-solid fa-xmark"></i>
       </button>
 
-      <!-- Modal Hero Header -->
-      <div class="modal-header-hero">
-        <img src="" alt="" class="modal-poster" id="modalPoster">
-        <div class="modal-info-col">
-          <div class="modal-badges-row">
-            <span class="badge-status airing" id="modalStatusBadge">Đang chiếu</span>
-            <span class="pill-country" id="modalCountryBadge">🇨🇳 Trung Quốc</span>
-            <span class="card-rating-pill" id="modalRatingBadge">
-              <i class="fa-solid fa-star"></i> <span>5.0</span>
-            </span>
-          </div>
-          <h2 class="modal-title" id="modalTitle">Tên Show</h2>
-          <div class="modal-subtitles" id="modalSubtitles">Tên gốc • English Title</div>
-          <div class="modal-meta-grid">
-            <div><i class="fa-solid fa-layer-group"></i> Nền tảng: <strong id="modalPlatform">--</strong></div>
-            <div><i class="fa-regular fa-clock"></i> Lịch: <strong id="modalSchedule">--</strong></div>
-            <div><i class="fa-regular fa-calendar"></i> Năm: <strong id="modalYear">--</strong></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Modal Tabs -->
-      <div class="modal-tabs">
-        <button class="modal-tab-btn active" data-tab="tab-watch">
-          <i class="fa-solid fa-play"></i> Link xem phim
-        </button>
-        <button class="modal-tab-btn" data-tab="tab-cast">
-          <i class="fa-solid fa-users"></i> Dàn Cast & Diễn viên
-        </button>
-        <button class="modal-tab-btn" data-tab="tab-desc">
-          <i class="fa-solid fa-align-left"></i> Giới thiệu nội dung
-        </button>
-      </div>
-
-      <!-- Modal Body Panes -->
-      <div class="modal-body">
-        <!-- Tab 1: Watch Links -->
-        <div class="tab-pane active" id="tab-watch">
-          <!-- Vietsub Links -->
-          <div class="watch-links-group">
-            <div class="watch-links-heading">
-              <i class="fa-solid fa-closed-captioning" style="color: var(--primary-pink);"></i>
-              Nguồn Vietsub (Bilibili, YouTube, Odysee, WeTV...)
+      <!-- Inner Scrollable Container -->
+      <div class="modal-scrollable">
+        <!-- Modal Hero Header -->
+        <div class="modal-header-hero">
+          <img src="" alt="" class="modal-poster" id="modalPoster">
+          <div class="modal-info-col">
+            <div class="modal-badges-row">
+              <span class="badge-status airing" id="modalStatusBadge">Đang chiếu</span>
+              <span class="pill-country" id="modalCountryBadge">🇨🇳 Trung Quốc</span>
+              <span class="card-rating-pill" id="modalRatingBadge">
+                <i class="fa-solid fa-star"></i> <span>5.0</span>
+              </span>
             </div>
-            <div class="links-grid" id="modalVietsubLinks">
-              <!-- Vietsub links generated by JS -->
+            <h2 class="modal-title" id="modalTitle">Tên Show</h2>
+            <div class="modal-subtitles" id="modalSubtitles">
+              <!-- Rendered with individual copy buttons -->
             </div>
-          </div>
-
-          <!-- Original Chinese / International Links -->
-          <div class="watch-links-group" id="modalChineseGroup">
-            <div class="watch-links-heading">
-              <i class="fa-solid fa-globe" style="color: #6366f1;"></i>
-              Nơi chiếu bản gốc / Quốc tế
-            </div>
-            <div class="links-grid" id="modalOriginalLinks">
-              <!-- Original links generated by JS -->
+            <div class="modal-meta-grid">
+              <div><i class="fa-solid fa-layer-group"></i> Nền tảng: <strong id="modalPlatform">--</strong></div>
+              <div><i class="fa-regular fa-clock"></i> Lịch: <strong id="modalSchedule">--</strong></div>
+              <div><i class="fa-regular fa-calendar"></i> Năm: <strong id="modalYear">--</strong></div>
             </div>
           </div>
         </div>
 
-        <!-- Tab 2: Cast & Members Profiles -->
-        <div class="tab-pane" id="tab-cast">
-          <div class="cast-grid" id="modalCastGrid">
-            <!-- Cast cards generated by JS -->
-          </div>
-        </div>
-
-        <!-- Tab 3: Description -->
-        <div class="tab-pane" id="tab-desc">
-          <div class="modal-synopsis" id="modalDescription">
-            Chưa có thông tin giới thiệu cho chương trình này.
-          </div>
-        </div>
-
-        <!-- Modal Footer Actions -->
-        <div class="modal-footer-actions">
-          <button class="btn-primary" id="btnModalShare">
-            <i class="fa-solid fa-share-nodes"></i> Chia sẻ link show này
+        <!-- Modal Tabs -->
+        <div class="modal-tabs">
+          <button class="modal-tab-btn active" data-tab="tab-watch">
+            <i class="fa-solid fa-play"></i> Link xem phim
           </button>
-          <button class="btn-secondary" id="btnModalFavorite">
-            <i class="fa-regular fa-heart"></i> Lưu vào Yêu thích
+          <button class="modal-tab-btn" data-tab="tab-cast">
+            <i class="fa-solid fa-users"></i> Dàn Cast & Diễn viên
           </button>
+          <button class="modal-tab-btn" data-tab="tab-desc">
+            <i class="fa-solid fa-align-left"></i> Giới thiệu nội dung
+          </button>
+        </div>
+
+        <!-- Modal Body Panes -->
+        <div class="modal-body">
+          <!-- Tab 1: Watch Links -->
+          <div class="tab-pane active" id="tab-watch">
+            <!-- Vietsub Links -->
+            <div class="watch-links-group">
+              <div class="watch-links-heading">
+                <i class="fa-solid fa-closed-captioning" style="color: var(--primary-pink);"></i>
+                Nguồn Vietsub (Bilibili, YouTube, Odysee, WeTV...)
+              </div>
+              <div class="links-grid" id="modalVietsubLinks">
+                <!-- Brand Logo Buttons generated by JS -->
+              </div>
+            </div>
+
+            <!-- Original Chinese / International Links -->
+            <div class="watch-links-group" id="modalChineseGroup">
+              <div class="watch-links-heading">
+                <i class="fa-solid fa-globe" style="color: #6366f1;"></i>
+                Nơi chiếu bản gốc / Quốc tế
+              </div>
+              <div class="links-grid" id="modalOriginalLinks">
+                <!-- Original links generated by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Cast & Members Profiles -->
+          <div class="tab-pane" id="tab-cast">
+            <div class="cast-grid" id="modalCastGrid">
+              <!-- Cast cards generated by JS -->
+            </div>
+          </div>
+
+          <!-- Tab 3: Description -->
+          <div class="tab-pane" id="tab-desc">
+            <div class="modal-synopsis" id="modalDescription">
+              Chưa có thông tin giới thiệu cho chương trình này.
+            </div>
+          </div>
+
+          <!-- Modal Footer Actions -->
+          <div class="modal-footer-actions">
+            <button class="btn-primary" id="btnModalShare">
+              <i class="fa-solid fa-share-nodes"></i> Chia sẻ link show này
+            </button>
+            <button class="btn-secondary" id="btnModalFavorite">
+              <i class="fa-regular fa-heart"></i> Lưu vào Yêu thích
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Settings & Show Management Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-content">
+      <button class="btn-modal-close" id="btnSettingsClose" title="Đóng">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="modal-scrollable">
+        <div class="modal-header-hero" style="grid-template-columns: 1fr; padding: 24px;">
+          <div>
+            <h2 class="modal-title" style="font-size: 20px;">
+              <i class="fa-solid fa-gear" style="color: var(--primary-pink);"></i> Cài Đặt & Quản Lý Show
+            </h2>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+              Chọn show ghim đầu trang (Spotlight), thêm show mới hoặc chỉnh sửa link các show hiện có.
+            </p>
+          </div>
+        </div>
+
+        <!-- Settings Tabs -->
+        <div class="modal-tabs">
+          <button class="modal-tab-btn active" data-stab="stab-spotlight">
+            <i class="fa-solid fa-thumbtack"></i> Ghim Spotlight
+          </button>
+          <button class="modal-tab-btn" data-stab="stab-edit">
+            <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa Show
+          </button>
+          <button class="modal-tab-btn" data-stab="stab-add">
+            <i class="fa-solid fa-plus"></i> Thêm Show Mới
+          </button>
+          <button class="modal-tab-btn" data-stab="stab-data">
+            <i class="fa-solid fa-download"></i> Tải showsData.json
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Settings Tab 1: Pin Spotlight Show -->
+          <div class="tab-pane active" id="stab-spotlight">
+            <div class="settings-form-group">
+              <label class="settings-label">Chọn Show Ghim Ở Vị Trí Đầu Trang (Spotlight Banner):</label>
+              <select id="spotlightSelect" class="settings-select">
+                <!-- Populated dynamically with all shows -->
+              </select>
+            </div>
+            <div id="spotlightPreviewBox" style="background: var(--bg-surface-elevated); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 13px;">
+              <!-- Preview of selected spotlight -->
+            </div>
+            <button class="btn-primary" id="btnSaveSpotlight">
+              <i class="fa-solid fa-check"></i> Lưu Ghim Show Này
+            </button>
+          </div>
+
+          <!-- Settings Tab 2: Edit Existing Show -->
+          <div class="tab-pane" id="stab-edit">
+            <div class="settings-form-group">
+              <label class="settings-label">Chọn show cần chỉnh sửa:</label>
+              <select id="editShowSelect" class="settings-select">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+
+            <div class="settings-row-2col">
+              <div class="settings-form-group">
+                <label class="settings-label">Tên Tiếng Việt *:</label>
+                <input type="text" id="editVn" class="settings-input">
+              </div>
+              <div class="settings-form-group">
+                <label class="settings-label">Tên Tiếng Trung:</label>
+                <input type="text" id="editZh" class="settings-input">
+              </div>
+            </div>
+
+            <div class="settings-row-3col">
+              <div class="settings-form-group">
+                <label class="settings-label">Tên Tiếng Anh:</label>
+                <input type="text" id="editEn" class="settings-input">
+              </div>
+              <div class="settings-form-group">
+                <label class="settings-label">Quốc gia:</label>
+                <select id="editCountry" class="settings-select">
+                  <option value="china">Trung Quốc</option>
+                  <option value="korea">Hàn Quốc</option>
+                  <option value="japan">Nhật Bản</option>
+                  <option value="thailand">Thái Lan</option>
+                  <option value="hongkong">Hồng Kông</option>
+                  <option value="taiwan">Đài Loan</option>
+                  <option value="other">Khác</option>
+                </select>
+              </div>
+              <div class="settings-form-group">
+                <label class="settings-label">Trạng thái:</label>
+                <select id="editStatus" class="settings-select">
+                  <option value="airing">Đang chiếu</option>
+                  <option value="completed">Đã hoàn thành</option>
+                  <option value="upcoming">Sắp chiếu</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-row-3col">
+              <div class="settings-form-group">
+                <label class="settings-label">Nền tảng:</label>
+                <input type="text" id="editPlatform" class="settings-input" placeholder="Tencent, iQIYI, Mango TV...">
+              </div>
+              <div class="settings-form-group">
+                <label class="settings-label">Lịch phát sóng:</label>
+                <input type="text" id="editTime" class="settings-input" placeholder="18h T3 T4...">
+              </div>
+              <div class="settings-form-group">
+                <label class="settings-label">Đánh giá (1-5 sao):</label>
+                <input type="number" id="editRating" class="settings-input" min="1" max="5" step="0.5">
+              </div>
+            </div>
+
+            <div class="settings-form-group">
+              <label class="settings-label">Link ảnh Poster (URL):</label>
+              <input type="text" id="editImage" class="settings-input">
+            </div>
+
+            <div class="settings-form-group">
+              <label class="settings-label">Link Vietsub chính:</label>
+              <input type="text" id="editVietsubUrl" class="settings-input" placeholder="https://www.bilibili.tv/...">
+            </div>
+
+            <div class="settings-form-group">
+              <label class="settings-label">Dàn Cast & Diễn viên (mỗi người 1 dòng):</label>
+              <textarea id="editCast" class="settings-textarea" placeholder="Nữ 1 - Trần Đan Kỳ | 30t&#10;Nam 1 - Chu Hữu Lăng | 36t"></textarea>
+            </div>
+
+            <div class="settings-form-group">
+              <label class="settings-label">Giới thiệu nội dung:</label>
+              <textarea id="editDesc" class="settings-textarea"></textarea>
+            </div>
+
+            <button class="btn-primary" id="btnSaveEditedShow">
+              <i class="fa-solid fa-floppy-disk"></i> Lưu Thay Đổi Cho Show Này
+            </button>
+          </div>
+
+          <!-- Settings Tab 3: Add New Show -->
+          <div class="tab-pane" id="stab-add">
+            <div class="settings-row-2col">
+              <div class="settings-form-group">
+                <label class="settings-label">Tên Tiếng Việt *:</label>
+                <input type="text" id="addVn" class="settings-input" placeholder="Ví dụ: Tín Hiệu Con Tim Mùa 10">
+              </div>
+              <div class="settings-form-group">
+                <label class="settings-label">Tên Tiếng Trung:</label>
+                <input type="text" id="addZh" class="settings-input" placeholder="心动的信号10">
+              </div>
+            </div>
+
+            <div class="settings-row-3col">
+              <div class="settings-form-group">
+                <label class="settings-label">Tên Tiếng Anh:</label>
+                <input type="text" id="addEn" class="settings-input" placeholder="Heart Signal 10">
+              </div>
+              <div class="settings-form-group">
+                <label class="settings-label">Quốc gia:</label>
+                <select id="addCountry" class="settings-select">
+                  <option value="china" selected>Trung Quốc</option>
+                  <option value="korea">Hàn Quốc</option>
+                  <option value="japan">Nhật Bản</option>
+                  <option value="thailand">Thái Lan</option>
+                  <option value="hongkong">Hồng Kông</option>
+                  <option value="taiwan">Đài Loan</option>
+                  <option value="other">Khác</option>
+                </select>
+              </div>
+              <div class="settings-form-group">
+                <label class="settings-label">Trạng thái:</label>
+                <select id="addStatus" class="settings-select">
+                  <option value="airing" selected>Đang chiếu</option>
+                  <option value="completed">Đã hoàn thành</option>
+                  <option value="upcoming">Sắp chiếu</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-row-3col">
+              <div class="settings-form-group">
+                <label class="settings-label">Nền tảng:</label>
+                <input type="text" id="addPlatform" class="settings-input" placeholder="Tencent Video">
+              </div>
+              <div class="settings-form-group">
+                <label class="settings-label">Lịch phát sóng:</label>
+                <input type="text" id="addTime" class="settings-input" placeholder="18h Thứ 6">
+              </div>
+              <div class="settings-form-group">
+                <label class="settings-label">Đánh giá sao:</label>
+                <input type="number" id="addRating" class="settings-input" min="1" max="5" value="5">
+              </div>
+            </div>
+
+            <div class="settings-form-group">
+              <label class="settings-label">Link ảnh poster (URL):</label>
+              <input type="text" id="addImage" class="settings-input" placeholder="https://...">
+            </div>
+
+            <div class="settings-form-group">
+              <label class="settings-label">Link xem Vietsub chính:</label>
+              <input type="text" id="addVietsubUrl" class="settings-input" placeholder="https://www.bilibili.tv/...">
+            </div>
+
+            <div class="settings-form-group">
+              <label class="settings-label">Dàn Cast / Thành viên (mỗi người 1 dòng):</label>
+              <textarea id="addCast" class="settings-textarea" placeholder="Nữ 1 - Tên | Tuổi | Nghề nghiệp&#10;Nam 1 - Tên | Tuổi | Nghề nghiệp"></textarea>
+            </div>
+
+            <div class="settings-form-group">
+              <label class="settings-label">Tóm tắt nội dung:</label>
+              <textarea id="addDesc" class="settings-textarea" placeholder="Giới thiệu về show..."></textarea>
+            </div>
+
+            <button class="btn-primary" id="btnSubmitAddShow">
+              <i class="fa-solid fa-plus"></i> Thêm Show Này Vào Danh Sách
+            </button>
+          </div>
+
+          <!-- Settings Tab 4: Export Data -->
+          <div class="tab-pane" id="stab-data">
+            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px;">
+              Sau khi bạn thêm show mới, sửa thông tin hoặc thay đổi show ghim, bấm nút bên dưới để <strong>tải file showsData.json mới</strong>. Dùng file vừa tải này để thay thế file <code style="color: var(--primary-pink);">showsData.json</code> trong thư mục hoặc đẩy lên GitHub/Vercel.
+            </p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <button class="btn-primary" id="btnDownloadJson">
+                <i class="fa-solid fa-file-arrow-down"></i> Tải showsData.json Mới Về Máy
+              </button>
+              <button class="btn-secondary" id="btnResetData">
+                <i class="fa-solid fa-arrow-rotate-left"></i> Khôi phục dữ liệu ban đầu
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Back to Top Button -->
+  <button class="btn-back-to-top" id="btnBackToTop" title="Trở về đầu trang">
+    <i class="fa-solid fa-arrow-up"></i>
+  </button>
 
   <!-- Toast Container -->
   <div class="toast-container" id="toastContainer"></div>
