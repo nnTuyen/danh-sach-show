@@ -1,2702 +1,2361 @@
-// Full dataset of shows translated to English and Vietnamese
-let showsData = [];
+/**
+ * DATING SHOW HUB (HẸN HÒ HUB)
+ * Complete Modern Application Logic with Real Site Favicons, Mobile Search, Multi-links & Large Textarea Editor
+ */
 
-// Các biến phục vụ tính năng tải trang cuộn vô hạn (Lazy Loading DOM)
-let activeFilteredShows = [];
-let showsRenderedCount = 0;
-const SHOWS_PER_PAGE = 12; // Số lượng show hiển thị mỗi lần cuộn
-const DATA_VERSION = "20260728-optimize";
-let sentinelObserver = null;
-let searchTimeout = null; // Quản lý debounce tìm kiếm tránh lag phím
-
-// Tự quản lý khôi phục vị trí cuộn khi F5 giữa trang, tránh "nhảy kép"
-// Neo theo ĐỊNH DANH SHOW (card đầu màn hình + lệch px) thay vì tọa độ pixel,
-// nên không phụ thuộc việc card/chunk nạp xong sớm hay muộn.
-if ("scrollRestoration" in history) history.scrollRestoration = "manual";
-
-let _savedScrollY = 0;
-let _savedAnchor = null; // { index: string, offset: number }
-let _userInteractedDuringLoad = false;
-let _restoringScroll = true;
-
-function releaseRestoreHold() {
-  document.documentElement.classList.remove("restore-hold");
-}
-if (document.documentElement.classList.contains("restore-hold")) {
-  // An toàn tuyệt đối: dù có gì trục trặc cũng mở trang sau 1.5s
-  setTimeout(releaseRestoreHold, 1500);
-}
-["wheel", "touchmove", "keydown"].forEach(evt => {
-  window.addEventListener(evt, () => {
-    _userInteractedDuringLoad = true;
-    _restoringScroll = false;
-    releaseRestoreHold();
-  }, { passive: true, once: true });
-});
-try {
-  _savedScrollY = Number(sessionStorage.getItem("showsite:scrollY") || 0);
-  _savedAnchor = JSON.parse(sessionStorage.getItem("showsite:scrollAnchor") || "null");
-} catch (e) { }
-
-// KHÔNG cuộn thô tại đây — khôi phục diễn ra ĐỒNG BỘ trong bootAppOnce sau khi
-// dựng nội dung từ cache; trình duyệt không thể vẽ trạng thái trung gian vì
-// body đang bị .restore-hold che cho tới khi căn xong.
-if (!_savedAnchor || (_savedAnchor.index === null && _savedAnchor.type !== "section") || _savedScrollY <= 0) {
-  _restoringScroll = false;
-}
-
-function getShowStableId(show) {
-  return [show.chinese || "", show.english || "", show.vietnamese || ""].join("||");
-}
-
-function captureScrollAnchor() {
-  let index = null;
-  let offset = 0;
-  let sectionKey = null;
-  let id = null;
-  const candidates = document.querySelectorAll("#show-cards-grid .show-card, #show-cards-grid .search-result-row");
-  // Chọn card GẦN MÉP TRÊN màn hình nhất trong 2 ứng viên:
-  //  - card cuối cùng có top <= 0 (đang ôm/qua mép)
-  //  - card đầu tiên có top > 0 (nằm dưới mép, thường đứng ngay dưới tiêu đề khu)
-  // Nhờ vậy dừng ở tiêu đề khu mới sẽ neo vào card khu mới thay vì đuôi khu trước.
-  let prevPicked = null;
-  let nextPicked = null;
-  for (const el of candidates) {
-    const top = el.getBoundingClientRect().top;
-    if (top <= 0) {
-      prevPicked = { el, top };
-      continue;
-    }
-    nextPicked = { el, top };
-    break;
-  }
-  let picked = null;
-  if (prevPicked && nextPicked) {
-    picked = Math.abs(prevPicked.top) <= nextPicked.top ? prevPicked : nextPicked;
-  } else {
-    picked = prevPicked || nextPicked;
-  }
-  if (picked) {
-    const holder = picked.el.matches(".search-result-row") ? picked.el : picked.el.querySelector("[data-show-index]");
-    const idx = holder?.getAttribute("data-show-index");
-    if (idx !== null && idx !== undefined) {
-      index = idx;
-      offset = Math.round(picked.top);
-      const numIdx = Number(idx);
-      const show = getEffectiveShows()[numIdx];
-      if (show) {
-        id = getShowStableId(show);
-        const grp = activeSections.find(g => g.items.some(it => it._index === numIdx));
-        sectionKey = grp ? grp.key : (isSearchActive() ? "flat" : null);
-      }
-    }
-  }
-
-  // (Đã bỏ neo theo tiêu đề khu vực — logic "card gần mép màn hình" phía trên
-  // đã xử lý tốt case dừng ở tiêu đề; nhánh type:"section" gây lỗi khó lường.)
-  try {
-    sessionStorage.setItem("showsite:scrollAnchor", JSON.stringify({ type: "card", index, id, section: sectionKey, offset }));
-    sessionStorage.setItem("showsite:scrollY", String(Math.round(window.scrollY)));
-  } catch (e) { }
-  if (id !== _lastLoggedAnchorIdx) {
-    _lastLoggedAnchorIdx = id;
-    console.log("[Anchor] lưu khu=", sectionKey, "offset", offset, "id=", JSON.stringify(id));
-  }
-}
-let _lastLoggedAnchorIdx = null;
-
-let _saveScrollPending = false;
-window.addEventListener("scroll", () => {
-  if (_saveScrollPending || _restoringScroll) return;
-  _saveScrollPending = true;
-  requestAnimationFrame(() => {
-    _saveScrollPending = false;
-    captureScrollAnchor();
-  });
-}, { passive: true });
-
-// Chống race: nếu người dùng bấm F5 ngay sau khi cuộn, rAF có thể chưa kịp chạy.
-// Flush anchor ĐỒNG BỘ ngay trước khi trang unload để luôn lưu đúng điểm dừng cuối.
-function flushScrollAnchor() {
-  if (_restoringScroll) return;
-  try {
-    captureScrollAnchor();
-    describeViewportSection("@LƯU(trước F5)");
-  } catch (e) { }
-}
-
-// In khu vực đang ở đỉnh màn hình để đối chiếu trước/sau F5
-function describeViewportSection(tag) {
-  const headers = document.querySelectorAll(".show-section .section-header");
-  let current = null;
-  headers.forEach(h => {
-    const t = h.getBoundingClientRect().top;
-    if (t <= 120) current = h.querySelector("h2")?.textContent || current;
-  });
-  console.log(`[View ${tag}] khu=${current || "(đầu trang)"} Y=${Math.round(window.scrollY)} docH=${document.documentElement.scrollHeight}`);
-}
-window.addEventListener("pagehide", flushScrollAnchor);
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "hidden") flushScrollAnchor();
-});
-
-let _cachedAnchorEl = null;
-let _cachedAnchorLabel = "";
-
-// Heavier: xác định phần tử card tương ứng anchor (ép nạp chunk nếu chưa render)
-function resolveSavedAnchorEl() {
-  _cachedAnchorEl = null;
-  if (!_savedAnchor) return null;
-
-  if (_savedAnchor.type === "section") {
-    const section = activeSections.find(group => group.key === _savedAnchor.section);
-    _cachedAnchorLabel = `${_savedAnchor.section} header`;
-    _cachedAnchorEl = section?.gridEl?.closest(".show-section")?.querySelector(".section-header") || null;
-    if (!_cachedAnchorEl) console.warn("[Restore] Không tìm thấy tiêu đề khu vực:", _savedAnchor.section);
-    return _cachedAnchorEl;
-  }
-
-  if (_savedAnchor.id === null && _savedAnchor.index === null) return null;
-
-  const useId = typeof _savedAnchor.id === "string" && _savedAnchor.id.length > 0;
-
-  if (isSearchActive() || _savedAnchor.section === "flat") {
-    let pos = -1;
-    if (useId) {
-      for (let i = 0; i < activeFilteredShows.length; i++) {
-        if (getShowStableId(activeFilteredShows[i]) === _savedAnchor.id) { pos = i; break; }
-      }
-    } else {
-      pos = Number(_savedAnchor.index);
-    }
-    if (pos < 0) { console.warn("[Restore] không thấy show trong danh sách tìm kiếm"); return null; }
-    _cachedAnchorLabel = `flat#${pos}`;
-    // Nạp HẾT danh sách trước khi cuộn — chống việc tài liệu thấp hơn vị trí
-    // đích bị trình duyệt kẹp lại (nguyên nhân "nhảy về ô đã chiếu")
-    let guard = 0;
-    while (showsRenderedCount < activeFilteredShows.length && guard++ < 500) {
-      loadMoreShows();
-    }
-    _cachedAnchorEl = document.querySelectorAll("#show-cards-grid .search-result-row")[pos] || null;
-    if (!_cachedAnchorEl) console.warn("[Restore] hàng kết quả chưa render:", pos);
-  } else {
-    // Nạp HẾT mọi khu vực trước khi cuộn tới anchor sâu — nếu không, tài liệu
-    // chưa đủ cao -> scrollTo bị kẹp -> đáp sai khu vực sau khi co giãn.
-    for (const g of activeSections) {
-      let guard = 0;
-      while (g.rendered < g.items.length && guard++ < 500) {
-        loadMoreForSection(g.key);
-      }
-    }
-    const targetId = useId ? _savedAnchor.id : null;
-    const targetIndex = Number(_savedAnchor.index);
-    let group = null;
-    if (useId) {
-      group = activeSections.find(g => g.items.some(it => getShowStableId(it) === targetId))
-        || activeSections.find(g => g.key === _savedAnchor.section);
-    } else {
-      group = activeSections.find(g => g.items.some(it => it._index === targetIndex));
-    }
-    if (!group || !group.gridEl) {
-      console.warn("[Restore] Không tìm thấy khu vực chứa show");
-      return null;
-    }
-    let localIdx = -1;
-    if (useId) {
-      for (let i = 0; i < group.items.length; i++) {
-        if (getShowStableId(group.items[i]) === targetId) { localIdx = i; break; }
-      }
-    } else {
-      localIdx = group.items.findIndex(it => it._index === targetIndex);
-    }
-    if (localIdx < 0) {
-      console.warn("[Restore] Không thấy show trong khu vực", group.key);
-      return null;
-    }
-    _cachedAnchorLabel = `${group.key}#local${localIdx}`;
-    let guard = 0;
-    while (localIdx >= group.rendered && group.rendered < group.items.length && guard++ < 200) {
-      loadMoreForSection(group.key);
-    }
-    const child = group.gridEl.children[localIdx];
-    _cachedAnchorEl = child && child.classList.contains("show-card") ? child : null;
-    if (!_cachedAnchorEl) console.warn("[Restore] Card chưa render dù đã nạp chunk:", _cachedAnchorLabel);
-  }
-
-  return _cachedAnchorEl;
-}
-
-// Nhẹ: dùng el đã cache, cuộn về vị trí anchor. silent=true bỏ log mỗi frame.
-function scrollToSavedAnchor(silent) {
-  if (!_cachedAnchorEl || !_cachedAnchorEl.isConnected) {
-    if (!resolveSavedAnchorEl()) return false;
-  }
-  const docTop = _cachedAnchorEl.getBoundingClientRect().top + window.scrollY;
-  const targetY = Math.max(0, docTop - (_savedAnchor.offset || 0));
-  window.scrollTo(0, targetY);
-  if (!silent) {
-    console.log("[Restore] neo", _cachedAnchorLabel, "offset", _savedAnchor.offset, "docTop", Math.round(docTop), "-> Y", Math.round(targetY));
-  }
-  return true;
-}
-
-let _initialRestored = false;
-function restoreScrollFromAnchorSync() {
-  if (_initialRestored) return;
-  _initialRestored = true;
-
-  if (_userInteractedDuringLoad) {
-    _restoringScroll = false;
-    releaseRestoreHold();
-    return;
-  }
-
-  if (_savedAnchor && (_savedAnchor.type === "section" || _savedAnchor.id || _savedAnchor.index !== null) && _savedScrollY > 0) {
-    console.log("[Restore] bắt đầu — anchor:", JSON.stringify(_savedAnchor), "savedY:", _savedScrollY);
-
-    // Vòng lặp ổn định: căn anchor MỖI FRAME trong lúc trang còn ẩn, chỉ mở khóa
-    // khi bố cục ngừng trôi (font subset nạp muộn, ảnh hoãn của Edge,
-    // content-visibility thay kích thước ước lượng bằng kích thước thật...).
-    // Điều kiện mở: vị trí đứng yên 6 frame liên tiếp, hoặc quá 2s.
-    const start = performance.now();
-    let lastTop = null;
-    let stableFrames = 0;
-    const step = () => {
-      if (_userInteractedDuringLoad) {
-        _restoringScroll = false;
-        releaseRestoreHold();
-        return;
-      }
-      scrollToSavedAnchor(true);
-      const el = _cachedAnchorEl;
-      const top = el && el.isConnected ? el.getBoundingClientRect().top : null;
-      if (top !== null && lastTop !== null && Math.abs(top - lastTop) <= 1) stableFrames++;
-      else stableFrames = 0;
-      lastTop = top;
-      if (stableFrames >= 6 || performance.now() - start > 2000) {
-        console.log("[Restore] chốt sau", Math.round(performance.now() - start), "ms — docTop", top === null ? "?" : Math.round(top), "-> Y", Math.round(window.scrollY));
-        describeViewportSection("@MỞ (sau F5)");
-        _restoringScroll = false;
-        releaseRestoreHold();
-        return;
-      }
-      requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-    return;
-  }
-
-  _restoringScroll = false;
-  releaseRestoreHold();
-}
-
-let _searchIndexCache = new Map();
-const dialogState = {
-  stack: [],
-  restoreFocus: new WeakMap()
+// Application State
+const state = {
+  shows: [],
+  filteredShows: [],
+  filters: {
+    search: '',
+    country: 'all',
+    status: 'all',
+    platform: 'all',
+    tag: 'all',
+    sort: 'airing-first', // Default sort is airing-first
+    onlyFavorites: false
+  },
+  viewMode: 'grid', // 'grid' | 'list'
+  theme: 'dark',
+  favorites: [],
+    spotlightSlugs: [],
+  activeShow: null,
+  activeEditorTargetId: null
 };
 
-// Cache DOM references cho modal để tránh getElementById mỗi lần click
-let _modalEls = null;
-function getModalEls() {
-  if (!_modalEls) {
-    _modalEls = {
-      modal: document.getElementById("show-modal"),
-      container: document.getElementById("modal-container-el"),
-      title: document.getElementById("modal-title-el"),
-      zh: document.getElementById("modal-zh-el"),
-      en: document.getElementById("modal-en-el"),
-      vi: document.getElementById("modal-vi-el"),
-      badges: document.getElementById("modal-badges-el"),
-      ratingSlot: document.getElementById("modal-rating-slot"),
-      poster: document.getElementById("modal-poster-el"),
-      linksCard: document.getElementById("modal-links-card"),
-      linksToggle: document.getElementById("modal-links-toggle"),
-      linksSummary: document.getElementById("modal-links-summary"),
-      linksEl: document.getElementById("modal-links-el"),
-      desc: document.getElementById("modal-desc-el"),
-      btnZh: document.getElementById("modal-copy-zh-btn"),
-      btnEn: document.getElementById("modal-copy-en-btn"),
-      btnVi: document.getElementById("modal-copy-vi-btn")
-    };
-  }
-  return _modalEls;
+// ============================================================
+// UTILITIES & SAFE ESCAPING
+// ============================================================
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str
+    .toString()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
-function getFocusableElements(root) {
-  return [...root.querySelectorAll([
-    "a[href]",
-    "button:not([disabled])",
-    "input:not([disabled])",
-    "select:not([disabled])",
-    "textarea:not([disabled])",
-    "[tabindex]:not([tabindex='-1'])"
-  ].join(","))].filter(el => {
-    const rect = el.getBoundingClientRect();
-    return rect.width > 0 && rect.height > 0;
-  });
+function removeVietnameseAccents(str) {
+  if (!str) return '';
+  return str
+    .toString()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .toLowerCase()
+    .trim();
 }
 
-function updateBackgroundInertState() {
-  const hasOpenDialog = dialogState.stack.length > 0;
-  const main = document.querySelector("main.container");
-  if (!main) return;
-
-  if (hasOpenDialog) {
-    main.setAttribute("aria-hidden", "true");
-    if ("inert" in main) main.inert = true;
-  } else {
-    main.removeAttribute("aria-hidden");
-    if ("inert" in main) main.inert = false;
-  }
+function slugify(str) {
+  if (!str) return '';
+  return removeVietnameseAccents(str)
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
 
-function openAccessibleDialog(modal, focusTarget) {
-  if (!modal) return;
-
-  if (!dialogState.stack.includes(modal)) {
-    dialogState.restoreFocus.set(modal, document.activeElement);
-    dialogState.stack.push(modal);
-  }
-
-  modal.classList.add("active");
-  document.body.style.overflow = "hidden";
-
-  requestAnimationFrame(() => {
-    const target = focusTarget || getFocusableElements(modal)[0] || modal;
-    target?.focus?.({ preventScroll: true });
-    updateBackgroundInertState();
-  });
-}
-
-function closeAccessibleDialog(modal, { keepScrollLocked = false, restoreFocus = true } = {}) {
-  if (!modal) return;
-
-  modal.classList.remove("active");
-  dialogState.stack = dialogState.stack.filter(item => item !== modal);
-  updateBackgroundInertState();
-
-  if (!keepScrollLocked && dialogState.stack.length === 0) {
-    document.body.style.overflow = "";
-  }
-
-  if (restoreFocus) {
-    const previous = dialogState.restoreFocus.get(modal);
-    if (previous && document.contains(previous)) {
-      previous.focus?.({ preventScroll: true });
-    }
-  }
-  dialogState.restoreFocus.delete(modal);
-}
-
-function getTopActiveDialog() {
-  for (let i = dialogState.stack.length - 1; i >= 0; i -= 1) {
-    if (dialogState.stack[i].classList.contains("active")) return dialogState.stack[i];
-  }
-  return null;
-}
-
-function handleDialogKeydown(e) {
-  const modal = getTopActiveDialog();
-  if (!modal) return;
-
-  if (e.key === "Escape") {
-    e.preventDefault();
-    if (modal.id === "textarea-editor-modal") closeTextareaEditor();
-    else if (modal.id === "settings-modal") closeSettingsModal();
-    else if (modal.id === "show-modal") closeShowModal();
-    return;
-  }
-
-  if (e.key !== "Tab") return;
-
-  const focusable = getFocusableElements(modal);
-  if (!focusable.length) {
-    e.preventDefault();
-    modal.focus?.({ preventScroll: true });
-    return;
-  }
-
-  const first = focusable[0];
-  const last = focusable[focusable.length - 1];
-  if (e.shiftKey && document.activeElement === first) {
-    e.preventDefault();
-    last.focus({ preventScroll: true });
-  } else if (!e.shiftKey && document.activeElement === last) {
-    e.preventDefault();
-    first.focus({ preventScroll: true });
-  }
-}
-
-// Cache hiddenShowKeys để tránh parse JSON từ localStorage mỗi lần gọi
-let _hiddenShowKeysCache = null;
-let _hiddenShowKeysCacheDirty = true;
-
-// Remove Vietnamese accents / diacritics for better searching
-function removeVietnameseTones(str) {
-  if (!str) return "";
-  str = String(str);
-  str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
-  str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
-  str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
-  str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
-  str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
-  str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
-  str = str.replace(/đ/g, "d");
-  str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
-  str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
-  str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
-  str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
-  str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
-  str = str.replace(/Ý|Ỳ|Ỵ|Ỷ|Ỹ/g, "Y");
-  str = str.replace(/Đ/g, "D");
-  str = str.replace(/\u0300|\u0301|\u0309|\u0303|\u0323/g, ""); // Huyền sắc hỏi ngã nặng 
-  str = str.replace(/\u02c6|\u0306|\u031b/g, ""); // Â, Ă, Ơ, Ư
-  return str;
-}
-
-// Custom descriptions database mapping based on show names
-function getShowDescription(show) {
-  return "";
-}
-
-// Active state tracker for filters
-const COUNTRY_OPTIONS = [
-  { code: "china", label: "Trung Quốc", flag: "🇨🇳" },
-  { code: "korea", label: "Hàn Quốc", flag: "🇰🇷" },
-  { code: "japan", label: "Nhật Bản", flag: "🇯🇵" },
-  { code: "thailand", label: "Thái Lan", flag: "🇹🇭" },
-  { code: "taiwan", label: "Đài Loan", flag: "🇹🇼" },
-  { code: "hongkong", label: "Hồng Kông", flag: "🇭🇰" },
-  { code: "other", label: "Khác", flag: "🌏" }
-];
-
-const COUNTRY_BY_CHINESE = [
-  ["恋爱兄妹", "korea"],
-  ["仔仔一堂", "hongkong"],
-  ["男生男生配", "taiwan"]
-];
-
-const COUNTRY_BY_PLATFORM = {
-  "TVB": "hongkong",
-  "GagaOOLala": "taiwan"
+// Requirement 8: Enhanced Country mapping including 'other' and 'malaysia'
+const COUNTRY_MAP = {
+  china: { name: 'Trung Quốc', flag: '🇨🇳', code: 'cn' },
+  korea: { name: 'Hàn Quốc', flag: '🇰🇷', code: 'kr' },
+  japan: { name: 'Nhật Bản', flag: '🇯🇵', code: 'jp' },
+  thailand: { name: 'Thái Lan', flag: '🇹🇭', code: 'th' },
+  hongkong: { name: 'Hồng Kông', flag: '🇭🇰', code: 'hk' },
+  taiwan: { name: 'Đài Loan', flag: '🇹🇼', code: 'tw' },
+  malaysia: { name: 'Malaysia', flag: '🇲🇾', code: 'my' },
+  other: { name: 'Quốc gia khác', flag: '🌏', code: null }
 };
 
-let currentFilters = {
-  search: "",
-  status: "all",
-  country: "all",
-  tag: "all",
-  sort: "name-asc"
-};
+function getCountryInfo(code) {
+  return COUNTRY_MAP[code] || { name: 'Quốc gia khác', flag: '🌏', code: null };
+}
 
-const CUSTOM_SHOWS_STORAGE_KEY = "cnDatingShowsCustomShowsV1";
-const HIDDEN_SHOWS_STORAGE_KEY = "cnDatingShowsHiddenShowsV1";
-let currentModalIndex = null;
-let settingsLocked = true;
-let settingsSearchQuery = "";
-let customShows = loadCustomShows();
+// Windows renders flag emoji as letter codes (CN, KR...), so use real flag images.
+// Falls back to emoji for 'other'/unknown (globe renders fine everywhere).
+function countryFlagHtml(code) {
+  const info = getCountryInfo(code);
+  if (!info.code) return info.flag;
+  return `<img src="https://flagcdn.com/w40/${info.code}.png" alt="${escapeHtml(info.name)}" class="flag-img" loading="lazy" onerror="this.remove()">`;
+}
 
-function loadCustomShows() {
-  try {
-    const raw = localStorage.getItem(CUSTOM_SHOWS_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter(item => item && typeof item === "object") : [];
-  } catch (err) {
-    console.warn("Không đọc được danh sách show tự thêm:", err);
-    return [];
+function getStatusBadge(status) {
+  switch (status) {
+    case 'airing':
+      return {
+        className: 'airing',
+        html: '<span class="stat-pulse-dot"></span> Đang chiếu'
+      };
+    case 'completed':
+      return {
+        className: 'completed',
+        html: '<i class="fa-solid fa-flag-checkered"></i> Hoàn thành'
+      };
+    case 'upcoming':
+      return {
+        className: 'upcoming',
+        html: '<i class="fa-regular fa-clock"></i> Sắp chiếu'
+      };
+    default:
+      return {
+        className: 'completed',
+        html: status || 'Chưa rõ'
+      };
   }
 }
 
-function saveCustomShows() {
-  try {
-    localStorage.setItem(CUSTOM_SHOWS_STORAGE_KEY, JSON.stringify(customShows));
-  } catch (err) {
-    console.warn("Lỗi khi lưu custom shows:", err);
-  }
+// Format year string nicely (e.g. "1-6-2026" -> "2026", "2025" -> "2025")
+function formatYear(yearStr) {
+  if (!yearStr) return '';
+  const match = yearStr.toString().match(/\b(20\d\d)\b/);
+  return match ? match[1] : yearStr;
 }
 
-function cleanRuntimeFields(show) {
-  const cleaned = { ...show };
-  delete cleaned._index;
-  delete cleaned._isCustom;
-  delete cleaned._customId;
-  delete cleaned._showsDataIndex;
-  delete cleaned._searchToken;
-  return cleaned;
+// Toast notification
+function showToast(message, icon = 'fa-check') {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `<i class="fa-solid ${icon}" style="color: var(--primary-pink);"></i> <span>${message}</span>`;
+  container.appendChild(toast);
+
+  setTimeout(() => toast.classList.add('show'), 10);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, 2800);
 }
 
-function mergeLegacyCustomShowsIntoShowsData() {
-  if (!Array.isArray(customShows) || !customShows.length) return;
+// Copy helper
+function copyText(text, label = '', e) {
+  if (e) e.stopPropagation();
+  if (!text) return;
 
-  customShows.forEach(customShow => {
-    const cleaned = cleanRuntimeFields(customShow);
-    const duplicateIndex = showsData.findIndex(show =>
-      show.chinese === cleaned.chinese ||
-      (show.english && cleaned.english && show.english === cleaned.english) ||
-      (show.vietnamese && cleaned.vietnamese && show.vietnamese === cleaned.vietnamese)
-    );
-
-    if (duplicateIndex >= 0) {
-      showsData[duplicateIndex] = { ...showsData[duplicateIndex], ...cleaned };
-    } else {
-      showsData.push(cleaned);
-    }
-  });
-
-  customShows = [];
-  saveCustomShows();
-  invalidateSearchIndex();
-}
-
-function loadHiddenShowKeys() {
-  if (!_hiddenShowKeysCacheDirty && _hiddenShowKeysCache !== null) {
-    return _hiddenShowKeysCache;
-  }
-  try {
-    const raw = localStorage.getItem(HIDDEN_SHOWS_STORAGE_KEY);
-    if (!raw) {
-      _hiddenShowKeysCache = [];
-    } else {
-      const parsed = JSON.parse(raw);
-      _hiddenShowKeysCache = Array.isArray(parsed) ? parsed.filter(item => typeof item === "string") : [];
-    }
-  } catch (err) {
-    console.warn("Không đọc được danh sách show đã ẩn:", err);
-    _hiddenShowKeysCache = [];
-  }
-  _hiddenShowKeysCacheDirty = false;
-  return _hiddenShowKeysCache;
-}
-
-function saveHiddenShowKeys(keys) {
-  try {
-    localStorage.setItem(HIDDEN_SHOWS_STORAGE_KEY, JSON.stringify(keys));
-  } catch (err) {
-    console.warn("Lỗi khi lưu hidden show keys:", err);
-  }
-  _hiddenShowKeysCacheDirty = true;
-  invalidateSearchIndex();
-}
-
-function getShowKey(show) {
-  return show._customId || show.chinese;
-}
-
-// Pre-computed Search Index Builder
-function computeShowSearchToken(show) {
-  const values = [
-    show.chinese,
-    show.english,
-    show.vietnamese,
-    show.platform,
-    countryLabel(getShowCountry(show)),
-    show.time,
-    show.episodeProgress,
-    show.airingNote,
-    show.detailNotes,
-    show.description || getShowDescription(show),
-    statusLabel(show.status),
-    tagToString(show.tags)
-  ];
-  const raw = values.filter(Boolean).join(" ").toLowerCase();
-  return `${raw} ${removeVietnameseTones(raw)}`;
-}
-
-function prepareShowsSearchTokens() {
-  showsData.forEach(show => {
-    show._searchToken = computeShowSearchToken(show);
-  });
-}
-
-function invalidateSearchIndex() {
-  _searchIndexCache = new Map();
-  prepareShowsSearchTokens();
-}
-
-function findShowsDataIndexByKey(key) {
-  return showsData.findIndex(show => getShowKey(show) === key);
-}
-
-function getAllShowsRaw() {
-  const hidden = new Set(loadHiddenShowKeys());
-  return showsData
-    .map((show, idx) => ({ ...show, _showsDataIndex: idx, _isCustom: false }))
-    .filter(show => !hidden.has(getShowKey(show)));
-}
-
-function resolveShowIndex(index) {
-  const allShows = getAllShowsRaw();
-  if (index < 0 || index >= allShows.length) return null;
-
-  const baseShow = allShows[index];
-  const isCustom = !!baseShow._isCustom;
-  const customIndex = isCustom
-    ? customShows.findIndex(show => getShowKey(show) === getShowKey(baseShow))
-    : -1;
-
-  return { baseShow, isCustom, customIndex };
-}
-
-function getShowRating(show) {
-  const rating = Number(show?.rating);
-  if (!Number.isFinite(rating) || rating <= 0) return 0;
-  return Math.min(5, Math.max(0, Math.round(rating)));
-}
-
-function isValidCountryCode(code) {
-  return COUNTRY_OPTIONS.some(option => option.code === code);
-}
-
-function inferShowCountry(show) {
-  for (const [keyword, country] of COUNTRY_BY_CHINESE) {
-    if (show.chinese && show.chinese.includes(keyword)) return country;
-  }
-  if (show.platform && COUNTRY_BY_PLATFORM[show.platform]) {
-    return COUNTRY_BY_PLATFORM[show.platform];
-  }
-  return "china";
-}
-
-function getShowCountry(show) {
-  const stored = String(show?.country || "").trim();
-  if (stored && isValidCountryCode(stored)) return stored;
-  return inferShowCountry(show);
-}
-
-function getCountryMeta(code) {
-  return COUNTRY_OPTIONS.find(option => option.code === code) || COUNTRY_OPTIONS[COUNTRY_OPTIONS.length - 1];
-}
-
-function countryLabel(code) {
-  return getCountryMeta(code).label;
-}
-
-function renderCountryBadge(show) {
-  const code = getShowCountry(show);
-  const meta = getCountryMeta(code);
-  return `<span class="badge badge-country ${code}" title="Quốc gia: ${escapeHtml(meta.label)}">${meta.flag} ${escapeHtml(meta.label)}</span>`;
-}
-
-function parseWatchLinkEntry(entry) {
-  if (!entry) return null;
-
-  if (typeof entry === "string") {
-    const url = entry.trim();
-    return url ? { url, label: "" } : null;
-  }
-
-  if (typeof entry === "object") {
-    const url = String(entry.url || entry.link || "").trim();
-    const label = String(entry.label || entry.name || "").trim();
-    return url ? { url, label } : null;
-  }
-
-  return null;
-}
-
-function detectPlatformFromUrl(url) {
-  if (!url) return "";
-  const lower = url.toLowerCase();
-  if (lower.includes("iqiyi.com") || lower.includes("iqiyi")) return "iQiyi";
-  if (lower.includes("v.qq.com") || lower.includes("tencent")) return "v.qq";
-  if (lower.includes("mgtv.com") || lower.includes("mango")) return "Mango TV";
-  if (lower.includes("youku.com") || lower.includes("youku")) return "Youku";
-  if (lower.includes("bilibili.com") || lower.includes("bili")) return "Bilibili";
-  if (lower.includes("rophim1.vip") || lower.includes("rophim")) return "Rophim";
-  if (lower.includes("yeuphim.biz") || lower.includes("yeuphim")) return "Yêu Phim";
-  if (lower.includes("mamphim.site") || lower.includes("mamphim")) return "Mâm Phim";
-  if (lower.includes("phimvietsub.site") || lower.includes("phimvietsub")) return "Phim Việt Sub";
-  if (lower.includes("youtube.com") || lower.includes("youtu.be")) return "YouTube";
-  if (lower.includes("ok.ru")) return "OK.ru";
-  if (lower.includes("vkvideo")) return "vkvideo";
-  if (lower.includes("dzen.ru")) return "dzen.ru";
-  if (lower.includes("onflix.lat")) return "Onflix";
-  if (lower.includes("t.me")) return "Telegram";
-  if (lower.includes("wetv.vip")) return "Wetv";
-  if (lower.includes("rumble.com") || lower.includes("rumble")) return "Rumble";
-  if (lower.includes("dailymotion.com") || lower.includes("dailymotion")) return "Dailymotion";
-  if (lower.includes("kisskh.co") || lower.includes("kisskh")) return "KissKh";
-  if (lower.includes("d.tube") || lower.includes("dtube")) return "D.Tube";
-  if (lower.includes("odysee.com") || lower.includes("odysee")) return "Odysee";
-  return "";
-}
-
-function getWatchLinksByType(show, type) {
-  const arrayKey = type === "chinese" ? "chineseWatchUrls" : "vietnameseWatchUrls";
-  const legacyKey = type === "chinese" ? "chineseWatchUrl" : "vietnameseWatchUrl";
-  const entries = [];
-  const seen = new Set();
-
-  const addEntry = raw => {
-    const parsed = parseWatchLinkEntry(raw);
-    if (!parsed || seen.has(parsed.url)) return;
-    seen.add(parsed.url);
-    entries.push(parsed);
+  const doSuccess = () => {
+    showToast(label ? `Đã sao chép ${label}: "${text}"` : `Đã sao chép: "${text}"`, 'fa-clipboard-check');
   };
 
-  if (Array.isArray(show[arrayKey])) {
-    show[arrayKey].forEach(addEntry);
-  }
-  if (show[legacyKey]) {
-    addEntry(show[legacyKey]);
-  }
-
-  const total = entries.length;
-  return entries.map((entry, index) => {
-    let label = entry.label;
-    let detected = detectPlatformFromUrl(entry.url);
-    let note = "";
-
-    if (type === "chinese") {
-      if (!label) {
-        label = total > 1 ? `Nơi chiếu tiếng Trung #${index + 1}` : "Nơi chiếu tiếng Trung";
-      }
-      note = detected || show.platform || "Tiếng Trung";
-    } else {
-      if (!label) {
-        label = total > 1 ? `Link tiếng Việt #${index + 1}` : "Web chiếu tiếng Việt";
-      }
-      note = detected || "Link phụ đề/thuyết minh";
-    }
-
-    return { url: entry.url, label, note };
-  });
-}
-
-function getChineseWatchLinks(show) {
-  return getWatchLinksByType(show, "chinese");
-}
-
-function getVietnameseWatchLinks(show) {
-  return getWatchLinksByType(show, "vietnamese");
-}
-
-function collectWatchLinksFromItem(item, type) {
-  return [...item.querySelectorAll(`.watch-link-row[data-watch-link-type="${type}"]`)]
-    .map(row => {
-      const url = row.querySelector(`input[data-watch-link-url-type="${type}"]`)?.value.trim() || "";
-      const label = row.querySelector(`input[data-watch-link-label-type="${type}"]`)?.value.trim() || "";
-      if (!url) return null;
-      return label ? { url, label } : { url };
-    })
-    .filter(Boolean);
-}
-
-function applyWatchLinksToData(data, item) {
-  const chineseLinks = collectWatchLinksFromItem(item, "chinese");
-  const vietnameseLinks = collectWatchLinksFromItem(item, "vietnamese");
-
-  if (chineseLinks.length) {
-    data.chineseWatchUrls = chineseLinks;
-    data.chineseWatchUrl = chineseLinks[0].url;
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(doSuccess).catch(() => fallbackCopy(text, doSuccess));
   } else {
-    delete data.chineseWatchUrls;
-    delete data.chineseWatchUrl;
+    fallbackCopy(text, doSuccess);
   }
-
-  if (vietnameseLinks.length) {
-    data.vietnameseWatchUrls = vietnameseLinks;
-    data.vietnameseWatchUrl = vietnameseLinks[0].url;
-  } else {
-    delete data.vietnameseWatchUrls;
-    delete data.vietnameseWatchUrl;
-  }
-
-  return data;
 }
 
-function renderWatchLinkRow(index, type, link = { url: "", label: "" }, canRemove = true) {
-  const labelPlaceholder = type === "chinese"
-    ? "Tên hiển thị (VD: Tencent, Mango TV...)"
-    : "Tên hiển thị (VD: FPT Play, VieON, YouTube...)";
-
-  return `
-        <div class="watch-link-row" data-watch-link-type="${type}">
-          <input class="settings-input watch-link-label-input" type="text" name="watch-link-label-${type}" data-watch-link-label-type="${type}" placeholder="${labelPlaceholder}" value="${escapeHtml(link.label || "")}" ${settingsLocked ? "disabled" : ""}>
-          <div class="watch-link-url-line">
-            <input class="settings-input watch-link-input" type="url" name="watch-link-url-${type}" data-watch-link-url-type="${type}" placeholder="https://..." value="${escapeHtml(link.url || "")}" ${settingsLocked ? "disabled" : ""}>
-            <div class="watch-link-actions">
-              <button type="button" class="watch-link-move-btn" onclick="moveWatchLinkRow(this, 'up')" title="Di chuyển lên" ${settingsLocked ? "disabled" : ""}>
-                <i class="fa-solid fa-arrow-up"></i>
-              </button>
-              <button type="button" class="watch-link-move-btn" onclick="moveWatchLinkRow(this, 'down')" title="Di chuyển xuống" ${settingsLocked ? "disabled" : ""}>
-                <i class="fa-solid fa-arrow-down"></i>
-              </button>
-              <button type="button" class="watch-link-remove-btn" onclick="removeWatchLinkRow(this)" title="Xóa link" ${(canRemove && !settingsLocked) ? "" : "disabled"}>
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      `;
+function fallbackCopy(text, onSuccess) {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  document.body.appendChild(textArea);
+  textArea.select();
+  try {
+    document.execCommand('copy');
+    if (onSuccess) onSuccess();
+  } catch (err) {
+    prompt('Sao chép đoạn văn bản dưới đây:', text);
+  }
+  document.body.removeChild(textArea);
 }
 
-function moveWatchLinkRow(button, direction) {
-  if (settingsLocked) return;
-  const row = button.closest(".watch-link-row");
-  if (!row) return;
-
-  const parent = row.parentElement;
-  if (direction === "up") {
-    const prev = row.previousElementSibling;
-    if (prev && prev.classList.contains("watch-link-row")) {
-      parent.insertBefore(row, prev);
+// ============================================================
+// REQUIREMENT 3: OFFICIAL SITE FAVICONS (High-Resolution Favicon)
+// ============================================================
+function getDomainFromUrl(url) {
+  try {
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url;
     }
-  } else if (direction === "down") {
-    const next = row.nextElementSibling;
-    if (next && next.classList.contains("watch-link-row")) {
-      parent.insertBefore(next, row);
-    }
+    const parsed = new URL(url);
+    return parsed.hostname.replace(/^www\./, '');
+  } catch (e) {
+    return '';
   }
 }
 
-function updateWatchLinkRemoveButtons(editor) {
-  if (!editor) return;
-  const rows = editor.querySelectorAll(".watch-link-row");
-  rows.forEach(row => {
-    const removeBtn = row.querySelector(".watch-link-remove-btn");
-    if (removeBtn) removeBtn.disabled = settingsLocked || rows.length <= 1;
-  });
-}
+// Fixed official logos for domains missing from Google's favicon service
+// (e.g. bilibili.tv returns a generic globe icon there) - stored locally, no hotlink issues
+const FIXED_DOMAIN_LOGOS = {
+  'bilibili.tv': './images/logo-bilibili.ico',
+  'bili.im': './images/logo-bilibili.ico',
+  'rophim1.vip': './images/logo-rophim.ico',
+  'mintplay-vn.vercel.app': './images/logo-mintplay.png'
+};
 
-function addWatchLinkRow(index, type) {
-  if (settingsLocked) return;
+function getWebsiteFaviconHtml(url, label) {
+  const domain = getDomainFromUrl(url);
 
-  const editor = document.getElementById(`watch-links-${index}-${type}`);
-  if (!editor) return;
-
-  const temp = document.createElement("div");
-  temp.innerHTML = renderWatchLinkRow(index, type, { url: "", label: "" }, true);
-  const row = temp.firstElementChild;
-  editor.appendChild(row);
-  updateWatchLinkRemoveButtons(editor);
-  row.querySelector(`input[data-watch-link-label-type="${type}"]`)?.focus();
-}
-
-function removeWatchLinkRow(button) {
-  if (settingsLocked) return;
-
-  const row = button.closest(".watch-link-row");
-  const editor = row?.parentElement;
-  if (!row || !editor) return;
-
-  if (editor.querySelectorAll(".watch-link-row").length <= 1) {
-    row.querySelectorAll("input").forEach(input => { input.value = ""; });
-    return;
+  if (!domain) {
+    return `
+      <div class="site-favicon-img" style="display:flex;align-items:center;justify-content:center;background:#ff2e7e;color:#fff;">
+        <i class="fa-solid fa-play" style="font-size:11px;"></i>
+      </div>`;
   }
 
-  row.remove();
-  updateWatchLinkRemoveButtons(editor);
+  const fallbackSvg = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='6' fill='%236366f1'/><path d='M9.5 8L16 12L9.5 16V8Z' fill='%23fff'/></svg>`;
+
+  // Use fixed official logo when available, otherwise Google's favicon service
+  const lowerDomain = domain.toLowerCase();
+  const overrideKey = Object.keys(FIXED_DOMAIN_LOGOS).find(k => lowerDomain === k || lowerDomain.endsWith('.' + k));
+  const faviconUrl = overrideKey
+    ? FIXED_DOMAIN_LOGOS[overrideKey]
+    : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`;
+
+  return `<img src="${faviconUrl}" alt="${escapeHtml(domain)}" class="site-favicon-img" loading="lazy" onerror="this.onerror=null; this.src='${fallbackSvg}';">`;
 }
 
-function compareShowsByRatingAndName(a, b) {
-  const nameA = removeVietnameseTones((a.vietnamese || "").toLowerCase());
-  const nameB = removeVietnameseTones((b.vietnamese || "").toLowerCase());
-  return nameA.localeCompare(nameB, "vi");
-}
-
-function renderStarDisplay(rating) {
-  const stars = Number(rating);
-  if (!stars || stars <= 0) return "";
-  const icons = Array.from({ length: 5 }, (_, index) => {
-    const filled = index < stars;
-    return `<i class="fa-${filled ? "solid" : "regular"} fa-star"></i>`;
-  }).join("");
-  return `<span class="show-rating" title="Đánh giá ${stars}/5">${icons}</span>`;
-}
-
-function updateStarPickerVisual(picker, rating) {
-  if (!picker) return;
-  picker.querySelectorAll(".star-btn").forEach((button, starIndex) => {
-    const active = starIndex + 1 <= rating;
-    button.classList.toggle("active", active);
-    const icon = button.querySelector("i");
-    if (icon) icon.className = `fa-${active ? "solid" : "regular"} fa-star`;
-  });
-}
-
-function syncRatingPickers(index, rating) {
-  const hiddenInput = document.getElementById(`settings-${index}-rating`);
-  if (hiddenInput) hiddenInput.value = String(rating);
-  document.querySelectorAll(`[data-rating-index="${index}"]`).forEach(picker => {
-    updateStarPickerVisual(picker, rating);
-  });
-  const modalSlot = document.getElementById("modal-rating-slot");
-  if (modalSlot && currentModalIndex === index) {
-    modalSlot.innerHTML = renderInteractiveStarRating(index, rating);
-  }
-}
-
-function renderInteractiveStarRating(index, rating) {
-  const current = getShowRating({ rating });
-  const stars = Array.from({ length: 5 }, (_, starIndex) => {
-    const value = starIndex + 1;
-    const active = value <= current;
-    const clearHint = value === current && current > 0 ? " (bấm lại để xóa)" : "";
-    return `<button type="button" class="star-btn ${active ? "active" : ""}" data-star-value="${value}" onclick="event.stopPropagation(); saveShowRating(${index}, ${value})" title="${value} sao${clearHint}"><i class="fa-${active ? "solid" : "regular"} fa-star"></i></button>`;
-  }).join("");
-
-  return `
-        <div class="interactive-rating card-rating-picker" data-rating-index="${index}" onclick="event.stopPropagation()">
-          <span class="interactive-rating-label">Đánh giá</span>
-          ${stars}
-        </div>
-      `;
-}
-
-function saveShowRating(index, value) {
-  const resolved = resolveShowIndex(index);
-  if (!resolved) return;
-
-  let rating = Math.min(5, Math.max(0, parseInt(value, 10) || 0));
-  const currentShow = getEffectiveShows().find(show => show._index === index);
-  const currentRating = getShowRating(currentShow || {});
-
-  if (rating > 0 && rating === currentRating) {
-    rating = 0;
-  }
-
-  if (resolved.isCustom) {
-    const updated = { ...customShows[resolved.customIndex] };
-    if (rating > 0) updated.rating = rating;
-    else delete updated.rating;
-    customShows[resolved.customIndex] = updated;
-    saveCustomShows();
-  } else {
-    const baseIndex = resolved.baseShow._showsDataIndex;
-    if (baseIndex !== undefined && baseIndex >= 0 && baseIndex < showsData.length) {
-      if (rating > 0) showsData[baseIndex].rating = rating;
-      else delete showsData[baseIndex].rating;
-    }
-  }
-
-  syncRatingPickers(index, rating);
-  updateStatistics();
-
-  if (currentFilters.sort === "stars") {
-    renderShows();
-  }
-
-  const showName = currentShow?.vietnamese || "show";
-  if (rating > 0) {
-    showToast(`Đã đánh giá "${showName}" ${rating} sao`);
-  } else {
-    showToast(`Đã xóa đánh giá của "${showName}"`);
-  }
-}
-
-function getShowWithUserData(show) {
-  return { ...show };
-}
-
-function getShowImage(show) {
-  return show.image || show.poster || show.posterUrl || "";
-}
-
-// Proxy resize ảnh qua wsrv.nl (WebP q80) - file nhẹ hơn 80-90%, được cache ở edge.
-// Ảnh thêm mới vào showsData.json chỉ cần dán link gốc như cũ, tự động đi qua proxy.
-// Nếu proxy lỗi -> tự fallback về link gốc; link gốc cũng lỗi -> hiện placeholder.
-const IMAGE_PROXY_BASE = "https://wsrv.nl/?";
+// ============================================================
+// IMAGE PROXY: resize + compress posters via wsrv.nl (free)
+// WebP q80, edge-cached. Falls back to original URL on error.
+// New images in showsData.json just use the original link as before.
+// ============================================================
+const IMAGE_PROXY_BASE = 'https://wsrv.nl/?';
 const IMAGE_PROXY_QUALITY = 80;
 
 function getProxiedImageUrl(url, width) {
   if (!url || !/^https?:\/\//i.test(url)) return url;
   if (/^https?:\/\/wsrv\.nl\//i.test(url)) return url;
   const params = new URLSearchParams({
-    url,
+    url: url,
     w: String(width),
     q: String(IMAGE_PROXY_QUALITY),
-    output: "webp"
+    output: 'webp'
   });
   return IMAGE_PROXY_BASE + params.toString();
 }
 
-function handleImageLoadError(img) {
+// Poster <img> error handler: retry original once, then fallback image
+function handlePosterImgError(img, fallbackUrl) {
+  const original = img.getAttribute('data-original-src');
+  if (original && !img.dataset.origTried) {
+    img.dataset.origTried = '1';
+    img.src = original;
+    return;
+  }
   img.onerror = null;
-  const original = img.getAttribute("data-original-src");
-  const current = img.getAttribute("src") || "";
-  if (img.dataset.proxyFailed !== "1" && original && current !== original) {
-    img.dataset.proxyFailed = "1";
-    img.setAttribute("src", original);
-    return;
+  if (fallbackUrl) img.src = fallbackUrl;
+}
+
+// ============================================================
+// THEME MANAGER
+// ============================================================
+function initTheme() {
+  const savedTheme = localStorage.getItem('datinghub_theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  state.theme = savedTheme || (prefersDark ? 'dark' : 'light');
+  applyTheme(state.theme);
+
+  const toggleBtn = document.getElementById('themeToggleBtn');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('datinghub_theme', state.theme);
+      applyTheme(state.theme);
+      showToast(`Đã chuyển sang giao diện ${state.theme === 'dark' ? 'Tối' : 'Sáng'}`);
+    });
   }
-  switch (img.getAttribute("data-error-mode")) {
-    case "card-thumb":
-      img.parentElement.innerHTML = '<i class="fa-regular fa-image card-thumb-placeholder"></i>';
-      break;
-    case "modal-poster":
-      img.parentElement.innerHTML = '<div class=\'modal-poster-placeholder\'><i class="fa-regular fa-image"></i><div>Không tải được ảnh</div></div>';
-      break;
-    case "icon":
-      img.parentElement.innerHTML = '<i class="fa-regular fa-image"></i>';
-      break;
-    default:
-      img.remove();
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  const themeIcon = document.getElementById('themeIcon');
+  if (themeIcon) {
+    themeIcon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    themeIcon.title = theme === 'dark' ? 'Chuyển sang chế độ Sáng' : 'Chuyển sang chế độ Tối';
   }
 }
 
-function getShowYear(show) {
-  const directYear = show.year || show.releaseYear || show.airYear || show.premiereYear;
-  if (directYear) return String(directYear);
-
-  const text = [show.time, show.releaseDate, show.airDate, show.premiereDate].filter(Boolean).join(" ");
-  const match = text.match(/\b(19|20)\d{2}\b/);
-  return match ? match[0] : "";
-}
-
-function getEffectiveShows() {
-  return getAllShowsRaw().map((show, index) => ({
-    ...getShowWithUserData(show),
-    _index: index,
-    _isCustom: !!show._isCustom
-  }));
-}
-
-function updateStatistics() {
-  const effectiveShows = getEffectiveShows();
-  const stats = effectiveShows.reduce((acc, show) => {
-    acc.total += 1;
-    if (show.status === "upcoming") acc.upcoming += 1;
-    else if (show.status === "airing") acc.airing += 1;
-    else if (show.status === "completed") acc.completed += 1;
-    return acc;
-  }, { total: 0, upcoming: 0, airing: 0, completed: 0 });
-
-  document.getElementById("stat-total").textContent = stats.total;
-  document.getElementById("stat-upcoming").textContent = stats.upcoming;
-  document.getElementById("stat-airing").textContent = stats.airing;
-  document.getElementById("stat-completed").textContent = stats.completed;
-}
-
-function copyToClipboard(text, buttonElement, message = "Đã sao chép!") {
-  navigator.clipboard.writeText(text).then(() => {
-    const originalHtml = buttonElement.innerHTML;
-    buttonElement.classList.add("success");
-    buttonElement.innerHTML = '<i class="fa-solid fa-check"></i>';
-
-    showToast(`${message}: "${text}"`);
-
-    setTimeout(() => {
-      buttonElement.classList.remove("success");
-      buttonElement.innerHTML = originalHtml;
-    }, 1500);
-  }).catch(err => {
-    showToast("Không thể sao chép! Lỗi hệ thống.", true);
-    console.error("Lỗi copy: ", err);
-  });
-}
-
-function showToast(msg, isError = false) {
-  const container = document.getElementById("toast-container");
-  if (!container) return;
-  const toast = document.createElement("div");
-  toast.className = "toast";
-  const icon = document.createElement("i");
-  icon.className = isError ? "fa-solid fa-circle-exclamation" : "fa-solid fa-circle-check";
-  if (isError) icon.style.color = "#ef4444";
-
-  const message = document.createElement("span");
-  message.textContent = msg;
-
-  if (isError) {
-    toast.style.borderColor = "#ef4444";
+// ============================================================
+// FAVORITES (BOOKMARKS)
+// ============================================================
+function initFavorites() {
+  try {
+    const saved = localStorage.getItem('datinghub_favorites');
+    state.favorites = saved ? JSON.parse(saved) : [];
+  } catch (e) {
+    state.favorites = [];
   }
-  toast.append(icon, message);
+  updateFavoritesBadge();
 
-  container.appendChild(toast);
-
-  setTimeout(() => toast.classList.add("show"), 50);
-
-  setTimeout(() => {
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 400);
-  }, 2800);
-}
-
-function getPlatformClass(platform) {
-  if (!platform) return "undecided";
-  const lower = platform.toLowerCase();
-  if (lower.includes("tencent") || lower.includes("qq")) return "v.qq";
-  if (lower.includes("mango") || lower.includes("mgtv")) return "mango";
-  if (lower.includes("youku")) return "youku";
-  if (lower.includes("iqiyi")) return "iqiyi";
-  if (lower.includes("bili")) return "bilibili";
-  if (lower.includes("rumble")) return "rumble";
-  if (lower.includes("odysee")) return "odysee";
-  if (lower.includes("kisskh")) return "kisskh";
-  if (lower.includes("dtube")) return "dtube";
-  if (lower.includes("mamphim")) return "mamphim";
-  if (lower.includes("yeuphim")) return "yeuphim";
-  if (lower.includes("rophim")) return "rophim";
-  if (lower.includes("phimvietsub")) return "phimvietsub";
-  if (lower.includes("ok.ru")) return "ok.ru";
-  if (lower.includes("vkvideo")) return "vkvideo";
-  if (lower.includes("dzen.ru")) return "dzen.ru";
-  if (lower.includes("onflix")) return "onflix";
-  if (lower.includes("t.me")) return "telegram";
-  if (lower.includes("wetv")) return "wetv";
-  if (lower.includes("dailymotion")) return "dailymotion";
-  if (lower.includes("youtube")) return "youtube";
-  if (lower.includes("migu")) return "migu";
-  if (lower.includes("tvb")) return "tvb";
-  if (lower.includes("gaga")) return "gaga";
-  return "undecided";
-}
-
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-function applyUserEditableFields(show) {
-  const description = show.description && show.description.trim() ? show.description.trim() : getShowDescription(show);
-  const detailsHtml = renderDetailUpdates(show);
-  document.getElementById("modal-desc-el").innerHTML = `<div class="modal-desc-text">${escapeHtml(description)}</div>${detailsHtml}`;
-  renderShowPoster(show);
-  renderShowLinks(show);
-}
-
-function renderDetailUpdates(show) {
-  const chips = [];
-  if (show.episodeProgress) {
-    chips.push(`<span class="detail-info-chip"><i class="fa-solid fa-tv"></i>${escapeHtml(show.episodeProgress)}</span>`);
-  }
-  if (show.airingNote) {
-    chips.push(`<span class="detail-info-chip"><i class="fa-solid fa-clock"></i>${escapeHtml(show.airingNote)}</span>`);
-  }
-
-  const notesHtml = show.detailNotes ? `
-        <div class="couple-updates-section">
-          <div class="couple-updates-title"><i class="fa-solid fa-note-sticky"></i> Ghi chú cập nhật</div>
-          <div class="couple-updates-content">${escapeHtml(show.detailNotes.trim())}</div>
-        </div>
-      ` : "";
-
-  if (!chips.length && !notesHtml) return "";
-  return `
-        ${chips.length ? `<div class="detail-info-bar">${chips.join("")}</div>` : ""}
-        ${notesHtml}
-      `;
-}
-
-function exportUserDataStore() {
-  const json = JSON.stringify({
-    showsData,
-    hiddenShows: loadHiddenShowKeys()
-  }, null, 2);
-  navigator.clipboard.writeText(json).then(() => {
-    showToast("Đã copy JSON showsData hiện tại");
-  }).catch(err => {
-    console.error("Không copy được dữ liệu chỉnh sửa:", err);
-    showToast("Không copy được JSON. Hãy mở DevTools để lấy localStorage.", true);
-  });
-}
-
-function getPersistableShowsData() {
-  const hidden = new Set(loadHiddenShowKeys());
-  return showsData
-    .filter(show => !hidden.has(getShowKey(show)))
-    .map(show => cleanRuntimeFields(show));
-}
-
-function downloadUpdatedJson() {
-  const json = JSON.stringify(getPersistableShowsData(), null, 2) + "\n";
-  const blob = new Blob([json], { type: "application/json;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
-  link.href = url;
-  link.download = `showsData_updated_${stamp}.json`;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-  showToast("Đã tạo file showsData.json mới");
-}
-
-function statusLabel(status) {
-  if (status === "upcoming") return "Sắp chiếu";
-  if (status === "airing") return "Đang chiếu";
-  return "Đã xong";
-}
-
-function renderTagBadge(tags) {
-  if (tags.includes("all-female")) {
-    return `<span class="badge badge-tag"><i class="fa-solid fa-venus-double"></i> Lesbian (GL)</span>`;
-  }
-  if (tags.includes("all-male")) {
-    return `<span class="badge badge-tag"><i class="fa-solid fa-mars-double"></i> Gay (BL)</span>`;
-  }
-  if (tags.includes("bisexual")) {
-    return `<span class="badge badge-tag"><i class="fa-solid fa-venus-mars"></i> Bisexual</span>`;
-  }
-  if (tags.includes("other")) {
-    return `<span class="badge badge-tag" style="background: rgba(100, 116, 139, 0.2); color: #94a3b8; border-color: rgba(100, 116, 139, 0.3);"><i class="fa-solid fa-ellipsis"></i> Khác</span>`;
-  }
-  return "";
-}
-
-function renderStatusText(status) {
-  return status === "upcoming" ? "Sắp chiếu" : status === "airing" ? "Đang chiếu" : "Đã xong";
-}
-
-function renderTimeHtml(time) {
-  return time ? `<span class="time-note"><i class="fa-solid fa-clock"></i> ${escapeHtml(time)}</span>` : "";
-}
-
-function renderYearHtml(year) {
-  return year ? `<span class="badge badge-year"><i class="fa-regular fa-calendar"></i> ${escapeHtml(year)}</span>` : "";
-}
-
-function getSortableYear(show) {
-  const yearText = getShowYear(show);
-  const matches = String(yearText || "").match(/\b(19|20)\d{2}\b/g);
-  return matches ? Math.max(...matches.map(Number)) : -Infinity;
-}
-
-function compareShowsByVietnameseName(a, b) {
-  return removeVietnameseTones(a.vietnamese || "").localeCompare(removeVietnameseTones(b.vietnamese || ""), "vi");
-}
-
-function tagToString(tags) {
-  return Array.isArray(tags) ? tags.join(",") : (tags || "normal");
-}
-
-function stringToTags(value) {
-  const tags = String(value || "normal")
-    .split(",")
-    .map(tag => tag.trim())
-    .filter(Boolean);
-  return tags.length ? tags : ["normal"];
-}
-
-function matchesSettingsSearch(show, query) {
-  const normalizedQuery = removeVietnameseTones(String(query || "").toLowerCase().trim());
-  if (!normalizedQuery) return true;
-
-  return getShowSearchText(show, true).includes(normalizedQuery);
-}
-
-function buildShowSearchText(show, includeSettingsOnlyFields = false) {
-  const values = [
-    show.chinese,
-    show.english,
-    show.vietnamese,
-    show.platform,
-    countryLabel(getShowCountry(show)),
-    show.time,
-    show.episodeProgress,
-    show.airingNote
-  ];
-
-  if (includeSettingsOnlyFields) {
-    values.push(
-      show.detailNotes,
-      show.description || getShowDescription(show),
-      statusLabel(show.status),
-      tagToString(show.tags),
-      show._isCustom ? "tu them show moi" : ""
-    );
-  }
-
-  const raw = values.filter(Boolean).join(" ").toLowerCase();
-  return `${raw} ${removeVietnameseTones(raw)}`;
-}
-
-function getShowSearchText(show, includeSettingsOnlyFields = false) {
-  if (!includeSettingsOnlyFields && show._searchToken) {
-    return show._searchToken;
-  }
-  return buildShowSearchText(show, includeSettingsOnlyFields);
-}
-
-function openSettingsModal() {
-  settingsLocked = true;
-  settingsSearchQuery = "";
-  const settingsSearchBox = document.getElementById("settings-search-box");
-  if (settingsSearchBox) settingsSearchBox.value = "";
-
-  const settingsModal = document.getElementById("settings-modal");
-  const closeButton = settingsModal?.querySelector(".modal-close");
-  openAccessibleDialog(settingsModal, closeButton);
-
-  const list = document.getElementById("settings-list");
-  if (list) {
-    list.style.display = "";
-    list.innerHTML = `
-          <div style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);">
-            <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 0.75rem; color: var(--accent-color); display: block;"></i>
-            Đang chuẩn bị dữ liệu cài đặt...
-          </div>
-        `;
-  }
-
-  setTimeout(() => {
-    renderSettingsList();
-    updateSettingsLockState();
-    settingsSearchBox?.focus();
-  }, 50);
-}
-
-function closeSettingsModal() {
-  const modal = document.getElementById("settings-modal");
-  closeAccessibleDialog(modal, { restoreFocus: true });
-
-  const list = document.getElementById("settings-list");
-  if (list) {
-    list.style.display = "none";
-  }
-
-  setTimeout(() => {
-    if (list) {
-      list.innerHTML = "";
-      list.style.display = "";
-    }
-  }, 250);
-}
-
-function toggleSettingsLock() {
-  settingsLocked = !settingsLocked;
-  updateSettingsLockState();
-}
-
-function updateSettingsLockState() {
-  const lockBtn = document.getElementById("settings-lock-btn");
-  if (!lockBtn) return;
-
-  lockBtn.classList.toggle("locked", settingsLocked);
-  lockBtn.innerHTML = settingsLocked
-    ? '<i class="fa-solid fa-lock"></i> Đang khóa'
-    : '<i class="fa-solid fa-unlock"></i> Đang mở khóa';
-
-  document.querySelectorAll(".settings-input, .settings-select, .settings-textarea").forEach(input => {
-    input.disabled = settingsLocked;
-  });
-  document.querySelectorAll(".settings-save-btn, .settings-delete-btn[data-delete-show]").forEach(button => {
-    button.disabled = settingsLocked;
-  });
-  const addBtn = document.getElementById("settings-add-show-btn");
-  if (addBtn) addBtn.disabled = settingsLocked;
-  document.querySelectorAll(".watch-link-label-input, .watch-link-input, .watch-link-add-btn, .watch-link-remove-btn, .watch-link-move-btn").forEach(button => {
-    button.disabled = settingsLocked;
-  });
-  document.querySelectorAll(".watch-links-editor").forEach(editor => {
-    updateWatchLinkRemoveButtons(editor);
-  });
-}
-
-function renderSettingsShowFormHtml(show) {
-  return `
-        <div class="settings-show-form-inner">
-          <div class="settings-form-grid">
-            ${settingsStarRating(show._index, getShowRating(show))}
-            ${settingsInput(show._index, "chinese", "Tên gốc", show.chinese)}
-            ${settingsInput(show._index, "english", "Tên tiếng Anh", show.english)}
-            ${settingsInput(show._index, "vietnamese", "Tên tiếng Việt", show.vietnamese)}
-            ${settingsSelect(show._index, "country", "Quốc gia / Vùng", getShowCountry(show), COUNTRY_OPTIONS.map(option => [option.code, `${option.flag} ${option.label}`]))}
-            ${settingsSelect(show._index, "status", "Trạng thái", show.status, [
-    ["upcoming", "Sắp chiếu"],
-    ["airing", "Đang chiếu"],
-    ["completed", "Đã kết thúc"]
-  ])}
-            ${settingsInput(show._index, "year", "Năm phát hành", getShowYear(show))}
-            ${settingsInput(show._index, "platform", "Nhà phát hành / Nền tảng", show.platform || "")}
-            ${settingsInput(show._index, "time", "Thời gian/Lịch chiếu", show.time || "")}
-            ${settingsSelect(show._index, "tags", "Chủ đề / Tags", Array.isArray(show.tags) ? (show.tags[0] || "normal") : (show.tags || "normal"), [
-    ["normal", "Bình thường"],
-    ["all-female", "Lesbian (GL)"],
-    ["all-male", "Gay (BL)"],
-    ["bisexual", "Bisexual / Song tính"],
-    ["other", "Khác (Không phải show hẹn hò)"]
-  ])}
-            ${settingsInput(show._index, "image", "Link hình ảnh", getShowImage(show), "span-2")}
-            ${settingsWatchLinksGroup(show._index, "chinese", getChineseWatchLinks(show), "Link gốc")}
-            ${settingsWatchLinksGroup(show._index, "vietnamese", getVietnameseWatchLinks(show), "Link xem tiếng Việt")}
-            ${settingsInput(show._index, "episodeProgress", "Đang chiếu đến tập", show.episodeProgress || "")}
-            ${settingsInput(show._index, "airingNote", "Ghi chú phát sóng", show.airingNote || "", "span-2")}
-            ${settingsTextarea(show._index, "description", "Mô tả show", show.description || getShowDescription(show), "span-3")}
-            ${settingsTextarea(show._index, "detailNotes", "Ghi chú chi tiết khác", show.detailNotes || "", "span-3")}
-          </div>
-          <div class="settings-show-actions">
-            <button class="settings-save-btn" type="button" onclick="saveSettingsShow(${show._index})">
-              <i class="fa-solid fa-floppy-disk"></i> Lưu show này
-            </button>
-            <button class="settings-delete-btn" data-delete-show type="button" onclick="deleteShow(${show._index})">
-              <i class="fa-solid fa-trash"></i> Xóa show
-            </button>
-          </div>
-        </div>
-      `;
-}
-
-function renderSettingsList() {
-  const list = document.getElementById("settings-list");
-  const meta = document.getElementById("settings-search-meta");
-  if (!list) return;
-
-  const openIndices = new Set(
-    [...document.querySelectorAll(".settings-show-item.open")].map(item => item.getAttribute("data-settings-index"))
-  );
-  const sortedShows = [...getEffectiveShows()].sort(compareShowsByRatingAndName);
-  const query = settingsSearchQuery.trim();
-  const filtered = sortedShows.filter(show => matchesSettingsSearch(show, query));
-
-  if (meta) {
-    meta.textContent = query
-      ? `Hiển thị ${filtered.length} / ${sortedShows.length} show`
-      : `${sortedShows.length} show`;
-  }
-
-  if (!filtered.length) {
-    list.innerHTML = `
-          <div class="settings-empty-search">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <h4>Không tìm thấy show</h4>
-            <p>Thử từ khóa khác hoặc xóa nội dung ô tìm kiếm.</p>
-          </div>
-        `;
-    updateSettingsLockState();
-    return;
-  }
-
-  list.innerHTML = filtered.map(show => {
-    const thumbUrl = getShowImage(show);
-    const thumbHtml = thumbUrl
-      ? `<img src="${escapeHtml(getProxiedImageUrl(thumbUrl, 100))}" data-original-src="${escapeHtml(thumbUrl)}" data-error-mode="icon" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" width="44" height="44" onerror="handleImageLoadError(this)">`
-      : `<i class="fa-regular fa-image"></i>`;
-    const customBadge = show._isCustom ? `<span class="badge-custom">Tự thêm</span>` : "";
-    const ratingHtml = renderStarDisplay(getShowRating(show));
-    const isOpen = openIndices.has(String(show._index));
-    const formHtml = isOpen ? renderSettingsShowFormHtml(show) : "";
-
-    return `
-          <div class="settings-show-item ${isOpen ? "open" : ""}" data-settings-index="${show._index}" id="settings-item-${show._index}">
-            <div class="settings-show-header" onclick="toggleSettingsShow(${show._index})">
-              <div class="settings-show-thumb">${thumbHtml}</div>
-              <div class="settings-show-name">
-                <div class="settings-show-name-zh">${escapeHtml(show.chinese)}</div>
-                <div class="settings-show-name-vi">${escapeHtml(show.vietnamese)}${ratingHtml}</div>
-              </div>
-              <div class="settings-show-badges">
-                ${customBadge}
-                ${renderCountryBadge(show)}
-                <span class="badge badge-status ${show.status}">${statusLabel(show.status)}</span>
-                <span class="badge badge-plat ${getPlatformClass(show.platform)}">${escapeHtml(show.platform)}</span>
-              </div>
-              <i class="fa-solid fa-chevron-down settings-expand-icon"></i>
-            </div>
-            <div class="settings-show-form">
-              ${formHtml}
-            </div>
-          </div>
-        `;
-  }).join("");
-
-  updateSettingsLockState();
-}
-
-function settingsStarRating(index, rating) {
-  const current = getShowRating({ rating });
-  const stars = Array.from({ length: 5 }, (_, starIndex) => {
-    const value = starIndex + 1;
-    const active = value <= current;
-    return `<button type="button" class="star-btn ${active ? "active" : ""}" data-star-value="${value}" onclick="setSettingsRating(${index}, ${value})" title="${value} sao" aria-label="Đánh giá ${value} sao"><i class="fa-${active ? "solid" : "regular"} fa-star"></i></button>`;
-  }).join("");
-
-  return `
-        <div class="settings-field span-3">
-          <span class="field-label">Đánh giá sao</span>
-          <div class="star-rating-picker" data-rating-index="${index}">
-            <input type="hidden" class="settings-input" id="settings-${index}-rating" data-field="rating" value="${current}">
-            ${stars}
-            <button type="button" class="star-clear-btn" onclick="setSettingsRating(${index}, 0)" aria-label="Xóa đánh giá sao">Xóa sao</button>
-          </div>
-        </div>
-      `;
-}
-
-function setSettingsRating(index, value) {
-  saveShowRating(index, value);
-}
-
-function addNewShow() {
-  if (settingsLocked) {
-    showToast("Mở khóa cài đặt trước khi thêm show mới", true);
-    return;
-  }
-
-  const newShow = {
-    chinese: "Tên show mới",
-    english: "New Show",
-    vietnamese: "Show mới",
-    status: "upcoming",
-    platform: "TBA",
-    time: "",
-    image: "",
-    chineseWatchUrl: "",
-    vietnameseWatchUrl: "",
-    chineseWatchUrls: [],
-    vietnameseWatchUrls: [],
-    tags: ["normal"],
-    country: "china",
-    rating: 0,
-    description: ""
-  };
-
-  showsData.push(newShow);
-  invalidateSearchIndex();
-  settingsSearchQuery = "";
-  const settingsSearchBox = document.getElementById("settings-search-box");
-  if (settingsSearchBox) settingsSearchBox.value = "";
-  updateStatistics();
-  renderShows();
-  renderSettingsList();
-
-  const newIndex = getAllShowsRaw().length - 1;
-  const newItem = document.querySelector(`[data-settings-index="${newIndex}"]`);
-  if (newItem && !newItem.classList.contains("open")) {
-    toggleSettingsShow(newIndex);
-  }
-  newItem?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  showToast("Đã thêm show mới. Điền thông tin và bấm Lưu show này.");
-}
-
-function settingsInput(index, field, label, value, spanClass = "") {
-  return `
-        <div class="settings-field ${spanClass}">
-          <label for="settings-${index}-${field}">${label}</label>
-          <input class="settings-input" id="settings-${index}-${field}" data-field="${field}" value="${escapeHtml(value || "")}">
-        </div>
-      `;
-}
-
-function settingsSelect(index, field, label, value, options) {
-  return `
-        <div class="settings-field">
-          <label for="settings-${index}-${field}">${label}</label>
-          <select class="settings-select" id="settings-${index}-${field}" data-field="${field}">
-            ${options.map(([optionValue, optionLabel]) => `<option value="${optionValue}" ${value === optionValue ? "selected" : ""}>${optionLabel}</option>`).join("")}
-          </select>
-        </div>
-      `;
-}
-
-function settingsTextarea(index, field, label, value, spanClass = "") {
-  const isExpandable = field === "detailNotes" || field === "description";
-  const notesClass = field === "detailNotes" ? "notes-textarea" : "";
-  return `
-        <div class="settings-field ${spanClass}">
-          <div class="settings-label-row">
-            <label for="settings-${index}-${field}">${label}</label>
-            ${isExpandable ? `<button type="button" class="expand-field-btn" onclick="openTextareaEditor(${index}, '${field}', '${escapeHtml(label)}')"><i class="fa-solid fa-expand"></i> Mở rộng</button>` : ""}
-          </div>
-          <textarea class="settings-textarea ${notesClass}" id="settings-${index}-${field}" data-field="${field}">${escapeHtml(value || "")}</textarea>
-        </div>
-      `;
-}
-
-function settingsWatchLinksGroup(index, type, links, label, spanClass = "span-2") {
-  const linkList = links.length ? links : [{ url: "", label: "" }];
-  const rows = linkList.map((link, rowIndex) =>
-    renderWatchLinkRow(index, type, link, linkList.length > 1)
-  ).join("");
-
-  return `
-        <div class="settings-field ${spanClass}" data-watch-link-group="${type}">
-          <span class="field-label">${label}</span>
-          <div class="watch-links-editor" id="watch-links-${index}-${type}">
-            ${rows}
-          </div>
-          <button type="button" class="watch-link-add-btn" onclick="addWatchLinkRow(${index}, '${type}')" aria-label="Thêm link ${escapeHtml(label)}">
-            <i class="fa-solid fa-plus"></i> Thêm link
-          </button>
-        </div>
-      `;
-}
-
-function toggleSettingsShow(index) {
-  const item = document.querySelector(`[data-settings-index="${index}"]`);
-  if (!item) return;
-
-  const isOpening = !item.classList.contains("open");
-
-  if (isOpening) {
-    const formContainer = item.querySelector(".settings-show-form");
-    if (formContainer && formContainer.innerHTML.trim() === "") {
-      const resolved = resolveShowIndex(index);
-      if (resolved) {
-        const showObj = { ...resolved.baseShow, _index: index };
-        formContainer.innerHTML = renderSettingsShowFormHtml(showObj);
-
-        formContainer.querySelectorAll(".settings-input, .settings-select, .settings-textarea").forEach(input => {
-          input.disabled = settingsLocked;
-        });
-        formContainer.querySelectorAll(".settings-save-btn, .settings-delete-btn[data-delete-show]").forEach(button => {
-          button.disabled = settingsLocked;
-        });
-        formContainer.querySelectorAll(".watch-link-label-input, .watch-link-input, .watch-link-add-btn, .watch-link-remove-btn, .watch-link-move-btn").forEach(button => {
-          button.disabled = settingsLocked;
-        });
-        updateWatchLinkRemoveButtons(formContainer.querySelector(".watch-links-editor"));
+  const favBtn = document.getElementById('btnOpenFavorites');
+  if (favBtn) {
+    favBtn.addEventListener('click', () => {
+      state.filters.onlyFavorites = !state.filters.onlyFavorites;
+      favBtn.classList.toggle('active', state.filters.onlyFavorites);
+      applyFilters();
+      if (state.filters.onlyFavorites) {
+        showToast(`Đang hiển thị ${state.favorites.length} show trong danh sách Yêu thích`, 'fa-bookmark');
       }
-    }
+    });
   }
-
-  item.classList.toggle("open");
 }
 
-function saveSettingsShow(index) {
-  if (settingsLocked) return;
+function isFavorited(show) {
+  const id = show.vietnamese || show.english || show.chinese;
+  return state.favorites.includes(id);
+}
 
-  const resolved = resolveShowIndex(index);
-  if (!resolved) return;
+function toggleFavorite(show, e) {
+  if (e) e.stopPropagation();
+  const id = show.vietnamese || show.english || show.chinese;
+  const index = state.favorites.indexOf(id);
 
-  const item = document.querySelector(`[data-settings-index="${index}"]`);
-  if (!item) return;
-
-  if (resolved.isCustom) {
-    // Handling custom show
+  if (index > -1) {
+    state.favorites.splice(index, 1);
+    showToast(`Đã xóa "${show.vietnamese}" khỏi Yêu thích`, 'fa-heart-crack');
   } else {
-    const baseIndex = resolved.baseShow._showsDataIndex;
-    if (baseIndex === undefined || baseIndex < 0 || baseIndex >= showsData.length) return;
-
-    const data = { ...showsData[baseIndex] };
-
-    item.querySelectorAll("[data-field]").forEach(input => {
-      const field = input.getAttribute("data-field");
-      const value = input.value.trim();
-
-      if (field === "rating") {
-        const rating = Math.min(5, Math.max(0, parseInt(value, 10) || 0));
-        if (rating > 0) data.rating = rating;
-        else delete data.rating;
-        return;
-      }
-
-      if (field === "tags") {
-        data.tags = stringToTags(value);
-        return;
-      }
-
-      if (!value) {
-        delete data[field];
-      } else {
-        data[field] = value;
-      }
-    });
-
-    applyWatchLinksToData(data, item);
-    showsData[baseIndex] = data;
+    state.favorites.push(id);
+    showToast(`Đã lưu "${show.vietnamese}" vào Yêu thích! 💕`, 'fa-heart');
   }
 
-  invalidateSearchIndex();
-  updateStatistics();
+  localStorage.setItem('datinghub_favorites', JSON.stringify(state.favorites));
+  updateFavoritesBadge();
   renderShows();
-  renderSettingsList();
-  document.querySelector(`[data-settings-index="${index}"]`)?.classList.add("open");
-  const savedShow = getEffectiveShows().find(show => show._index === index);
-  showToast(`Đã lưu chỉnh sửa cho "${savedShow?.vietnamese || "show"}"`);
+
+  if (state.activeShow === show) {
+    updateModalFavoriteButton(show);
+  }
 }
 
-function deleteShow(index) {
-  const resolved = resolveShowIndex(index);
-  if (!resolved) return;
-
-  const show = getShowWithUserData(resolved.baseShow);
-  const showName = show.vietnamese || show.chinese || "show";
-  const confirmMessage = `Xóa vĩnh viễn "${showName}" khỏi danh sách hiện tại? Nếu muốn giữ thay đổi này trong file, hãy bấm "Tải JSON đã cập nhật" sau khi xóa.`;
-
-  if (!window.confirm(confirmMessage)) return;
-
-  const baseIndex = resolved.baseShow._showsDataIndex;
-  if (baseIndex !== undefined && baseIndex >= 0 && baseIndex < showsData.length) {
-    showsData.splice(baseIndex, 1);
-  }
-  invalidateSearchIndex();
-
-  if (currentModalIndex === index) {
-    closeShowModal();
-    currentModalIndex = null;
-  }
-
-  const settingsModal = document.getElementById("settings-modal");
-  if (settingsModal.classList.contains("active")) {
-    renderSettingsList();
-  }
-
-  updateStatistics();
-  renderShows();
-  showToast(`Đã xóa "${showName}" khỏi danh sách`);
+function updateFavoritesBadge() {
+  const badge = document.getElementById('favCountBadge');
+  if (!badge) return;
+  const count = state.favorites.length;
+  badge.textContent = count;
+  badge.style.display = count > 0 ? 'flex' : 'none';
 }
 
-function openSettingsForShow(index) {
-  const show = getEffectiveShows().find(item => item._index === index);
-  if (!show) return;
+function updateModalFavoriteButton(show) {
+  const favBtn = document.getElementById('btnModalFavorite');
+  if (!favBtn) return;
+  const fav = isFavorited(show);
+  favBtn.innerHTML = fav
+    ? '<i class="fa-solid fa-heart" style="color: var(--primary-pink);"></i> Đã yêu thích'
+    : '<i class="fa-regular fa-heart"></i> Lưu vào Yêu thích';
+}
 
-  closeShowModal();
-  currentModalIndex = null;
+// Fix titles broken by ASCII-only uppercasing (upper ASCII + lower diacritics,
+// e.g. "KHI TìNH YêU" instead of "KHI TÌNH YÊU"). Such titles can linger in
+// old localStorage copies ('datinghub_local_shows') and render wrong on cards.
+const VI_LOWERCASE_DIACRITICS = 'àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ';
+function fixBrokenTitleCase(text) {
+  if (!text || /[a-z]/.test(text) || !/[A-Z]/.test(text)) return text;
+  for (const ch of text) {
+    if (VI_LOWERCASE_DIACRITICS.includes(ch)) return text.toUpperCase();
+  }
+  return text;
+}
 
-  settingsLocked = false;
-  settingsSearchQuery = show.vietnamese || show.chinese || "";
-  const settingsSearchBox = document.getElementById("settings-search-box");
-  if (settingsSearchBox) settingsSearchBox.value = settingsSearchQuery;
+// ============================================================
+// DATA LOADING
+// ============================================================
+async function loadShowsData() {
+  try {
+    const localModified = localStorage.getItem('datinghub_local_shows');
+    let data;
 
-  renderSettingsList();
-  updateSettingsLockState();
-  const settingsModal = document.getElementById("settings-modal");
-  openAccessibleDialog(settingsModal, settingsSearchBox || settingsModal?.querySelector(".modal-close"));
-
-  requestAnimationFrame(() => {
-    const item = document.querySelector(`[data-settings-index="${index}"]`);
-    if (item && !item.classList.contains("open")) {
-      toggleSettingsShow(index);
+    if (localModified) {
+      try {
+        data = JSON.parse(localModified);
+      } catch (e) {
+        data = null;
+      }
     }
-    item?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  });
 
-  showToast(`Đang chỉnh sửa "${show.vietnamese}"`);
-}
+    if (!data || !Array.isArray(data)) {
+      const res = await fetch(`./showsData.json?v=${Date.now()}`);
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      data = await res.json();
+    }
 
-function openSettingsForShowFromModal() {
-  if (currentModalIndex === null) return;
-  openSettingsForShow(currentModalIndex);
-}
-
-function deleteShowFromModal() {
-  if (currentModalIndex === null) return;
-  deleteShow(currentModalIndex);
-}
-
-function renderShowPoster(show) {
-  const posterUrl = show.image || show.poster || show.posterUrl || "";
-  const posterEl = document.getElementById("modal-poster-el");
-  if (!posterEl) return;
-
-  if (posterUrl) {
-    posterEl.innerHTML = `<img src="${escapeHtml(getProxiedImageUrl(posterUrl, 800))}" data-original-src="${escapeHtml(posterUrl)}" data-error-mode="modal-poster" alt="Ảnh show ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" width="300" height="400" onerror="handleImageLoadError(this)">`;
-    return;
-  }
-
-  posterEl.innerHTML = `
-        <div class="modal-poster-placeholder">
-          <i class="fa-regular fa-image"></i>
-          <div>Chưa có ảnh show</div>
-          <small>Có thể thêm trường <strong>image</strong> vào dữ liệu show.</small>
-        </div>
-      `;
-}
-
-function renderShowLinks(show) {
-  const viLinks = getVietnameseWatchLinks(show);
-  const zhLinks = getChineseWatchLinks(show);
-
-  if (Array.isArray(show.watchLinks)) {
-    show.watchLinks.forEach(link => {
-      const detected = detectPlatformFromUrl(link.url);
-      const formatted = {
-        label: link.label || "Link xem show",
-        url: link.url,
-        note: link.note || detected
-      };
-      const lowerLabel = formatted.label.toLowerCase();
-      const lowerNote = (formatted.note || "").toLowerCase();
-      if (lowerLabel.includes("trung") || lowerNote.includes("trung") || lowerNote.includes("origin")) {
-        zhLinks.push(formatted);
-      } else {
-        viLinks.push(formatted);
-      }
-    });
-  }
-
-  const linksEl = document.getElementById("modal-links-el");
-  const summaryEl = document.getElementById("modal-links-summary");
-
-  const totalLinks = viLinks.length + zhLinks.length;
-
-  if (summaryEl) {
-    summaryEl.textContent = totalLinks > 0
-      ? `${totalLinks} link`
-      : "Chưa có link";
-    summaryEl.classList.toggle("has-links", totalLinks > 0);
-  }
-
-  document.getElementById("modal-links-card")?.classList.toggle("has-links", totalLinks > 0);
-
-  if (!linksEl) return;
-
-  if (totalLinks === 0) {
-    linksEl.innerHTML = `
-          <div class="watch-link-item placeholder">
-            <div>
-              <span class="watch-link-label">Web chiếu tiếng Việt</span>
-              <span class="watch-link-note">Chưa thêm link</span>
-            </div>
-            <i class="fa-solid fa-closed-captioning"></i>
-          </div>
-          <div class="watch-link-item placeholder">
-            <div>
-              <span class="watch-link-label">Nơi chiếu tiếng Trung</span>
-              <span class="watch-link-note">Chưa thêm link</span>
-            </div>
-            <i class="fa-solid fa-link"></i>
-          </div>
-        `;
-    return;
-  }
-
-  const fragment = document.createDocumentFragment();
-
-  // 1. Render Vietnamese Watch Links
-  if (viLinks.length > 0) {
-    const viSectionTitle = document.createElement('div');
-    viSectionTitle.className = 'modal-links-section-title';
-    viSectionTitle.innerHTML = `<i class="fa-solid fa-closed-captioning" style="color: var(--accent-color);"></i> Bản Vietsub / Thuyết minh`;
-    fragment.appendChild(viSectionTitle);
-
-    const viLinksList = document.createElement('div');
-    viLinksList.className = 'modal-links-list';
-    viLinksList.innerHTML = viLinks.map(link => `
-          <a class="watch-link-item" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">
-            <div>
-              <span class="watch-link-label">${escapeHtml(link.label || "Link xem tiếng Việt")}</span>
-              ${link.note ? `<span class="watch-link-note">${escapeHtml(link.note)}</span>` : ""}
-            </div>
-            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-          </a>
-        `).join("");
-    fragment.appendChild(viLinksList);
-  }
-
-  // 2. Render Chinese Watch Links
-  if (zhLinks.length > 0) {
-    const zhSectionTitle = document.createElement('div');
-    zhSectionTitle.className = 'modal-links-section-title';
-    if (viLinks.length > 0) zhSectionTitle.style.marginTop = '1.25rem';
-    zhSectionTitle.innerHTML = `<i class="fa-solid fa-earth-asia" style="color: var(--accent-color);"></i> Bản gốc`;
-    fragment.appendChild(zhSectionTitle);
-
-    const zhLinksList = document.createElement('div');
-    zhLinksList.className = 'modal-links-list';
-    zhLinksList.innerHTML = zhLinks.map(link => `
-          <a class="watch-link-item" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">
-            <div>
-              <span class="watch-link-label">${escapeHtml(link.label || "Link gốc")}</span>
-              ${link.note ? `<span class="watch-link-note">${escapeHtml(link.note)}</span>` : ""}
-            </div>
-            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-          </a>
-        `).join("");
-    fragment.appendChild(zhLinksList);
-  }
-
-  linksEl.innerHTML = '';
-  linksEl.appendChild(fragment);
-}
-
-// Modal Control Logic
-function openShowModal(index) {
-  currentModalIndex = index;
-  const els = getModalEls();
-
-  openAccessibleDialog(els.modal, els.modal.querySelector(".modal-close"));
-
-  setTimeout(() => {
-    const resolved = resolveShowIndex(index);
-    if (!resolved) return;
-    const show = getShowWithUserData(resolved.baseShow);
-
-    const totalLinks = getVietnameseWatchLinks(show).length + getChineseWatchLinks(show).length;
-    els.linksCard.classList.toggle("open", totalLinks > 0);
-    els.linksToggle.setAttribute("aria-expanded", String(totalLinks > 0));
-    els.container.setAttribute("data-plat", getPlatformClass(show.platform));
-
-    els.title.textContent = show.vietnamese;
-    els.zh.textContent = show.chinese;
-    els.en.textContent = show.english;
-    els.vi.textContent = show.vietnamese;
-    applyUserEditableFields(show);
-
-    const statusText = renderStatusText(show.status);
-    const tagBadgeHtml = renderTagBadge(show.tags || []);
-    const timeHtml = renderTimeHtml(show.time);
-    const year = getShowYear(show);
-    const yearHtml = renderYearHtml(year);
-
-    els.badges.innerHTML = `
-          ${renderCountryBadge(show)}
-          <span class="badge badge-status ${show.status}">${statusText}</span>
-          <span class="badge badge-plat ${getPlatformClass(show.platform)}">${escapeHtml(show.platform)}</span>
-          ${yearHtml}
-          ${tagBadgeHtml}
-          ${timeHtml}
-        `;
-    els.ratingSlot.innerHTML = renderInteractiveStarRating(index, getShowRating(show));
-
-    els.btnZh.onclick = () => copyToClipboard(show.chinese, els.btnZh, "Đã copy tên gốc");
-    els.btnEn.onclick = () => copyToClipboard(show.english, els.btnEn, "Đã copy tên Anh");
-    els.btnVi.onclick = () => copyToClipboard(show.vietnamese, els.btnVi, "Đã copy tên Việt");
-  }, 0);
-}
-
-function closeShowModal() {
-  const els = getModalEls();
-  closeAccessibleDialog(els.modal);
-}
-
-// Nhóm hiển thị theo trạng thái (thứ tự mặc định)
-const SECTION_ORDER = ["airing", "completed", "upcoming"];
-const SECTION_META = {
-  airing: { label: "Đang chiếu", icon: "fa-satellite-dish" },
-  completed: { label: "Đã chiếu xong", icon: "fa-circle-check" },
-  upcoming: { label: "Sắp chiếu", icon: "fa-calendar-days" }
-};
-const SHOWS_PER_SECTION = 6;
-let activeSections = [];
-
-function partitionByStatus(shows) {
-  const map = { airing: [], completed: [], upcoming: [] };
-  shows.forEach(show => {
-    if (show.status === "airing") map.airing.push(show);
-    else if (show.status === "upcoming") map.upcoming.push(show);
-    else map.completed.push(show);
-  });
-  return SECTION_ORDER
-    .map(key => ({ key, ...SECTION_META[key], items: map[key] }))
-    .filter(group => group.items.length > 0);
-}
-
-function getSectionObserver() {
-  if (!sentinelObserver) {
-    sentinelObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        // Sentinel nằm hoàn toàn TRÊN màn hình (F5 giữa trang): nạp thêm sẽ đẩy
-        // nội dung đang xem xuống -> layout shift. Bỏ qua, sẽ nạp khi cuộn tới.
-        if (entry.boundingClientRect.bottom <= 0) return;
-        const key = entry.target.dataset.section;
-        if (key === "flat") loadMoreShows();
-        else if (key) loadMoreForSection(key);
+    // Heal broken-case titles, then persist the fix so old localStorage copies recover
+    let healedTitles = 0;
+    data.forEach(item => {
+      ['vietnamese', 'english'].forEach(key => {
+        const fixed = fixBrokenTitleCase(item[key]);
+        if (fixed !== item[key]) {
+          item[key] = fixed;
+          healedTitles++;
+        }
       });
-    }, { rootMargin: "300px" });
+    });
+
+    // Preserve original file index for "None / Original sort"
+    data.forEach((item, index) => {
+      if (item._origIndex === undefined) item._origIndex = index;
+    });
+
+    state.shows = data;
+    if (healedTitles > 0 && localModified) saveShowsToLocalStorage();
+    state.spotlightSlugs = loadPinnedSpotlightSlugs();
+
+    updateHeroStats();
+    populatePlatformDropdown();
+    setupSpotlightShow();
+    populateSettingsSelects();
+    applyFilters();
+    checkUrlHash();
+  } catch (err) {
+    console.error('Lỗi khi tải showsData.json:', err);
+    showToast('Không tải được dữ liệu show. Vui lòng tải lại trang.', 'fa-triangle-exclamation');
   }
-  return sentinelObserver;
 }
 
-// Infinite Scroll: Lazy Loading DOM Nodes
-function isSearchActive() {
-  return currentFilters.search.trim() !== "";
-}
-
-function buildShowCard(show) {
-  const card = document.createElement("div");
-  card.className = "show-card";
-  card.setAttribute("data-plat", getPlatformClass(show.platform));
-
-  const originalIndex = show._index;
-
-  const statusText = renderStatusText(show.status);
-  const tagBadgeHtml = renderTagBadge(show.tags || []);
-  const timeHtml = renderTimeHtml(show.time);
-  const year = getShowYear(show);
-  const yearHtml = renderYearHtml(year);
-  const ratingHtml = renderInteractiveStarRating(originalIndex, getShowRating(show));
-  const thumbUrl = getShowImage(show);
-  const thumbHtml = thumbUrl
-    ? `<img src="${escapeHtml(getProxiedImageUrl(thumbUrl, 220))}" data-original-src="${escapeHtml(thumbUrl)}" data-error-mode="card-thumb" alt="Ảnh ${escapeHtml(show.vietnamese)}" loading="lazy" decoding="async" fetchpriority="low" width="110" height="110" onerror="handleImageLoadError(this)">`
-    : `<i class="fa-regular fa-image card-thumb-placeholder"></i>`;
-
-  card.innerHTML = `
-        <div>
-          <div class="card-top-row">
-            <div class="card-thumb">${thumbHtml}</div>
-            <div class="card-top-info">
-              <div class="card-header">
-                <div class="badges">
-                  ${renderCountryBadge(show)}
-                  <span class="badge badge-status ${show.status}">${statusText}</span>
-                  <span class="badge badge-plat ${getPlatformClass(show.platform)}">${escapeHtml(show.platform)}</span>
-                  ${yearHtml}
-                  ${tagBadgeHtml}
-                </div>
-                ${timeHtml}
-                ${ratingHtml}
-              </div>
-            </div>
-          </div>
-
-          <div class="card-compact-title">
-            <div class="card-title-main">${escapeHtml(show.vietnamese || show.english || show.chinese)}</div>
-            <div class="card-title-sub">${escapeHtml(show.english || show.chinese)}</div>
-          </div>
-        </div>
-
-        <button class="open-modal-btn" type="button" data-show-index="${originalIndex}" title="Mở cửa sổ chi tiết tiêu điểm show" aria-label="Xem chi tiết ${escapeHtml(show.vietnamese || show.english || show.chinese)}">
-          <i class="fa-solid fa-up-right-from-square"></i> Xem chi tiết & Tiêu điểm
-        </button>
-      `;
-  return card;
-}
-
-function buildSearchResultRow(show) {
-  const row = document.createElement("button");
-  row.type = "button";
-  row.className = "search-result-row";
-  row.setAttribute("data-show-index", String(show._index));
-
-  const mainName = show.vietnamese || show.english || show.chinese || "";
-  const subName = show.english && show.english !== mainName
-    ? show.english
-    : (show.chinese && show.chinese !== mainName ? show.chinese : "");
-  const thumbUrl = getShowImage(show);
-  const thumbHtml = thumbUrl
-    ? `<img src="${escapeHtml(getProxiedImageUrl(thumbUrl, 100))}" data-original-src="${escapeHtml(thumbUrl)}" alt="" loading="lazy" decoding="async" width="44" height="60" onerror="handleImageLoadError(this)">`
-    : `<i class="fa-regular fa-image"></i>`;
-  const year = getShowYear(show);
-  const statusText = renderStatusText(show.status);
-
-  row.innerHTML = `
-        <span class="search-result-thumb">${thumbHtml}</span>
-        <span class="sr-copy">
-          <strong>${escapeHtml(mainName)}</strong>
-          ${subName ? `<span>${escapeHtml(subName)}</span>` : ""}
-        </span>
-        <span class="sr-meta">
-          ${renderStarDisplay(getShowRating(show))}
-          ${year ? `<span class="sr-year">${escapeHtml(year)}</span>` : ""}
-          <span class="badge badge-status ${show.status}">${statusText}</span>
-        </span>
-        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-      `;
-  return row;
-}
-
-function loadMoreShows() {
-  const grid = document.getElementById("show-cards-grid");
-  if (!grid || !isSearchActive()) return;
-
-  const oldSentinel = document.getElementById("shows-sentinel");
-  if (oldSentinel) {
-    sentinelObserver?.unobserve(oldSentinel);
-    oldSentinel.remove();
+function saveShowsToLocalStorage() {
+  try {
+    localStorage.setItem('datinghub_local_shows', JSON.stringify(state.shows));
+  } catch (e) {
+    console.warn('LocalStorage limit exceeded');
   }
-
-  const start = showsRenderedCount;
-  const end = Math.min(start + SHOWS_PER_PAGE, activeFilteredShows.length);
-
-  if (start >= activeFilteredShows.length) return;
-
-  const chunk = activeFilteredShows.slice(start, end);
-  const fragment = document.createDocumentFragment();
-
-  chunk.forEach(show => fragment.appendChild(buildSearchResultRow(show)));
-
-  showsRenderedCount = end;
-
-  if (showsRenderedCount < activeFilteredShows.length) {
-    const sentinel = document.createElement("div");
-    sentinel.id = "shows-sentinel";
-    sentinel.dataset.section = "flat";
-    sentinel.style.height = "20px";
-    sentinel.style.width = "100%";
-    fragment.appendChild(sentinel);
-
-    getSectionObserver().observe(sentinel);
-  }
-
-  grid.appendChild(fragment);
 }
 
-function buildSectionShells(grid) {
-  activeSections.forEach(section => {
-    const wrap = document.createElement("section");
-    wrap.className = "show-section";
-    wrap.dataset.sectionKey = section.key;
-    wrap.innerHTML = `
-          <div class="section-header">
-            <i class="fa-solid ${section.icon}" aria-hidden="true"></i>
-            <h2>${section.label}</h2>
-            <span class="section-count">${section.items.length} show</span>
-          </div>
-          <div class="section-grid"></div>
-        `;
-    grid.appendChild(wrap);
-    section.gridEl = wrap.querySelector(".section-grid");
+function updateHeroStats() {
+  const total = state.shows.length;
+  const airing = state.shows.filter(s => s.status === 'airing').length;
+
+  const totalEl = document.getElementById('statTotalShows');
+  const airingEl = document.getElementById('statAiringShows');
+  if (totalEl) totalEl.textContent = total;
+  if (airingEl) airingEl.textContent = airing;
+}
+
+function populatePlatformDropdown() {
+  const select = document.getElementById('platformSelect');
+  if (!select) return;
+
+  const platforms = new Set();
+  state.shows.forEach(s => {
+    if (s.platform && s.platform !== 'TBA') platforms.add(s.platform.trim());
+  });
+
+  const sortedPlatforms = Array.from(platforms).sort();
+  select.innerHTML = '<option value="all">Mọi nền tảng</option>';
+  sortedPlatforms.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p;
+    opt.textContent = p;
+    select.appendChild(opt);
   });
 }
 
-function loadMoreForSection(key) {
-  const section = activeSections.find(group => group.key === key);
-  if (!section || !section.gridEl) return;
+// Spotlight feature (Show hot carousel, max 4 pinned shows)
+const MAX_PINNED_SHOWS = 4;
+let spotlightQueue = [];
+let spotlightIndex = 0;
+let spotlightTimer = null;
 
-  const gridEl = section.gridEl;
-  const oldSentinel = gridEl.querySelector(".shows-sentinel");
-  if (oldSentinel) {
-    sentinelObserver?.unobserve(oldSentinel);
-    oldSentinel.remove();
-  }
-
-  const start = section.rendered;
-  if (start >= section.items.length) return;
-
-  const end = Math.min(start + SHOWS_PER_SECTION, section.items.length);
-  const fragment = document.createDocumentFragment();
-  section.items.slice(start, end).forEach(show => fragment.appendChild(buildShowCard(show)));
-  section.rendered = end;
-
-  if (end < section.items.length) {
-    const sentinel = document.createElement("div");
-    sentinel.className = "shows-sentinel";
-    sentinel.dataset.section = key;
-    sentinel.style.height = "20px";
-    fragment.appendChild(sentinel);
-    getSectionObserver().observe(sentinel);
-  }
-
-  gridEl.appendChild(fragment);
+function loadPinnedSpotlightSlugs() {
+  const raw = localStorage.getItem('datinghub_spotlight') || '';
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed.filter(s => typeof s === 'string').slice(0, MAX_PINNED_SHOWS);
+  } catch (e) { /* old single-slug format handled below */ }
+  return [raw].slice(0, MAX_PINNED_SHOWS);
 }
 
-function resetFilterButtonsUI() {
-  const filterGroups = [
-    { containerId: "status-filters", attr: "data-status", defaultValue: "all" },
-    { containerId: "sort-controls", attr: "data-sort", defaultValue: "name-asc" },
-    { containerId: "country-filters", attr: "data-country", defaultValue: "all" },
-    { containerId: "tag-filters", attr: "data-tag", defaultValue: "all" }
-  ];
+function savePinnedSpotlightSlugs() {
+  localStorage.setItem('datinghub_spotlight', JSON.stringify(state.spotlightSlugs));
+}
 
-  filterGroups.forEach(({ containerId, attr, defaultValue }) => {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    const buttons = container.querySelectorAll(".filter-btn");
-    buttons.forEach(btn => {
-      const val = btn.getAttribute(attr);
-      const isActive = val === defaultValue;
-      btn.classList.toggle("active", isActive);
-      btn.setAttribute("aria-pressed", String(isActive));
-    });
+// Staged pins while the settings modal is open (persisted on Save)
+let stagedSpotlightSlugs = null;
+function getStagedPins() {
+  if (!Array.isArray(stagedSpotlightSlugs)) stagedSpotlightSlugs = [...state.spotlightSlugs];
+  return stagedSpotlightSlugs;
+}
+
+function renderStagedPins() {
+  const box = document.getElementById('pinnedShowsList');
+  const addBtn = document.getElementById('btnAddSpotlight');
+  if (!box) return;
+  const staged = getStagedPins();
+  if (addBtn) addBtn.disabled = staged.length >= MAX_PINNED_SHOWS;
+  if (staged.length === 0) {
+    box.innerHTML = `<div style="color: var(--text-muted); font-size: 13px;">Chưa ghim show nào. Chọn show bên trên rồi bấm “Thêm ghim”.</div>`;
+    return;
+  }
+  box.innerHTML = `<div style="font-size: 13px; font-weight: 700; margin-bottom: 2px;">Đã ghim (${staged.length}/${MAX_PINNED_SHOWS}) — show đầu hiển thị trước:</div>` + staged.map((slug, i) => {
+    const show = state.shows.find(s => slugify(s.vietnamese) === slug);
+    const name = show ? show.vietnamese : slug;
+    return `<div class="pinned-show-item">
+      <span class="pinned-show-num">${i + 1}</span>
+      <span class="pinned-show-name">${escapeHtml(name)}</span>
+      <span class="pinned-move-group">
+        <button type="button" class="btn-pin-move" data-slug="${escapeHtml(slug)}" data-move="-1" title="Chuyển lên trên"${i === 0 ? ' disabled' : ''}><i class="fa-solid fa-chevron-up"></i></button>
+        <button type="button" class="btn-pin-move" data-slug="${escapeHtml(slug)}" data-move="1" title="Chuyển xuống dưới"${i === staged.length - 1 ? ' disabled' : ''}><i class="fa-solid fa-chevron-down"></i></button>
+      </span>
+      <button type="button" class="btn-remove-row btn-unpin" data-slug="${escapeHtml(slug)}" title="Bỏ ghim"><i class="fa-solid fa-xmark"></i></button>
+    </div>`;
+  }).join('');
+  box.querySelectorAll('.btn-unpin').forEach(btn => {
+    btn.onclick = () => {
+      stagedSpotlightSlugs = getStagedPins().filter(s => s !== btn.dataset.slug);
+      renderStagedPins();
+    };
   });
-
-  refreshFilterGroupBadges();
+  box.querySelectorAll('.btn-pin-move').forEach(btn => {
+    btn.onclick = () => {
+      const staged = getStagedPins();
+      const i = staged.indexOf(btn.dataset.slug);
+      const j = i + Number(btn.dataset.move);
+      if (i < 0 || j < 0 || j >= staged.length) return;
+      [staged[i], staged[j]] = [staged[j], staged[i]];
+      renderStagedPins();
+    };
+  });
 }
 
-function resetAllFilters() {
-  currentFilters = {
-    search: "",
-    status: "all",
-    country: "all",
-    tag: "all",
-    sort: "name-asc"
-  };
-
-  const searchBox = document.getElementById("search-box");
-  if (searchBox) searchBox.value = "";
-  const floatingSearchBox = document.getElementById("floating-search-box");
-  if (floatingSearchBox) floatingSearchBox.value = "";
-  const mobileSearchBox = document.getElementById("mobile-search-box");
-  if (mobileSearchBox) mobileSearchBox.value = "";
-
-  resetFilterButtonsUI();
-  renderShows();
-  showToast("Đã xóa tất cả bộ lọc");
+function getDefaultSpotlightCandidates() {
+  const fallback = state.shows.find(s => (s.vietnamese || '').toLowerCase().includes('tín hiệu con tim s9'))
+    || state.shows.find(s => s.status === 'airing' && s.image)
+    || state.shows[0];
+  return fallback ? [fallback] : [];
 }
 
-// Filter and Render Shows
-function renderShows() {
-  const grid = document.getElementById("show-cards-grid");
-  if (!grid) return;
-  grid.innerHTML = "";
+function setupSpotlightShow() {
+  const pinned = state.spotlightSlugs
+    .map(slug => state.shows.find(s => slugify(s.vietnamese) === slug))
+    .filter(Boolean)
+    .slice(0, MAX_PINNED_SHOWS);
+  spotlightQueue = pinned.length > 0 ? pinned : getDefaultSpotlightCandidates();
+  spotlightIndex = 0;
+  if (spotlightQueue.length === 0) return;
+  renderSpotlightShow(spotlightQueue[0]);
+  renderSpotlightDots();
+  restartSpotlightTimer();
+}
 
-  const query = removeVietnameseTones(currentFilters.search.toLowerCase().trim());
-  const searchActive = query !== "";
-  const wasSearchActive = document.body.classList.contains("search-active");
+function restartSpotlightTimer() {
+  clearInterval(spotlightTimer);
+  spotlightTimer = null;
+  if (spotlightQueue.length > 1) {
+    spotlightTimer = setInterval(() => {
+      spotlightIndex = (spotlightIndex + 1) % spotlightQueue.length;
+      renderSpotlightShow(spotlightQueue[spotlightIndex]);
+      renderSpotlightDots();
+    }, 6000);
+  }
+}
 
-  document.body.classList.toggle("search-active", searchActive);
-  grid.classList.toggle("search-mode", searchActive);
+function goSpotlight(index) {
+  if (spotlightQueue.length === 0) return;
+  spotlightIndex = (index + spotlightQueue.length) % spotlightQueue.length;
+  renderSpotlightShow(spotlightQueue[spotlightIndex]);
+  renderSpotlightDots();
+  restartSpotlightTimer();
+}
 
-  if (wasSearchActive && !searchActive) {
-    // Xóa tìm kiếm: neo thẳng control-panel (thanh tìm kiếm + bộ lọc) lên sát đỉnh màn hình
-    requestAnimationFrame(() => {
-      document.querySelector(".control-panel")?.scrollIntoView({ block: "start", behavior: "instant" });
-    });
+function renderSpotlightDots() {
+  const heroEl = document.getElementById('heroSpotlight');
+  const dotsBox = document.getElementById('spotlightDots');
+  const multiple = spotlightQueue.length > 1;
+  if (heroEl) heroEl.classList.toggle('has-multiple', multiple);
+  if (!dotsBox) return;
+  dotsBox.innerHTML = '';
+  if (!multiple) {
+    dotsBox.style.display = 'none';
+    return;
+  }
+  dotsBox.style.display = 'flex';
+  spotlightQueue.forEach((_, i) => {
+    const d = document.createElement('button');
+    d.type = 'button';
+    d.className = 'spotlight-dot' + (i === spotlightIndex ? ' active' : '');
+    d.setAttribute('aria-label', 'Show hot ' + (i + 1));
+    d.onclick = () => goSpotlight(i);
+    dotsBox.appendChild(d);
+  });
+}
+
+function initSpotlightCarousel() {
+  if (initSpotlightCarousel.done) return;
+  initSpotlightCarousel.done = true;
+  const heroEl = document.getElementById('heroSpotlight');
+  const prev = document.getElementById('spotlightPrev');
+  const next = document.getElementById('spotlightNext');
+  if (prev) prev.onclick = () => goSpotlight(spotlightIndex - 1);
+  if (next) next.onclick = () => goSpotlight(spotlightIndex + 1);
+  if (heroEl) {
+    heroEl.addEventListener('mouseenter', () => clearInterval(spotlightTimer));
+    heroEl.addEventListener('mouseleave', restartSpotlightTimer);
+  }
+}
+
+function renderSpotlightShow(candidate) {
+  if (!candidate) return;
+
+  const poster = document.getElementById('spotlightPoster');
+  const title = document.getElementById('spotlightTitle');
+  const subs = document.getElementById('spotlightSubs');
+  const desc = document.getElementById('spotlightDesc');
+  const country = document.getElementById('spotlightCountry');
+  const rating = document.getElementById('spotlightRating');
+
+  if (poster) {
+    delete poster.dataset.origTried;
+    if (candidate.image) {
+      poster.setAttribute('data-original-src', candidate.image);
+      poster.src = getProxiedImageUrl(candidate.image, 360);
+    } else {
+      poster.removeAttribute('data-original-src');
+      poster.src = './images/show-0.jpg';
+    }
+    poster.onerror = () => handlePosterImgError(poster, 'https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg');
+  }
+  if (title) title.textContent = candidate.vietnamese || candidate.english;
+
+  if (subs) {
+    subs.innerHTML = `
+      ${candidate.english ? `<span class="name-chip">${escapeHtml(candidate.english)} <button class="btn-copy-name" title="Sao chép tên tiếng Anh" onclick="copyText('${escapeHtml(candidate.english)}', 'tên tiếng Anh', event)"><i class="fa-regular fa-copy"></i></button></span>` : ''}
+    `;
   }
 
-  const filtered = getEffectiveShows().filter(show => {
-    // Status Filter
-    if (currentFilters.status !== "all" && show.status !== currentFilters.status) {
-      return false;
+  if (desc) desc.textContent = candidate.description || 'Chương trình truyền hình thực tế hẹn hò đặc sắc.';
+  if (country) {
+    const cInfo = getCountryInfo(candidate.country);
+    country.innerHTML = `${countryFlagHtml(candidate.country)} ${cInfo.name}`;
+  }
+  if (rating) rating.innerHTML = `<i class="fa-solid fa-star" style="color: #fbbf24;"></i> ${candidate.rating ? Number(candidate.rating).toFixed(1) : '5.0'}`;
+
+  const watchBtn = document.getElementById('btnSpotlightWatch');
+  const detailBtn = document.getElementById('btnSpotlightDetail');
+  if (watchBtn) watchBtn.onclick = () => openShowDetail(candidate, 'tab-watch');
+  if (detailBtn) detailBtn.onclick = () => openShowDetail(candidate, 'tab-desc');
+
+  const heroEl = document.getElementById('heroSpotlight');
+  if (heroEl) {
+    heroEl.classList.remove('spotlight-enter');
+    void heroEl.offsetWidth;
+    heroEl.classList.add('spotlight-enter');
+  }
+}
+
+// ============================================================
+// FILTERING & SEARCH
+// ============================================================
+function applyFilters() {
+  const { search, country, status, platform, tag, sort, onlyFavorites } = state.filters;
+  const searchKeyword = removeVietnameseAccents(search);
+
+  const recognizedCountries = ['china', 'korea', 'japan', 'thailand', 'hongkong', 'taiwan', 'malaysia'];
+
+  let result = state.shows.filter(show => {
+    if (onlyFavorites && !isFavorited(show)) return false;
+
+    // 'other' country matches any non-standard country (malaysia has its own filter now)
+    if (country !== 'all') {
+      if (country === 'other') {
+        const isStandard = recognizedCountries.includes(show.country);
+        if (isStandard) return false;
+      } else if (show.country !== country) {
+        return false;
+      }
     }
 
-    if (currentFilters.country !== "all" && getShowCountry(show) !== currentFilters.country) {
-      return false;
+    if (status !== 'all' && show.status !== status) return false;
+    if (platform !== 'all' && (show.platform || '').trim() !== platform) return false;
+    if (tag !== 'all') {
+      const showTags = show.tags || [];
+      if (!showTags.includes(tag)) return false;
     }
 
-    // Tag Filter
-    if (currentFilters.tag !== "all") {
-      if (currentFilters.tag === "normal" && ((show.tags || []).includes("all-female") || (show.tags || []).includes("all-male") || (show.tags || []).includes("bisexual") || (show.tags || []).includes("other"))) {
-        return false;
-      }
-      if (currentFilters.tag === "all-female" && !(show.tags || []).includes("all-female")) {
-        return false;
-      }
-      if (currentFilters.tag === "all-male" && !(show.tags || []).includes("all-male")) {
-        return false;
-      }
-      if (currentFilters.tag === "bisexual" && !(show.tags || []).includes("bisexual")) {
-        return false;
-      }
-      if (currentFilters.tag === "other" && !(show.tags || []).includes("other")) {
-        return false;
-      }
-    }
+    if (searchKeyword) {
+      const vn = removeVietnameseAccents(show.vietnamese);
+      const en = removeVietnameseAccents(show.english);
+      const zh = removeVietnameseAccents(show.chinese);
+      const desc = removeVietnameseAccents(show.description);
+      const cast = removeVietnameseAccents(show.detailNotes);
+      const plat = removeVietnameseAccents(show.platform);
 
-    // Search Query filter (Using pre-computed search token)
-    if (query !== "") {
-      const token = show._searchToken || getShowSearchText(show);
-      return token.includes(query);
+      const matches =
+        vn.includes(searchKeyword) ||
+        en.includes(searchKeyword) ||
+        zh.includes(searchKeyword) ||
+        desc.includes(searchKeyword) ||
+        cast.includes(searchKeyword) ||
+        plat.includes(searchKeyword);
+
+      if (!matches) return false;
     }
 
     return true;
   });
 
-  // Sorting Logic
-  filtered.sort((a, b) => {
-    switch (currentFilters.sort) {
-      case "name-desc":
-        return compareShowsByVietnameseName(b, a);
-      case "stars": {
-        const ratingA = getShowRating(a);
-        const ratingB = getShowRating(b);
-        if (ratingB !== ratingA) return ratingB - ratingA;
-        return compareShowsByVietnameseName(a, b);
-      }
-      case "year": {
-        const yearA = getSortableYear(a);
-        const yearB = getSortableYear(b);
-        if (yearB !== yearA) return yearB - yearA;
-        return compareShowsByVietnameseName(a, b);
-      }
-      case "name-en": {
-        const enA = (a.english || "").toLowerCase();
-        const enB = (b.english || "").toLowerCase();
-        return enA.localeCompare(enB, "en");
-      }
-      case "watch-link": {
-        const viA = getVietnameseWatchLinks(a).length;
-        const viB = getVietnameseWatchLinks(b).length;
-        const zhA = getChineseWatchLinks(a).length;
-        const zhB = getChineseWatchLinks(b).length;
-        const hasLinkA = (viA + zhA) > 0 ? 1 : 0;
-        const hasLinkB = (viB + zhB) > 0 ? 1 : 0;
-        if (hasLinkB !== hasLinkA) return hasLinkB - hasLinkA;
-        return compareShowsByVietnameseName(a, b);
-      }
-      case "name-asc":
-      default:
-        return compareShowsByVietnameseName(a, b);
-    }
-  });
-
-  const announcer = document.getElementById("filter-status-announcer");
-
-  if (filtered.length === 0) {
-    grid.innerHTML = `
-          <div class="empty-state">
-            <i class="fa-solid fa-ghost empty-state-icon"></i>
-            <h3 class="empty-state-title">Không tìm thấy show nào!</h3>
-            <p class="empty-state-desc">Không có kết quả phù hợp với từ khóa hoặc bộ lọc hiện tại. Hãy thử thay đổi tìm kiếm hoặc đặt lại bộ lọc.</p>
-            <button class="empty-state-reset-btn" type="button" onclick="resetAllFilters()">
-              <i class="fa-solid fa-rotate-left"></i> Xóa tất cả bộ lọc
-            </button>
-          </div>
-        `;
-    if (announcer) announcer.textContent = "Không tìm thấy show nào phù hợp.";
-    return;
+  // Sorting: airing -> completed -> upcoming, names A-Z within each group
+  if (sort === 'airing-first') {
+    const statusRank = { airing: 0, completed: 1, upcoming: 2 };
+    result.sort((a, b) => {
+      const rankA = statusRank[a.status] !== undefined ? statusRank[a.status] : 3;
+      const rankB = statusRank[b.status] !== undefined ? statusRank[b.status] : 3;
+      if (rankA !== rankB) return rankA - rankB;
+      return (a.vietnamese || '').localeCompare(b.vietnamese || '', 'vi');
+    });
+  } else if (sort === 'none') {
+    result.sort((a, b) => (a._origIndex || 0) - (b._origIndex || 0));
+  } else if (sort === 'rating-desc') {
+    result.sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0));
+  } else if (sort === 'title-asc') {
+    result.sort((a, b) => (a.vietnamese || '').localeCompare(b.vietnamese || '', 'vi'));
   }
 
-  if (announcer) announcer.textContent = `Hiển thị ${filtered.length} show kết quả.`;
+  state.filteredShows = result;
+  renderShows();
+  updateResultsCount();
+  updateMobileFilterBadge();
+}
 
-  activeFilteredShows = filtered;
-  showsRenderedCount = 0;
+function updateMobileFilterBadge() {
+  const badge = document.getElementById('mobileFilterBadge');
+  if (!badge) return;
 
-  if (searchActive) {
-    restoreScrollFromAnchorSync();
-    loadMoreShows();
-    return;
+  const parts = [];
+  if (state.filters.status === 'airing') parts.push('Đang chiếu');
+  else if (state.filters.status === 'completed') parts.push('Hoàn thành');
+  else if (state.filters.status === 'upcoming') parts.push('Sắp chiếu');
+
+  if (state.filters.country !== 'all') {
+    const c = getCountryInfo(state.filters.country);
+    parts.push(c.name);
   }
 
-  activeSections = partitionByStatus(filtered).map(group => ({ ...group, rendered: 0 }));
-  buildSectionShells(grid);
-  activeSections.forEach(group => loadMoreForSection(group.key));
-  restoreScrollFromAnchorSync();
+  if (state.filters.platform !== 'all') parts.push(state.filters.platform);
+  badge.textContent = parts.length > 0 ? `(${parts.join(', ')})` : '';
 }
 
-// Cache dữ liệu trong sessionStorage: F5 render tức thì từ cache (0ms chờ mạng),
-// sau đó tải nền bản mới nhất - nếu khác mới cập nhật giao diện im lặng.
-let _bootedWithCache = false;
-let _cachedApplied = null;
-let _appBooted = false;
+function updateResultsCount() {
+  const countEl = document.getElementById('resultsCount');
+  if (countEl) countEl.textContent = state.filteredShows.length;
 
-function applyCachedShowsData() {
-  try {
-    const cached = JSON.parse(sessionStorage.getItem("showsite:data") || "null");
-    if (Array.isArray(cached) && cached.length > 0) {
-      showsData = cached;
-      _cachedApplied = cached;
-      invalidateSearchIndex();
-      return true;
-    }
-  } catch (e) { }
-  return false;
+  const resetBtn = document.getElementById('btnResetFilters');
+  const hasActiveFilters =
+    state.filters.search !== '' ||
+    state.filters.country !== 'all' ||
+    state.filters.status !== 'all' ||
+    state.filters.platform !== 'all' ||
+    state.filters.tag !== 'all' ||
+    state.filters.sort !== 'airing-first' ||
+    state.filters.onlyFavorites;
+
+  if (resetBtn) resetBtn.style.display = hasActiveFilters ? 'inline-flex' : 'none';
 }
 
-async function fetchLatestShowsData() {
-  try {
-    const response = await fetch(`./showsData.json?v=${DATA_VERSION}`);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const fresh = await response.json();
-    if (!Array.isArray(fresh)) throw new Error('showsData.json must contain an array');
-
-    showsData = fresh;
-    invalidateSearchIndex();
-    try { sessionStorage.setItem("showsite:data", JSON.stringify(fresh)); } catch (e) { }
-
-    // Đã render từ cache mà bản mới khác bản cache -> re-render nhẹ nhàng
-    if (_bootedWithCache && JSON.stringify(fresh) !== JSON.stringify(_cachedApplied)) {
-      mergeLegacyCustomShowsIntoShowsData();
-      renderShows();
-      updateStatistics();
-      refreshFilterGroupBadges();
-    }
-  } catch (err) {
-    if (!_bootedWithCache) {
-      console.error('Cannot load showsData.json:', err);
-      showToast('Khong tai duoc showsData.json. Hay chay qua local server hoac kiem tra file du lieu.', true);
-      showsData = [];
-    }
-  }
-}
-
-function bootAppOnce() {
-  if (_appBooted) return;
-  _appBooted = true;
-  mergeLegacyCustomShowsIntoShowsData();
-  initializeAppEvents();
-}
-
-function refreshFilterGroupBadges() {
-  document.querySelectorAll(".filter-group").forEach(group => {
-    const badge = group.querySelector(".filter-active-count");
-    if (!badge) return;
-
-    const active = [...group.querySelectorAll(".filter-btn.active")];
-    const isFilterGroup = active.some(btn =>
-      btn.hasAttribute("data-status") || btn.hasAttribute("data-country") || btn.hasAttribute("data-tag")
-    );
-    const nonDefaultCount = active.filter(btn =>
-      btn.getAttribute("data-status") !== "all" &&
-      btn.getAttribute("data-country") !== "all" &&
-      btn.getAttribute("data-tag") !== "all"
-    ).length;
-
-    badge.textContent = isFilterGroup && nonDefaultCount > 0 ? String(nonDefaultCount) : "";
-  });
-}
-
-function setFilterGroupCollapsed(group, collapsed) {
-  if (!group) return;
-  group.classList.toggle("collapsed", collapsed);
-  group.querySelector(".filter-toggle")?.setAttribute("aria-expanded", String(!collapsed));
-}
-
-function initializeFilterCollapsible() {
-  const mq = window.matchMedia("(max-width: 768px)");
-  const groups = [...document.querySelectorAll(".filter-group")];
-
-  const applyMode = () => {
-    groups.forEach(group => setFilterGroupCollapsed(group, mq.matches));
+function resetAllFilters() {
+  state.filters = {
+    search: '',
+    country: 'all',
+    status: 'all',
+    platform: 'all',
+    tag: 'all',
+    sort: 'airing-first',
+    onlyFavorites: false
   };
 
-  groups.forEach(group => {
-    const toggle = group.querySelector(".filter-toggle");
-    toggle?.addEventListener("click", () => {
-      if (!mq.matches) return;
-      setFilterGroupCollapsed(group, !group.classList.contains("collapsed"));
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) searchInput.value = '';
+  const mobileSearchInput = document.getElementById('mobileSearchInput');
+  if (mobileSearchInput) mobileSearchInput.value = '';
+
+  document.getElementById('searchClearBtn')?.classList.remove('active');
+  document.getElementById('mobileSearchClearBtn')?.classList.remove('active');
+
+  document.querySelectorAll('#countryPillsContainer .pill-country').forEach(p => {
+    p.classList.toggle('active', p.dataset.country === 'all');
+  });
+
+  const mobileCountrySelect = document.getElementById('mobileCountrySelect');
+  if (mobileCountrySelect) mobileCountrySelect.value = 'all';
+
+  document.querySelectorAll('.btn-filter-pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.status === 'all');
+  });
+
+  const platformSelect = document.getElementById('platformSelect');
+  if (platformSelect) platformSelect.value = 'all';
+
+  const tagSelect = document.getElementById('tagSelect');
+  if (tagSelect) tagSelect.value = 'all';
+
+  const sortSelect = document.getElementById('sortSelect');
+  if (sortSelect) sortSelect.value = 'airing-first';
+
+  const favBtn = document.getElementById('btnOpenFavorites');
+  if (favBtn) favBtn.classList.remove('active');
+
+  applyFilters();
+  showToast('Đã khôi phục tất cả bộ lọc', 'fa-rotate-left');
+}
+
+// ============================================================
+// RENDERING SHOW CARDS (REQUIREMENT 6 & 7)
+// ============================================================
+function renderShows() {
+  const container = document.getElementById('showsGrid');
+  const emptyState = document.getElementById('emptyState');
+  if (!container) return;
+
+  if (state.filteredShows.length === 0) {
+    container.style.display = 'none';
+    if (emptyState) emptyState.style.display = 'flex';
+    return;
+  }
+
+  container.style.display = state.viewMode === 'grid' ? 'grid' : 'flex';
+  container.className = state.viewMode === 'grid' ? 'shows-grid' : 'shows-list';
+  if (emptyState) emptyState.style.display = 'none';
+
+  const fragment = document.createDocumentFragment();
+  state.filteredShows.forEach(show => {
+    const card = state.viewMode === 'grid' ? createGridCard(show) : createListItem(show);
+    fragment.appendChild(card);
+  });
+
+  container.innerHTML = '';
+  container.appendChild(fragment);
+}
+
+function createGridCard(show) {
+  const card = document.createElement('div');
+  card.className = 'show-card';
+  card.onclick = () => openShowDetail(show);
+
+  const countryInfo = getCountryInfo(show.country);
+  const statusInfo = getStatusBadge(show.status);
+  const ratingValue = show.rating ? Number(show.rating).toFixed(1) : '5.0';
+  const vnTitleEscaped = escapeHtml(fixBrokenTitleCase(show.vietnamese));
+  const enTitleEscaped = escapeHtml(fixBrokenTitleCase(show.english) || '');
+  const yearFormatted = formatYear(show.year);
+
+  let posterHtml = '';
+  if (show.image) {
+    posterHtml = `<img src="${escapeHtml(getProxiedImageUrl(show.image, 400))}" data-original-src="${escapeHtml(show.image)}" alt="${vnTitleEscaped}" class="card-poster-img" loading="lazy" decoding="async">`;
+  } else {
+    posterHtml = `<div class="card-poster-fallback"><i class="fa-solid fa-heart fallback-icon"></i><div class="fallback-title">${vnTitleEscaped}</div></div>`;
+  }
+
+  card.innerHTML = `
+    <div class="card-poster-wrapper">
+      ${posterHtml}
+      <div class="card-poster-gradient">
+        <div class="card-rating-pill">
+          <i class="fa-solid fa-star"></i>
+          <span>${ratingValue}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-content">
+      <div class="card-meta-row">
+        <span class="card-country-badge">${countryFlagHtml(show.country)} ${countryInfo.name}</span>
+        ${yearFormatted ? `<span class="card-year-badge"><i class="fa-regular fa-calendar"></i> ${yearFormatted}</span>` : ''}
+      </div>
+      <div class="card-status-row">
+        <span class="badge-status ${statusInfo.className}">${statusInfo.html}</span>
+      </div>
+
+      <h3 class="card-title-vn" title="${vnTitleEscaped}">${vnTitleEscaped}</h3>
+
+      <!-- Homepage: Vietnamese + English names only -->
+      <div class="card-title-sub-row">
+        <div class="card-sub-names" title="${enTitleEscaped}">
+          ${enTitleEscaped}
+        </div>
+      </div>
+
+      ${show.time ? `<div class="card-schedule"><i class="fa-regular fa-clock"></i> <span>${escapeHtml(show.time)}</span></div>` : ''}
+
+      <div class="card-footer">
+        <button class="btn-card-watch" data-action="watch">
+          <i class="fa-solid fa-play"></i> Xem ngay
+        </button>
+        <button class="btn-card-detail" data-action="detail" title="Xem chi tiết">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Attach safe image onerror fallback via DOM (retry original once, then fallback art)
+  const imgEl = card.querySelector('.card-poster-img');
+  if (imgEl) {
+    imgEl.onerror = () => {
+      const original = imgEl.getAttribute('data-original-src');
+      if (original && !imgEl.dataset.origTried) {
+        imgEl.dataset.origTried = '1';
+        imgEl.src = original;
+        return;
+      }
+      const wrapper = imgEl.parentElement;
+      if (wrapper) {
+        imgEl.remove();
+        const fallback = document.createElement('div');
+        fallback.className = 'card-poster-fallback';
+        fallback.innerHTML = `<i class="fa-solid fa-heart fallback-icon"></i><div class="fallback-title">${vnTitleEscaped}</div>`;
+        wrapper.prepend(fallback);
+      }
+    };
+  }
+
+  // Bind Actions
+  const watchBtn = card.querySelector('[data-action="watch"]');
+  if (watchBtn) watchBtn.onclick = (e) => { e.stopPropagation(); openShowDetail(show, 'tab-watch'); };
+
+  const detailBtn = card.querySelector('[data-action="detail"]');
+  if (detailBtn) detailBtn.onclick = (e) => { e.stopPropagation(); openShowDetail(show, 'tab-desc'); };
+
+  return card;
+}
+
+function createListItem(show) {
+  const item = document.createElement('div');
+  item.className = 'show-list-item';
+  item.onclick = () => openShowDetail(show);
+
+  const countryInfo = getCountryInfo(show.country);
+  const statusInfo = getStatusBadge(show.status);
+  const vnTitleEscaped = escapeHtml(fixBrokenTitleCase(show.vietnamese));
+  const yearFormatted = formatYear(show.year);
+  const listPosterOrig = show.image || '';
+  const listPosterSrc = listPosterOrig
+    ? getProxiedImageUrl(listPosterOrig, 140)
+    : 'https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg';
+
+  item.innerHTML = `
+    <img src="${escapeHtml(listPosterSrc)}"${listPosterOrig ? ` data-original-src="${escapeHtml(listPosterOrig)}"` : ''} alt="${vnTitleEscaped}" class="list-item-poster" loading="lazy" decoding="async" onerror="handlePosterImgError(this, 'https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg');">
+    <div class="list-item-info">
+      <div class="list-item-title">${vnTitleEscaped}</div>
+      <div class="list-item-sub">
+        <span>${escapeHtml(fixBrokenTitleCase(show.english) || '')}</span>
+      </div>
+      <div class="list-item-meta">
+        <span>${countryFlagHtml(show.country)} ${countryInfo.name}</span>
+        ${yearFormatted ? `<span>•</span><span>${yearFormatted}</span>` : ''}
+        <span>•</span>
+        <span class="badge-status ${statusInfo.className}" style="font-size: 10px; padding: 2px 6px;">${statusInfo.html}</span>
+      </div>
+    </div>
+    <div class="list-item-actions">
+      <button class="btn-primary" style="padding: 6px 14px; font-size: 12px;" data-action="watch">
+        <i class="fa-solid fa-play"></i> Xem
+      </button>
+    </div>
+  `;
+
+  const watchBtn = item.querySelector('[data-action="watch"]');
+  if (watchBtn) watchBtn.onclick = (e) => { e.stopPropagation(); openShowDetail(show, 'tab-watch'); };
+
+  return item;
+}
+
+// ============================================================
+// SHOW DETAIL MODAL (FAVICONS & COPY BUTTONS IN MODAL)
+// ============================================================
+function openShowDetail(show, defaultTab = 'tab-watch') {
+  state.activeShow = show;
+  const modal = document.getElementById('detailModal');
+  if (!modal) return;
+
+  const slug = slugify(show.vietnamese);
+  if (slug) window.history.replaceState(null, '', `#show=${slug}`);
+
+  const poster = document.getElementById('modalPoster');
+  if (poster) {
+    delete poster.dataset.origTried;
+    if (show.image) {
+      poster.setAttribute('data-original-src', show.image);
+      poster.src = getProxiedImageUrl(show.image, 600);
+    } else {
+      poster.removeAttribute('data-original-src');
+      poster.src = 'https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg';
+    }
+    poster.onerror = () => handlePosterImgError(poster, 'https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg');
+  }
+
+  const title = document.getElementById('modalTitle');
+  if (title) title.textContent = show.vietnamese;
+
+  // Requirement 6: Copy buttons live neatly inside modal
+  const subs = document.getElementById('modalSubtitles');
+  if (subs) {
+    subs.innerHTML = `
+      ${show.chinese ? `<span class="name-chip">${escapeHtml(show.chinese)} <button class="btn-copy-name" title="Sao chép tên tiếng Trung" onclick="copyText('${escapeHtml(show.chinese)}', 'tên tiếng Trung', event)"><i class="fa-regular fa-copy"></i> Copy</button></span>` : ''}
+      ${show.english ? `<span class="name-chip">${escapeHtml(show.english)} <button class="btn-copy-name" title="Sao chép tên tiếng Anh" onclick="copyText('${escapeHtml(show.english)}', 'tên tiếng Anh', event)"><i class="fa-regular fa-copy"></i> Copy</button></span>` : ''}
+    `;
+  }
+
+  const countryInfo = getCountryInfo(show.country);
+  const statusInfo = getStatusBadge(show.status);
+
+  const statusBadge = document.getElementById('modalStatusBadge');
+  if (statusBadge) {
+    statusBadge.className = `badge-status ${statusInfo.className}`;
+    statusBadge.innerHTML = statusInfo.html;
+  }
+
+  const countryBadge = document.getElementById('modalCountryBadge');
+  if (countryBadge) countryBadge.innerHTML = `${countryFlagHtml(show.country)} ${countryInfo.name}`;
+
+  const ratingBadge = document.getElementById('modalRatingBadge');
+  if (ratingBadge) {
+    const val = show.rating ? Number(show.rating).toFixed(1) : '5.0';
+    ratingBadge.innerHTML = `<i class="fa-solid fa-star"></i> <span>${val}</span>`;
+  }
+
+  const platformEl = document.getElementById('modalPlatform');
+  if (platformEl) platformEl.textContent = show.platform || 'Online';
+
+  const scheduleEl = document.getElementById('modalSchedule');
+  if (scheduleEl) scheduleEl.textContent = show.time || 'Đang cập nhật';
+
+  const yearEl = document.getElementById('modalYear');
+  if (yearEl) yearEl.textContent = show.year || '2024-2026';
+
+  populateWatchLinks(show);
+  populateCastMembers(show.detailNotes);
+
+  const descEl = document.getElementById('modalDescription');
+  if (descEl) descEl.textContent = show.description || 'Chưa có thông tin giới thiệu cho show này.';
+
+  updateModalFavoriteButton(show);
+  switchModalTab(defaultTab);
+
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeShowDetail() {
+  const modal = document.getElementById('detailModal');
+  if (!modal) return;
+  modal.classList.remove('active');
+  document.body.style.overflow = '';
+  state.activeShow = null;
+
+  if (window.location.hash.startsWith('#show=')) {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
+}
+
+// ============================================================
+// POSTER LIGHTBOX: original quality + zoom (wheel / pinch / buttons)
+// ============================================================
+const lightboxState = { scale: 1, minScale: 1, maxScale: 6, x: 0, y: 0, iw: 0, ih: 0 };
+
+function applyLightboxTransform() {
+  const img = document.getElementById('imageLightboxImg');
+  if (!img) return;
+  img.style.transform = `translate(${lightboxState.x}px, ${lightboxState.y}px) scale(${lightboxState.scale})`;
+}
+
+function fitLightboxImage() {
+  const img = document.getElementById('imageLightboxImg');
+  if (!img || !img.naturalWidth) return;
+  lightboxState.iw = img.naturalWidth;
+  lightboxState.ih = img.naturalHeight;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const s = Math.min(vw / img.naturalWidth, vh / img.naturalHeight);
+  lightboxState.minScale = s;
+  lightboxState.scale = s;
+  lightboxState.x = (vw - img.naturalWidth * s) / 2;
+  lightboxState.y = (vh - img.naturalHeight * s) / 2;
+  applyLightboxTransform();
+}
+
+function clampLightboxPan() {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const w = lightboxState.iw * lightboxState.scale;
+  const h = lightboxState.ih * lightboxState.scale;
+  if (w <= vw) lightboxState.x = (vw - w) / 2;
+  else lightboxState.x = Math.min(0, Math.max(vw - w, lightboxState.x));
+  if (h <= vh) lightboxState.y = (vh - h) / 2;
+  else lightboxState.y = Math.min(0, Math.max(vh - h, lightboxState.y));
+}
+
+function zoomLightboxAt(cx, cy, factor) {
+  const st = lightboxState;
+  const ns = Math.min(st.maxScale, Math.max(st.minScale, st.scale * factor));
+  if (ns === st.scale) return;
+  const k = ns / st.scale;
+  st.x = cx - (cx - st.x) * k;
+  st.y = cy - (cy - st.y) * k;
+  st.scale = ns;
+  clampLightboxPan();
+  applyLightboxTransform();
+}
+
+function openPosterLightbox(src, alt) {
+  const box = document.getElementById('imageLightbox');
+  const img = document.getElementById('imageLightboxImg');
+  if (!box || !img || !src) return;
+  lbPointers.clear();
+  img.classList.remove('dragging');
+  img.onload = fitLightboxImage;
+  const sameSrc = img.getAttribute('src') === src;
+  img.src = src;
+  if (alt) img.alt = alt;
+  if (sameSrc && img.complete && img.naturalWidth) fitLightboxImage();
+  box.classList.add('open');
+  box.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePosterLightbox() {
+  const box = document.getElementById('imageLightbox');
+  if (!box) return;
+  lbPointers.clear();
+  box.classList.remove('open');
+  box.setAttribute('aria-hidden', 'true');
+  const detailModal = document.getElementById('detailModal');
+  if (!detailModal || !detailModal.classList.contains('active')) {
+    document.body.style.overflow = '';
+  }
+}
+
+const lbPointers = new Map();
+let lbPinchDist = 0, lbLastTap = 0, lbDragMoved = false;
+
+function initPosterLightbox() {
+  if (initPosterLightbox.done) return;
+  initPosterLightbox.done = true;
+  const boxEl = document.getElementById('imageLightbox');
+  const imgEl = document.getElementById('imageLightboxImg');
+  if (!boxEl || !imgEl) return;
+
+  // Open original-quality image from the detail modal poster
+  const modalPoster = document.getElementById('modalPoster');
+  if (modalPoster) {
+    modalPoster.addEventListener('click', () => {
+      const orig = modalPoster.getAttribute('data-original-src') || modalPoster.src;
+      const titleEl = document.getElementById('modalTitle');
+      openPosterLightbox(orig || modalPoster.src, (titleEl && titleEl.textContent) || 'Ảnh chất lượng gốc');
+    });
+  }
+
+  document.getElementById('imageLightboxClose').addEventListener('click', closePosterLightbox);
+  document.getElementById('imageLightboxBackdrop').addEventListener('click', closePosterLightbox);
+  document.getElementById('imageLightboxZoomIn').addEventListener('click', () => zoomLightboxAt(window.innerWidth / 2, window.innerHeight / 2, 1.4));
+  document.getElementById('imageLightboxZoomOut').addEventListener('click', () => zoomLightboxAt(window.innerWidth / 2, window.innerHeight / 2, 1 / 1.4));
+  document.getElementById('imageLightboxReset').addEventListener('click', fitLightboxImage);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && boxEl.classList.contains('open')) closePosterLightbox();
+  });
+
+  // Desktop: wheel zoom at cursor
+  imgEl.addEventListener('wheel', e => {
+    e.preventDefault();
+    zoomLightboxAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.15 : 1 / 1.15);
+  }, { passive: false });
+
+  // Unified drag-pan + pinch-zoom via pointer events
+  imgEl.addEventListener('pointerdown', e => {
+    try { imgEl.setPointerCapture(e.pointerId); } catch (_) {}
+    lbPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    lbDragMoved = false;
+    if (lbPointers.size === 2) {
+      const p = [...lbPointers.values()];
+      lbPinchDist = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+    }
+    imgEl.classList.add('dragging');
+  });
+  imgEl.addEventListener('pointermove', e => {
+    if (!lbPointers.has(e.pointerId)) return;
+    const prev = lbPointers.get(e.pointerId);
+    const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+    lbPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (Math.abs(dx) + Math.abs(dy) > 2) lbDragMoved = true;
+    if (lbPointers.size === 2) {
+      const p = [...lbPointers.values()];
+      const dist = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+      if (lbPinchDist > 0 && dist > 0) {
+        zoomLightboxAt((p[0].x + p[1].x) / 2, (p[0].y + p[1].y) / 2, dist / lbPinchDist);
+      }
+      lbPinchDist = dist;
+    } else if (lbPointers.size === 1 && lightboxState.scale > lightboxState.minScale + 0.001) {
+      lightboxState.x += dx;
+      lightboxState.y += dy;
+      clampLightboxPan();
+      applyLightboxTransform();
+    }
+  });
+  const endLbPointer = e => {
+    lbPointers.delete(e.pointerId);
+    if (lbPointers.size < 2) lbPinchDist = 0;
+    if (lbPointers.size === 0) imgEl.classList.remove('dragging');
+  };
+  imgEl.addEventListener('pointerup', endLbPointer);
+  imgEl.addEventListener('pointercancel', endLbPointer);
+
+  // Double-tap / double-click toggles zoom
+  imgEl.addEventListener('click', e => {
+    const now = Date.now();
+    if (now - lbLastTap < 300 && !lbDragMoved) {
+      if (lightboxState.scale > lightboxState.minScale + 0.001) fitLightboxImage();
+      else zoomLightboxAt(e.clientX, e.clientY, 2.5);
+    }
+    lbLastTap = now;
+    lbDragMoved = false;
+  });
+
+  window.addEventListener('resize', () => {
+    if (boxEl.classList.contains('open')) fitLightboxImage();
+  });
+}
+
+function switchModalTab(tabId) {
+  document.querySelectorAll('#detailModal .modal-tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tabId);
+  });
+  document.querySelectorAll('#detailModal .tab-pane').forEach(pane => {
+    pane.classList.toggle('active', pane.id === tabId);
+  });
+}
+
+// Requirement 3: Watch Link Buttons with REAL WEBSITE FAVICONS
+function populateWatchLinks(show) {
+  const vietsubContainer = document.getElementById('modalVietsubLinks');
+  const originalContainer = document.getElementById('modalOriginalLinks');
+  const chineseGroup = document.getElementById('modalChineseGroup');
+
+  if (vietsubContainer) vietsubContainer.innerHTML = '';
+  if (originalContainer) originalContainer.innerHTML = '';
+
+  let vietsubList = [];
+  if (Array.isArray(show.vietnameseWatchUrls) && show.vietnameseWatchUrls.length > 0) {
+    vietsubList = show.vietnameseWatchUrls;
+  } else if (show.vietnameseWatchUrl) {
+    vietsubList = [{ url: show.vietnameseWatchUrl, label: 'Nguồn Vietsub chính' }];
+  }
+
+  if (vietsubList.length > 0) {
+    vietsubList.forEach(item => {
+      const btn = createWatchLinkButton(item.url, item.label || 'Xem Vietsub', item.episodes);
+      if (vietsubContainer) vietsubContainer.appendChild(btn);
+    });
+  } else {
+    if (vietsubContainer) {
+      vietsubContainer.innerHTML = `<div style="color: var(--text-muted); font-size: 13px;">Chưa có link Vietsub. Bạn có thể xem bản gốc bên dưới.</div>`;
+    }
+  }
+
+  let originalList = [];
+  if (Array.isArray(show.chineseWatchUrls) && show.chineseWatchUrls.length > 0) {
+    originalList = show.chineseWatchUrls;
+  } else if (show.chineseWatchUrl) {
+    originalList = [{ url: show.chineseWatchUrl, label: 'Nơi chiếu bản gốc' }];
+  }
+
+  if (originalList.length > 0) {
+    if (chineseGroup) chineseGroup.style.display = 'block';
+    originalList.forEach(item => {
+      const btn = createWatchLinkButton(item.url, item.label || 'Xem bản gốc', item.episodes);
+      if (originalContainer) originalContainer.appendChild(btn);
+    });
+  } else {
+    if (chineseGroup) chineseGroup.style.display = 'none';
+  }
+}
+
+function createWatchLinkButton(url, label, episodes) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.className = 'watch-link-btn';
+  a.setAttribute('data-full-label', label || 'Xem Vietsub');
+
+  const faviconHtml = getWebsiteFaviconHtml(url, label);
+  const eps = Array.isArray(episodes) ? episodes.filter(e => e && e.url) : [];
+  const hasEps = eps.length > 0;
+  if (hasEps) a.classList.add('has-episodes');
+
+  a.innerHTML = `
+    <span class="watch-link-label">
+      ${faviconHtml}
+      <span>${escapeHtml(label)}</span>
+    </span>
+    <span class="watch-link-side">
+      ${hasEps ? `<span class="watch-ep-badge">${eps.length} tập</span>` : ''}
+      <i class="fa-solid ${hasEps ? 'fa-list-ol' : 'fa-arrow-up-right-from-square'}" style="color: var(--text-muted); font-size: 11px;"></i>
+    </span>
+  `;
+
+  if (hasEps) {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const titleEl = document.getElementById('modalTitle');
+      openEpisodePicker(titleEl ? titleEl.textContent : '', label || 'Xem Vietsub', eps);
+    });
+  }
+
+  return a;
+}
+
+// ============================================================
+// WATCH-LINK TOOLTIP: full label on desktop hover / mobile long-press
+// (only when the label is actually truncated)
+// ============================================================
+let linkTipEl = null;
+let linkTipForBtn = null;
+let linkTipHideTimer = null;
+const linkTipCanHover = window.matchMedia('(hover: hover)').matches;
+
+function getLinkTipEl() {
+  if (!linkTipEl) {
+    linkTipEl = document.createElement('div');
+    linkTipEl.className = 'link-tip-popup';
+    linkTipEl.style.display = 'none';
+    document.body.appendChild(linkTipEl);
+  }
+  return linkTipEl;
+}
+
+function showLinkTip(text, x, y, autoHideMs) {
+  if (!text) return;
+  const el = getLinkTipEl();
+  el.textContent = text;
+  el.style.display = 'block';
+  const pad = 10;
+  const r = el.getBoundingClientRect();
+  const left = Math.min(Math.max(pad, x - r.width / 2), Math.max(pad, window.innerWidth - r.width - pad));
+  let top = y - r.height - 12;
+  if (top < pad) top = y + 18;
+  el.style.left = left + 'px';
+  el.style.top = top + 'px';
+  clearTimeout(linkTipHideTimer);
+  if (autoHideMs > 0) linkTipHideTimer = setTimeout(hideLinkTip, autoHideMs);
+}
+
+function hideLinkTip() {
+  clearTimeout(linkTipHideTimer);
+  linkTipForBtn = null;
+  if (linkTipEl) linkTipEl.style.display = 'none';
+}
+
+function isWatchLabelTruncated(btn) {
+  const textEl = btn.querySelector('.watch-link-label > span:last-child');
+  return !!textEl && textEl.scrollWidth > textEl.clientWidth + 1;
+}
+
+function initWatchLinkTips() {
+  if (initWatchLinkTips.done) return;
+  initWatchLinkTips.done = true;
+
+  // Desktop: hover shows full label
+  if (linkTipCanHover) {
+    document.addEventListener('mouseover', e => {
+      const btn = e.target && e.target.closest ? e.target.closest('.watch-link-btn') : null;
+      if (!btn || btn === linkTipForBtn || !isWatchLabelTruncated(btn)) return;
+      linkTipForBtn = btn;
+      const textEl = btn.querySelector('.watch-link-label > span:last-child');
+      const r = btn.getBoundingClientRect();
+      showLinkTip(btn.dataset.fullLabel || (textEl ? textEl.textContent : ''), r.left + r.width / 2, r.top, 0);
+    });
+    document.addEventListener('mouseout', e => {
+      const btn = e.target && e.target.closest ? e.target.closest('.watch-link-btn') : null;
+      if (btn && btn === linkTipForBtn && !(e.relatedTarget && btn.contains(e.relatedTarget))) {
+        hideLinkTip();
+      }
+    });
+  }
+
+  // Mobile: long-press (~550ms without moving) shows popup, tap still opens link
+  let lpTimer = null, lpBtn = null, lpX = 0, lpY = 0, suppressClick = false;
+  document.addEventListener('touchstart', e => {
+    hideLinkTip();
+    clearTimeout(lpTimer);
+    lpBtn = null;
+    const btn = e.target && e.target.closest ? e.target.closest('.watch-link-btn') : null;
+    if (!btn || !e.touches[0]) return;
+    lpBtn = btn;
+    lpX = e.touches[0].clientX;
+    lpY = e.touches[0].clientY;
+    lpTimer = setTimeout(() => {
+      if (!isWatchLabelTruncated(btn)) return;
+      const textEl = btn.querySelector('.watch-link-label > span:last-child');
+      showLinkTip(btn.dataset.fullLabel || (textEl ? textEl.textContent : ''), lpX, lpY, 5000);
+      suppressClick = true;
+      if (navigator.vibrate) { try { navigator.vibrate(25); } catch (_) {} }
+    }, 550);
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if (!lpBtn || !e.touches[0]) return;
+    if (Math.abs(e.touches[0].clientX - lpX) > 10 || Math.abs(e.touches[0].clientY - lpY) > 10) {
+      clearTimeout(lpTimer);
+      lpBtn = null;
+    }
+  }, { passive: true });
+  const cancelLongPress = () => { clearTimeout(lpTimer); lpBtn = null; };
+  document.addEventListener('touchend', cancelLongPress, { passive: true });
+  document.addEventListener('touchcancel', cancelLongPress, { passive: true });
+  // A long-press must not open the link on finger release
+  document.addEventListener('click', e => {
+    if (!suppressClick) return;
+    suppressClick = false;
+    const btn = e.target && e.target.closest ? e.target.closest('.watch-link-btn') : null;
+    if (btn) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+  // Block native long-press menu on link cards so our popup shows instead
+  document.addEventListener('contextmenu', e => {
+    const btn = e.target && e.target.closest ? e.target.closest('.watch-link-btn') : null;
+    if (btn) e.preventDefault();
+  });
+  window.addEventListener('scroll', hideLinkTip, true);
+}
+
+function populateCastMembers(detailNotes) {
+  const container = document.getElementById('modalCastGrid');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!detailNotes || !detailNotes.trim()) {
+    container.innerHTML = `<div style="color: var(--text-muted); font-size: 13px;">Chưa có thông tin dàn cast cho chương trình này.</div>`;
+    return;
+  }
+
+  const lines = detailNotes.split('\n').map(l => l.trim()).filter(Boolean);
+  lines.forEach(line => {
+    const card = document.createElement('div');
+    const isFemale = line.toLowerCase().startsWith('nữ');
+    const isMale = line.toLowerCase().startsWith('nam');
+
+    card.className = `cast-card ${isFemale ? 'cast-gender-female' : isMale ? 'cast-gender-male' : ''}`;
+
+    const titlePart = line.split('|')[0].trim();
+    const infoPart = line.includes('|') ? line.substring(line.indexOf('|') + 1).trim() : '';
+
+    card.innerHTML = `
+      <div class="cast-name">${escapeHtml(titlePart)}</div>
+      ${infoPart ? `<div class="cast-info">${escapeHtml(infoPart)}</div>` : ''}
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+function copyShareLink(show, e) {
+  if (e) e.stopPropagation();
+  const slug = slugify(show.vietnamese);
+  const shareUrl = `${window.location.origin}${window.location.pathname}#show=${slug}`;
+  copyText(shareUrl, 'link chia sẻ show');
+}
+
+function checkUrlHash() {
+  const hash = window.location.hash;
+  if (!hash || !hash.startsWith('#show=')) return;
+
+  const targetSlug = hash.replace('#show=', '').trim();
+  const matchedShow = state.shows.find(s => slugify(s.vietnamese) === targetSlug);
+
+  if (matchedShow) {
+    setTimeout(() => openShowDetail(matchedShow), 300);
+  }
+}
+
+function pickRandomShow() {
+  if (state.shows.length === 0) return;
+  const randomIndex = Math.floor(Math.random() * state.shows.length);
+  const show = state.shows[randomIndex];
+  openShowDetail(show);
+  showToast(`Khám phá ngẫu nhiên: "${show.vietnamese}" 🎲`, 'fa-dice');
+}
+
+// ============================================================
+// SETTINGS: SORTED A-Z, DYNAMIC MULTI-LINKS & EXPAND EDITOR (REQUIREMENTS 4 & 5)
+// ============================================================
+function openSettingsModal() {
+  const modal = document.getElementById('settingsModal');
+  if (!modal) return;
+  stagedSpotlightSlugs = [...state.spotlightSlugs];
+  populateSettingsSelects();
+  renderStagedPins();
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSettingsModal() {
+  const modal = document.getElementById('settingsModal');
+  if (!modal) return;
+  modal.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function switchSettingsTab(tabId) {
+  document.querySelectorAll('#settingsModal .modal-tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.stab === tabId);
+  });
+  document.querySelectorAll('#settingsModal .tab-pane').forEach(pane => {
+    pane.classList.toggle('active', pane.id === tabId);
+  });
+}
+
+// Requirement 4: Populates list sorted alphabetically A-Z by Vietnamese title
+// Full display name: Vietnamese • English • Original (used in settings search lists)
+function showFullNameLabel(s) {
+  return [s.vietnamese, s.english, s.chinese].filter(Boolean).join(' • ');
+}
+
+function getAlphabeticalShows(filterKeyword = '') {
+  let list = state.shows.map((s, idx) => ({ ...s, _idx: idx }));
+  list.sort((a, b) => (a.vietnamese || '').localeCompare(b.vietnamese || '', 'vi'));
+
+  if (filterKeyword) {
+    const norm = removeVietnameseAccents(filterKeyword);
+    list = list.filter(s =>
+      removeVietnameseAccents(s.vietnamese).includes(norm) ||
+      removeVietnameseAccents(s.chinese).includes(norm) ||
+      removeVietnameseAccents(s.english).includes(norm)
+    );
+  }
+  return list;
+}
+
+function populateSettingsSelects() {
+  const spotlightSelect = document.getElementById('spotlightSelect');
+  const editSelect = document.getElementById('editShowSelect');
+
+  const spotlightKeyword = document.getElementById('spotlightSearchInput')?.value || '';
+  const editKeyword = document.getElementById('editSearchInput')?.value || '';
+
+  if (spotlightSelect) {
+    spotlightSelect.innerHTML = '';
+    const sorted = getAlphabeticalShows(spotlightKeyword);
+    sorted.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = slugify(s.vietnamese);
+      opt.textContent = showFullNameLabel(s);
+      spotlightSelect.appendChild(opt);
+    });
+  }
+
+  if (editSelect) {
+    editSelect.innerHTML = '';
+    const sorted = getAlphabeticalShows(editKeyword);
+    sorted.forEach((s, i) => {
+      const opt = document.createElement('option');
+      opt.value = s._idx;
+      opt.textContent = showFullNameLabel(s);
+      if (i === 0) opt.selected = true;
+      editSelect.appendChild(opt);
+    });
+
+    if (sorted.length > 0) {
+      loadShowToEditForm(sorted[0]._idx);
+    }
+  }
+}
+
+// Requirement 5: Dynamic Link Row Builder for Multiple Watch Links
+// Two lines per link: link info (label) + show link (URL), plus per-link episode links
+function createDynamicLinkRow(label = '', url = '', episodes = []) {
+  const row = document.createElement('div');
+  row.className = 'link-editor-row';
+  row._episodes = Array.isArray(episodes)
+    ? episodes.filter(e => e && e.url).map(e => ({ ep: String(e.ep ?? ''), url: String(e.url) }))
+    : [];
+  row.innerHTML = `
+    <span class="link-editor-caption">Thông tin link</span>
+    <div class="link-editor-row-top">
+      <input type="text" class="settings-input link-label-input" placeholder="Tên nguồn (VD: Bilibili 720p)" value="${escapeHtml(label)}">
+      <button type="button" class="btn-remove-row" title="Xóa link này"><i class="fa-solid fa-trash"></i></button>
+    </div>
+    <span class="link-editor-caption">Link show</span>
+    <input type="text" class="settings-input link-url-input" placeholder="https://..." value="${escapeHtml(url)}">
+    <button type="button" class="btn-link-episodes" title="Gắn link theo tập cho link này"><i class="fa-solid fa-list-ol"></i> Link theo tập (<span class="ep-count">0</span>)</button>
+  `;
+
+  row.querySelector('.btn-remove-row').onclick = () => row.remove();
+  row.querySelector('.btn-link-episodes').onclick = () => openEpisodeEditor(row);
+  updateEpCountBadge(row);
+  return row;
+}
+
+function updateEpCountBadge(row) {
+  const badge = row.querySelector('.ep-count');
+  if (badge) badge.textContent = (row._episodes || []).length;
+}
+
+function loadShowToEditForm(index) {
+  const show = state.shows[index];
+  if (!show) return;
+
+  document.getElementById('editVn').value = show.vietnamese || '';
+  document.getElementById('editZh').value = show.chinese || '';
+  document.getElementById('editEn').value = show.english || '';
+  document.getElementById('editCountry').value = show.country || 'china';
+  document.getElementById('editStatus').value = show.status || 'airing';
+  document.getElementById('editPlatform').value = show.platform || '';
+  document.getElementById('editTime').value = show.time || '';
+  document.getElementById('editRating').value = show.rating || 5;
+  document.getElementById('editImage').value = show.image || '';
+  document.getElementById('editYear').value = show.year || '';
+
+  // Multiple Vietsub Links
+  const vietsubListEl = document.getElementById('editVietsubLinksList');
+  if (vietsubListEl) {
+    vietsubListEl.innerHTML = '';
+    const links = Array.isArray(show.vietnameseWatchUrls) && show.vietnameseWatchUrls.length > 0
+      ? show.vietnameseWatchUrls
+      : (show.vietnameseWatchUrl ? [{ label: 'Nguồn Vietsub', url: show.vietnameseWatchUrl }] : []);
+
+    links.forEach(l => vietsubListEl.appendChild(createDynamicLinkRow(l.label, l.url, l.episodes)));
+    if (links.length === 0) vietsubListEl.appendChild(createDynamicLinkRow('Nguồn Vietsub', ''));
+  }
+
+  // Multiple Original Links
+  const originalListEl = document.getElementById('editOriginalLinksList');
+  if (originalListEl) {
+    originalListEl.innerHTML = '';
+    const origLinks = Array.isArray(show.chineseWatchUrls) && show.chineseWatchUrls.length > 0
+      ? show.chineseWatchUrls
+      : (show.chineseWatchUrl ? [{ label: 'Nơi chiếu bản gốc', url: show.chineseWatchUrl }] : []);
+
+    origLinks.forEach(l => originalListEl.appendChild(createDynamicLinkRow(l.label, l.url, l.episodes)));
+  }
+
+  document.getElementById('editCast').value = show.detailNotes || '';
+  document.getElementById('editDesc').value = show.description || '';
+}
+
+function collectDynamicLinks(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return [];
+  const rows = container.querySelectorAll('.link-editor-row');
+  const result = [];
+  rows.forEach(r => {
+    const label = r.querySelector('.link-label-input')?.value.trim() || 'Link xem';
+    const url = r.querySelector('.link-url-input')?.value.trim() || '';
+    if (url) {
+      const entry = { label, url };
+      const eps = Array.isArray(r._episodes) ? r._episodes.filter(e => e && e.url) : [];
+      if (eps.length > 0) entry.episodes = eps;
+      result.push(entry);
+    }
+  });
+  return result;
+}
+
+// ============================================================
+// EPISODE LINKS: per-link episode manager (edit form) + picker (detail)
+// ============================================================
+let episodeEditingRow = null;
+let episodeDraft = [];
+
+function sortEpisodes(list) {
+  list.sort((a, b) => {
+    const na = parseFloat(a.ep), nb = parseFloat(b.ep);
+    if (!isNaN(na) && !isNaN(nb) && na !== nb) return na - nb;
+    return String(a.ep).localeCompare(String(b.ep), 'vi');
+  });
+}
+
+function openEpisodeEditor(row) {
+  episodeEditingRow = row;
+  episodeDraft = (row._episodes || []).map(e => ({ ep: e.ep, url: e.url }));
+  sortEpisodes(episodeDraft);
+  const labelInput = row.querySelector('.link-label-input');
+  const nameEl = document.getElementById('episodeEditorLinkName');
+  if (nameEl) nameEl.textContent = 'Link: ' + ((labelInput && labelInput.value.trim()) || 'Link xem');
+  renderEpisodeDraft();
+  const modal = document.getElementById('episodeEditorModal');
+  if (modal) {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeEpisodeEditor(save) {
+  if (save && episodeEditingRow) {
+    episodeEditingRow._episodes = episodeDraft;
+    updateEpCountBadge(episodeEditingRow);
+  }
+  episodeEditingRow = null;
+  episodeDraft = [];
+  const modal = document.getElementById('episodeEditorModal');
+  if (modal) modal.classList.remove('active');
+  const detailModal = document.getElementById('detailModal');
+  const settingsModal = document.getElementById('settingsModal');
+  if ((!detailModal || !detailModal.classList.contains('active')) &&
+      (!settingsModal || !settingsModal.classList.contains('active'))) {
+    document.body.style.overflow = '';
+  }
+}
+
+function renderEpisodeDraft() {
+  const box = document.getElementById('episodeEditorList');
+  if (!box) return;
+  if (episodeDraft.length === 0) {
+    box.innerHTML = `<div style="color: var(--text-muted); font-size: 13px;">Chưa có tập nào. Thêm tập bên dưới.</div>`;
+    return;
+  }
+  box.innerHTML = '';
+  episodeDraft.forEach((e, i) => {
+    const div = document.createElement('div');
+    div.className = 'episode-editor-item';
+    div.innerHTML = `
+      <span class="episode-editor-ep">Tập ${escapeHtml(e.ep)}</span>
+      <span class="episode-editor-url">${escapeHtml(e.url)}</span>
+      <button type="button" class="btn-remove-row btn-ep-del" title="Xóa tập này"><i class="fa-solid fa-xmark"></i></button>
+    `;
+    div.querySelector('.btn-ep-del').onclick = () => {
+      episodeDraft.splice(i, 1);
+      renderEpisodeDraft();
+    };
+    box.appendChild(div);
+  });
+}
+
+function addEpisodeFromInputs() {
+  const epInput = document.getElementById('episodeEpInput');
+  const urlInput = document.getElementById('episodeUrlInput');
+  if (!epInput || !urlInput) return;
+  const ep = (epInput.value || '').trim();
+  let url = (urlInput.value || '').trim();
+  if (!ep) {
+    showToast('Nhập số tập trước.', 'fa-circle-info');
+    epInput.focus();
+    return;
+  }
+  if (!url) {
+    showToast('Nhập link tập phim.', 'fa-circle-info');
+    urlInput.focus();
+    return;
+  }
+  if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(url)) url = 'https://' + url;
+  episodeDraft = episodeDraft.filter(e => e.ep !== ep);
+  episodeDraft.push({ ep, url });
+  sortEpisodes(episodeDraft);
+  epInput.value = '';
+  urlInput.value = '';
+  epInput.focus();
+  renderEpisodeDraft();
+}
+
+function openEpisodePicker(showName, label, episodes) {
+  const modal = document.getElementById('episodePickerModal');
+  if (!modal) return;
+  const titleEl = document.getElementById('episodePickerTitle');
+  const subEl = document.getElementById('episodePickerSub');
+  const grid = document.getElementById('episodePickerGrid');
+  if (titleEl) titleEl.textContent = 'Chọn tập phim';
+  if (subEl) subEl.textContent = `${showName} — ${label}`;
+  if (grid) {
+    grid.innerHTML = '';
+    const sorted = [...episodes];
+    sortEpisodes(sorted);
+    sorted.forEach(e => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'episode-pick-btn';
+      b.textContent = `Tập ${e.ep}`;
+      b.onclick = () => window.open(e.url, '_blank', 'noopener');
+      grid.appendChild(b);
+    });
+  }
+  modal.classList.add('active');
+}
+
+function closeEpisodePicker() {
+  const modal = document.getElementById('episodePickerModal');
+  if (modal) modal.classList.remove('active');
+}
+
+function saveEditedShow() {
+  const editSelect = document.getElementById('editShowSelect');
+  const idx = parseInt(editSelect.value, 10);
+  if (isNaN(idx) || !state.shows[idx]) return;
+
+  const show = state.shows[idx];
+  show.vietnamese = document.getElementById('editVn').value.trim();
+  show.chinese = document.getElementById('editZh').value.trim();
+  show.english = document.getElementById('editEn').value.trim();
+  show.country = document.getElementById('editCountry').value;
+  show.status = document.getElementById('editStatus').value;
+  show.platform = document.getElementById('editPlatform').value.trim();
+  show.time = document.getElementById('editTime').value.trim();
+  show.rating = parseFloat(document.getElementById('editRating').value) || 5;
+  show.image = document.getElementById('editImage').value.trim();
+  show.year = document.getElementById('editYear').value.trim() || show.year;
+
+  // Save multiple links (Requirement 5)
+  const vLinks = collectDynamicLinks('editVietsubLinksList');
+  show.vietnameseWatchUrls = vLinks;
+  show.vietnameseWatchUrl = vLinks.length > 0 ? vLinks[0].url : '';
+
+  const oLinks = collectDynamicLinks('editOriginalLinksList');
+  show.chineseWatchUrls = oLinks;
+  show.chineseWatchUrl = oLinks.length > 0 ? oLinks[0].url : '';
+
+  show.detailNotes = document.getElementById('editCast').value;
+  show.description = document.getElementById('editDesc').value;
+
+  saveShowsToLocalStorage();
+  applyFilters();
+  setupSpotlightShow();
+  showToast(`Đã lưu thay đổi cho show "${show.vietnamese}"!`, 'fa-floppy-disk');
+}
+
+function addNewShow() {
+  const vn = document.getElementById('addVn').value.trim();
+  if (!vn) {
+    alert('Vui lòng nhập Tên tiếng Việt cho show!');
+    return;
+  }
+
+  const vLinks = collectDynamicLinks('addVietsubLinksList');
+  const oLinks = collectDynamicLinks('addOriginalLinksList');
+
+  const newShow = {
+    vietnamese: vn,
+    chinese: document.getElementById('addZh').value.trim(),
+    english: document.getElementById('addEn').value.trim(),
+    country: document.getElementById('addCountry').value,
+    status: document.getElementById('addStatus').value,
+    platform: document.getElementById('addPlatform').value.trim() || 'Online',
+    time: document.getElementById('addTime').value.trim(),
+    rating: parseFloat(document.getElementById('addRating').value) || 5,
+    year: document.getElementById('addYear').value.trim() || new Date().getFullYear().toString(),
+    image: document.getElementById('addImage').value.trim(),
+    vietnameseWatchUrls: vLinks,
+    vietnameseWatchUrl: vLinks.length > 0 ? vLinks[0].url : '',
+    chineseWatchUrls: oLinks,
+    chineseWatchUrl: oLinks.length > 0 ? oLinks[0].url : '',
+    detailNotes: document.getElementById('addCast').value,
+    description: document.getElementById('addDesc').value,
+    tags: ['normal'],
+    _origIndex: state.shows.length
+  };
+
+  state.shows.unshift(newShow);
+  saveShowsToLocalStorage();
+  updateHeroStats();
+  applyFilters();
+  populateSettingsSelects();
+
+  showToast(`Đã thêm show mới: "${newShow.vietnamese}"!`, 'fa-plus');
+
+  // Reset form
+  document.getElementById('addVn').value = '';
+  document.getElementById('addZh').value = '';
+  document.getElementById('addEn').value = '';
+  document.getElementById('addImage').value = '';
+  document.getElementById('addCast').value = '';
+  document.getElementById('addDesc').value = '';
+  document.getElementById('addVietsubLinksList').innerHTML = '';
+  document.getElementById('addOriginalLinksList').innerHTML = '';
+
+  closeSettingsModal();
+}
+
+// Requirement 5: Large Text Editor Modal for Details & Cast
+function openLargeEditor(targetId, title) {
+  state.activeEditorTargetId = targetId;
+  const targetEl = document.getElementById(targetId);
+  const editorModal = document.getElementById('largeEditorModal');
+  const editorTextarea = document.getElementById('largeEditorTextarea');
+  const editorTitle = document.getElementById('largeEditorTitle');
+
+  if (!targetEl || !editorModal || !editorTextarea) return;
+
+  editorTitle.textContent = title || 'Chỉnh sửa văn bản chi tiết';
+  editorTextarea.value = targetEl.value;
+
+  editorModal.classList.add('active');
+  editorTextarea.focus();
+}
+
+function applyLargeEditor() {
+  if (state.activeEditorTargetId) {
+    const targetEl = document.getElementById(state.activeEditorTargetId);
+    const editorTextarea = document.getElementById('largeEditorTextarea');
+    if (targetEl && editorTextarea) {
+      targetEl.value = editorTextarea.value;
+    }
+  }
+  closeLargeEditor();
+}
+
+function closeLargeEditor() {
+  const editorModal = document.getElementById('largeEditorModal');
+  if (editorModal) editorModal.classList.remove('active');
+  state.activeEditorTargetId = null;
+}
+
+function downloadUpdatedJson() {
+  const cleanData = state.shows.map(s => {
+    const clone = { ...s };
+    delete clone._origIndex;
+    delete clone._idx;
+    return clone;
+  });
+
+  const blob = new Blob([JSON.stringify(cleanData, null, 2)], { type: 'application/json;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'showsData.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Đã tải xuống file showsData.json mới!', 'fa-download');
+}
+
+function resetDataToDefault() {
+  if (confirm('Bạn có chắc muốn khôi phục về dữ liệu gốc? Tất cả các show đã sửa/thêm cục bộ sẽ bị đặt lại.')) {
+    localStorage.removeItem('datinghub_local_shows');
+    localStorage.removeItem('datinghub_spotlight');
+    state.spotlightSlugs = [];
+    loadShowsData();
+    showToast('Đã khôi phục dữ liệu ban đầu', 'fa-rotate-left');
+  }
+}
+
+// ============================================================
+// EVENT LISTENERS INITIALIZATION
+// ============================================================
+function initEventListeners() {
+  const brandLogo = document.getElementById('brandLogo');
+  if (brandLogo) {
+    brandLogo.addEventListener('click', () => {
+      resetAllFilters();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  // Desktop Search
+  const searchInput = document.getElementById('searchInput');
+  const searchClearBtn = document.getElementById('searchClearBtn');
+
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      state.filters.search = e.target.value.trim();
+      const mobInput = document.getElementById('mobileSearchInput');
+      if (mobInput) mobInput.value = state.filters.search;
+      if (searchClearBtn) searchClearBtn.classList.toggle('active', state.filters.search.length > 0);
+      applyFilters();
+    });
+  }
+
+  if (searchClearBtn) {
+    searchClearBtn.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      const mobInput = document.getElementById('mobileSearchInput');
+      if (mobInput) mobInput.value = '';
+      state.filters.search = '';
+      searchClearBtn.classList.remove('active');
+      applyFilters();
+      searchInput.focus();
+    });
+  }
+
+  // Requirement 1: Mobile Search Bar Input
+  const mobileSearchInput = document.getElementById('mobileSearchInput');
+  const mobileSearchClearBtn = document.getElementById('mobileSearchClearBtn');
+
+  if (mobileSearchInput) {
+    mobileSearchInput.addEventListener('input', (e) => {
+      state.filters.search = e.target.value.trim();
+      if (searchInput) searchInput.value = state.filters.search;
+      if (mobileSearchClearBtn) mobileSearchClearBtn.classList.toggle('active', state.filters.search.length > 0);
+      applyFilters();
+    });
+  }
+
+  if (mobileSearchClearBtn) {
+    mobileSearchClearBtn.addEventListener('click', () => {
+      if (mobileSearchInput) mobileSearchInput.value = '';
+      if (searchInput) searchInput.value = '';
+      state.filters.search = '';
+      mobileSearchClearBtn.classList.remove('active');
+      applyFilters();
+      mobileSearchInput.focus();
+    });
+  }
+
+  // Mobile Filter Accordion Toggle
+  const btnMobileFilterToggle = document.getElementById('btnMobileFilterToggle');
+  const filterRowControls = document.getElementById('filterRowControls');
+  if (btnMobileFilterToggle && filterRowControls) {
+    btnMobileFilterToggle.addEventListener('click', () => {
+      filterRowControls.classList.toggle('expanded');
+      btnMobileFilterToggle.classList.toggle('active');
+    });
+  }
+
+  // Country Pills (Desktop & Tablet)
+  const countryContainer = document.getElementById('countryPillsContainer');
+  if (countryContainer) {
+    countryContainer.addEventListener('click', (e) => {
+      const pill = e.target.closest('.pill-country');
+      if (!pill) return;
+
+      countryContainer.querySelectorAll('.pill-country').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      state.filters.country = pill.dataset.country;
+
+      // Sync mobile country select
+      const mobSelect = document.getElementById('mobileCountrySelect');
+      if (mobSelect) mobSelect.value = state.filters.country;
+
+      applyFilters();
+    });
+  }
+
+  // Mobile Country Select (inside accordion)
+  const mobileCountrySelect = document.getElementById('mobileCountrySelect');
+  if (mobileCountrySelect) {
+    mobileCountrySelect.addEventListener('change', (e) => {
+      state.filters.country = e.target.value;
+      if (countryContainer) {
+        countryContainer.querySelectorAll('.pill-country').forEach(p => {
+          p.classList.toggle('active', p.dataset.country === state.filters.country);
+        });
+      }
+      applyFilters();
+    });
+  }
+
+  // Status Pills
+  document.querySelectorAll('.btn-filter-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.btn-filter-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      state.filters.status = pill.dataset.status;
+      applyFilters();
     });
   });
 
-  if (mq.addEventListener) mq.addEventListener("change", applyMode);
-  else mq.addListener(applyMode);
-
-  applyMode();
-}
-
-function setActiveFilterButton(activeButton, buttons) {
-  buttons.forEach(button => {
-    const isActive = button === activeButton;
-    button.classList.toggle("active", isActive);
-    button.setAttribute("aria-pressed", String(isActive));
-  });
-  refreshFilterGroupBadges();
-}
-
-function initializeAppEvents() {
-  getModalEls();
-  document.addEventListener("keydown", handleDialogKeydown);
-
-  updateStatistics();
-  renderShows();
-
-  const grid = document.getElementById("show-cards-grid");
-  grid?.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-show-index]");
-    if (btn) {
-      const index = parseInt(btn.getAttribute("data-show-index"), 10);
-      if (!isNaN(index)) openShowModal(index);
-    }
-  });
-
-  const searchBox = document.getElementById("search-box");
-  const floatingSearchBox = document.getElementById("floating-search-box");
-  const floatingSearchWrapper = document.getElementById("floating-search-wrapper");
-  const floatingSearchBtn = document.getElementById("floating-search-btn");
-  const floatingSearchClearBtn = document.getElementById("floating-search-clear-btn");
-
-  const mobileTopBar = document.getElementById("mobile-topbar");
-  const mobileSearchBtn = document.getElementById("mobile-search-btn");
-  const mobileSearchPanel = document.getElementById("mobile-search-panel");
-  const mobileSearchBox = document.getElementById("mobile-search-box");
-  const mobileSearchClearBtn = document.getElementById("mobile-search-clear-btn");
-
-  function setMobileSearchOpen(open) {
-    if (!mobileTopBar || !mobileSearchBtn || !mobileSearchPanel) return;
-    if (open && mobileSearchBox) mobileSearchBox.value = currentFilters.search;
-    mobileTopBar.classList.toggle("open", open);
-    mobileSearchBtn.setAttribute("aria-expanded", String(open));
-    mobileSearchPanel.style.maxHeight = open ? `${mobileSearchPanel.scrollHeight}px` : "0px";
-    if (open) mobileSearchBox?.focus({ preventScroll: true });
+  // Select Filters
+  const platformSelect = document.getElementById('platformSelect');
+  if (platformSelect) {
+    platformSelect.addEventListener('change', (e) => {
+      state.filters.platform = e.target.value;
+      applyFilters();
+    });
   }
 
-  mobileSearchBtn?.addEventListener("click", () => {
-    setMobileSearchOpen(!mobileTopBar.classList.contains("open"));
-  });
-
-  mobileSearchClearBtn?.addEventListener("click", () => {
-    updateSearchQuery("");
-    mobileSearchBox?.focus({ preventScroll: true });
-  });
-
-  function updateSearchQuery(val) {
-    if (searchBox) searchBox.value = val;
-    if (floatingSearchBox) floatingSearchBox.value = val;
-    if (mobileSearchBox) mobileSearchBox.value = val;
-    currentFilters.search = val;
-
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-      renderShows();
-    }, 250);
+  const tagSelect = document.getElementById('tagSelect');
+  if (tagSelect) {
+    tagSelect.addEventListener('change', (e) => {
+      state.filters.tag = e.target.value;
+      applyFilters();
+    });
   }
 
-  searchBox?.addEventListener("input", (e) => {
-    updateSearchQuery(e.target.value);
-  });
+  // Sort Select
+  const sortSelect = document.getElementById('sortSelect');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', (e) => {
+      state.filters.sort = e.target.value;
+      applyFilters();
+    });
+  }
 
-  floatingSearchBox?.addEventListener("input", (e) => {
-    updateSearchQuery(e.target.value);
-  });
+  // View Mode Toggles
+  const btnViewGrid = document.getElementById('btnViewGrid');
+  const btnViewList = document.getElementById('btnViewList');
 
-  mobileSearchBox?.addEventListener("input", (e) => {
-    updateSearchQuery(e.target.value);
-  });
-
-  floatingSearchBtn?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const isOpen = floatingSearchWrapper.classList.toggle("open");
-    if (isOpen) {
-      floatingSearchBox?.focus();
-    }
-  });
-
-  floatingSearchClearBtn?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    updateSearchQuery("");
-    floatingSearchBox?.focus();
-  });
-
-  document.addEventListener("click", (e) => {
-    if (floatingSearchWrapper?.classList.contains("open") && !floatingSearchWrapper.contains(e.target)) {
-      floatingSearchWrapper.classList.remove("open");
-    }
-    if (mobileTopBar?.classList.contains("open") && !mobileTopBar.contains(e.target)) {
-      setMobileSearchOpen(false);
-    }
-  });
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && mobileTopBar?.classList.contains("open") && !getTopActiveDialog()) {
-      setMobileSearchOpen(false);
-    }
-  });
-
-  let settingsSearchTimeout = null;
-  const settingsSearchBox = document.getElementById("settings-search-box");
-  settingsSearchBox?.addEventListener("input", (e) => {
-    settingsSearchQuery = e.target.value;
-    clearTimeout(settingsSearchTimeout);
-    settingsSearchTimeout = setTimeout(() => {
-      renderSettingsList();
-    }, 200);
-  });
-
-  const statusButtons = document.querySelectorAll("#status-filters .filter-btn");
-  statusButtons.forEach(btn => btn.addEventListener("click", () => {
-    setActiveFilterButton(btn, statusButtons);
-    setTimeout(() => {
-      currentFilters.status = btn.getAttribute("data-status");
+  if (btnViewGrid && btnViewList) {
+    btnViewGrid.addEventListener('click', () => {
+      state.viewMode = 'grid';
+      btnViewGrid.classList.add('active');
+      btnViewList.classList.remove('active');
       renderShows();
-    }, 0);
-  }));
+    });
 
-  const sortButtons = document.querySelectorAll("#sort-controls .filter-btn");
-  sortButtons.forEach(btn => btn.addEventListener("click", () => {
-    setActiveFilterButton(btn, sortButtons);
-    setTimeout(() => {
-      currentFilters.sort = btn.getAttribute("data-sort");
+    btnViewList.addEventListener('click', () => {
+      state.viewMode = 'list';
+      btnViewList.classList.add('active');
+      btnViewGrid.classList.remove('active');
       renderShows();
-    }, 0);
-  }));
+    });
+  }
 
-  const countryButtons = document.querySelectorAll("#country-filters .filter-btn");
-  countryButtons.forEach(btn => btn.addEventListener("click", () => {
-    setActiveFilterButton(btn, countryButtons);
-    setTimeout(() => {
-      currentFilters.country = btn.getAttribute("data-country");
-      renderShows();
-    }, 0);
-  }));
+  const randomBtn = document.getElementById('btnRandomShow');
+  if (randomBtn) randomBtn.addEventListener('click', pickRandomShow);
 
-  const tagButtons = document.querySelectorAll("#tag-filters .filter-btn");
-  tagButtons.forEach(btn => btn.addEventListener("click", () => {
-    setActiveFilterButton(btn, tagButtons);
-    setTimeout(() => {
-      currentFilters.tag = btn.getAttribute("data-tag");
-      renderShows();
-    }, 0);
-  }));
+  const resetBtn = document.getElementById('btnResetFilters');
+  if (resetBtn) resetBtn.addEventListener('click', resetAllFilters);
 
-  document.getElementById("modal-links-toggle")?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const linksCard = document.getElementById("modal-links-card");
-    const isOpen = linksCard.classList.toggle("open");
-    document.getElementById("modal-links-toggle").setAttribute("aria-expanded", String(isOpen));
-  });
+  const emptyResetBtn = document.getElementById('btnEmptyReset');
+  if (emptyResetBtn) emptyResetBtn.addEventListener('click', resetAllFilters);
 
-  const modalLinksEl = document.getElementById("modal-links-el");
-  modalLinksEl?.addEventListener("click", (e) => {
-    const link = e.target.closest(".watch-link-item");
-    if (link) {
-      e.stopPropagation();
+  // Back to top
+  const btnBackToTop = document.getElementById('btnBackToTop');
+  if (btnBackToTop) {
+    window.addEventListener('scroll', () => {
+      btnBackToTop.classList.toggle('show', window.scrollY > 300);
+    });
+    btnBackToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  // Desktop: site header (search bar) always visible; filter bar (country + sort)
+  // hides when scrolling down and shows when scrolling up. Mobile: always visible.
+  const filterScrollHeader = document.querySelector('.site-header');
+  const filterScrollSection = document.querySelector('.filter-section');
+  const filterScrollMain = document.querySelector('main');
+  let filterLastScrollY = window.scrollY;
+  let filterScrollUpTravel = 0;
+
+  window.addEventListener('scroll', () => {
+    if (!filterScrollHeader || !filterScrollSection || !filterScrollMain) return;
+    const currentY = window.scrollY;
+    const delta = currentY - filterLastScrollY;
+    filterLastScrollY = currentY;
+
+    if (window.innerWidth <= 768) {
+      filterScrollUpTravel = 0;
+      filterScrollSection.classList.remove('filters-hidden');
+      return;
     }
-  });
 
-  const scrollBtn = document.getElementById("scroll-btn");
-  let scrollBtnVisible = false;
-  window.addEventListener("scroll", () => {
-    const shouldShow = window.scrollY > 300;
-    if (shouldShow !== scrollBtnVisible) {
-      scrollBtnVisible = shouldShow;
-      scrollBtn?.classList.toggle("visible", shouldShow);
+    if (delta > 0) {
+      filterScrollUpTravel = 0;
+      const headerHeight = filterScrollHeader.offsetHeight;
+      const mainTop = filterScrollMain.getBoundingClientRect().top + currentY;
+      if (currentY >= mainTop - headerHeight) {
+        filterScrollSection.classList.add('filters-hidden');
+      }
+    } else if (delta < 0) {
+      filterScrollUpTravel += -delta;
+      if (filterScrollUpTravel >= 4) {
+        filterScrollSection.classList.remove('filters-hidden');
+      }
     }
   }, { passive: true });
-  scrollBtn?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 
-  const modal = document.getElementById("show-modal");
-  modal?.addEventListener("click", (e) => {
-    if (e.target === modal) closeShowModal();
+  // Watch-link tooltip: full label on hover (desktop) / long-press (mobile)
+  initWatchLinkTips();
+
+  // Poster lightbox: original quality + zoom from detail modal
+  initPosterLightbox();
+
+  // Show hot carousel (prev/next arrows, dots, pause on hover)
+  initSpotlightCarousel();
+
+  // Episode editor popup (edit form: episode number + link)
+  const btnEpisodeAdd = document.getElementById('btnEpisodeAdd');
+  if (btnEpisodeAdd) btnEpisodeAdd.addEventListener('click', addEpisodeFromInputs);
+  const episodeEpInput = document.getElementById('episodeEpInput');
+  const episodeUrlInput = document.getElementById('episodeUrlInput');
+  [episodeEpInput, episodeUrlInput].forEach(inp => {
+    if (inp) inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addEpisodeFromInputs();
+      }
+    });
+  });
+  const btnEpisodeEditorSave = document.getElementById('btnEpisodeEditorSave');
+  if (btnEpisodeEditorSave) btnEpisodeEditorSave.addEventListener('click', () => closeEpisodeEditor(true));
+  const btnEpisodeEditorCancel = document.getElementById('btnEpisodeEditorCancel');
+  if (btnEpisodeEditorCancel) btnEpisodeEditorCancel.addEventListener('click', () => closeEpisodeEditor(false));
+  const btnEpisodeEditorClose = document.getElementById('btnEpisodeEditorClose');
+  if (btnEpisodeEditorClose) btnEpisodeEditorClose.addEventListener('click', () => closeEpisodeEditor(false));
+  const episodeEditorModal = document.getElementById('episodeEditorModal');
+  if (episodeEditorModal) episodeEditorModal.addEventListener('click', e => {
+    if (e.target === episodeEditorModal) closeEpisodeEditor(false);
   });
 
-  const settingsModal = document.getElementById("settings-modal");
-  settingsModal?.addEventListener("click", (e) => {
-    if (e.target === settingsModal) closeSettingsModal();
+  // Episode picker popup (show detail: choose episode, open its link)
+  const btnEpisodePickerClose = document.getElementById('btnEpisodePickerClose');
+  if (btnEpisodePickerClose) btnEpisodePickerClose.addEventListener('click', closeEpisodePicker);
+  const episodePickerModal = document.getElementById('episodePickerModal');
+  if (episodePickerModal) episodePickerModal.addEventListener('click', e => {
+    if (e.target === episodePickerModal) closeEpisodePicker();
   });
 
-  const textareaEditorModal = document.getElementById("textarea-editor-modal");
-  textareaEditorModal?.addEventListener("click", (e) => {
-    if (e.target === textareaEditorModal) closeTextareaEditor();
+  // Show Detail Modal Close
+  const modalCloseBtn = document.getElementById('btnModalClose');
+  if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeShowDetail);
+
+  const modalOverlay = document.getElementById('detailModal');
+  if (modalOverlay) {
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) closeShowDetail();
+    });
+  }
+
+  document.querySelectorAll('#detailModal .modal-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchModalTab(btn.dataset.tab));
   });
 
-  initializeFilterCollapsible();
+  const modalShareBtn = document.getElementById('btnModalShare');
+  if (modalShareBtn) {
+    modalShareBtn.addEventListener('click', () => {
+      if (state.activeShow) copyShareLink(state.activeShow);
+    });
+  }
+
+  const modalFavBtn = document.getElementById('btnModalFavorite');
+  if (modalFavBtn) {
+    modalFavBtn.addEventListener('click', () => {
+      if (state.activeShow) toggleFavorite(state.activeShow);
+    });
+  }
+
+  // Settings Modal Open/Close & Tabs
+  const btnOpenSettings = document.getElementById('btnOpenSettings');
+  if (btnOpenSettings) btnOpenSettings.addEventListener('click', openSettingsModal);
+
+  const btnSettingsClose = document.getElementById('btnSettingsClose');
+  if (btnSettingsClose) btnSettingsClose.addEventListener('click', closeSettingsModal);
+
+  const settingsModal = document.getElementById('settingsModal');
+  if (settingsModal) {
+    settingsModal.addEventListener('click', (e) => {
+      if (e.target === settingsModal) closeSettingsModal();
+    });
+  }
+
+  document.querySelectorAll('#settingsModal .modal-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchSettingsTab(btn.dataset.stab));
+  });
+
+  // Spotlight search & select
+  const spotlightSearch = document.getElementById('spotlightSearchInput');
+  if (spotlightSearch) {
+    spotlightSearch.addEventListener('input', populateSettingsSelects);
+  }
+
+  const btnAddSpotlight = document.getElementById('btnAddSpotlight');
+  if (btnAddSpotlight) {
+    btnAddSpotlight.addEventListener('click', () => {
+      const select = document.getElementById('spotlightSelect');
+      const slug = select ? select.value : '';
+      if (!slug) {
+        showToast('Hãy chọn 1 show trong danh sách trước.', 'fa-circle-info');
+        return;
+      }
+      const staged = getStagedPins();
+      if (staged.includes(slug)) {
+        showToast('Show này đã được ghim rồi.', 'fa-circle-info');
+        return;
+      }
+      if (staged.length >= MAX_PINNED_SHOWS) {
+        showToast(`Chỉ ghim tối đa ${MAX_PINNED_SHOWS} show hot.`, 'fa-triangle-exclamation');
+        return;
+      }
+      staged.push(slug);
+      renderStagedPins();
+    });
+  }
+
+  const btnSaveSpotlight = document.getElementById('btnSaveSpotlight');
+  if (btnSaveSpotlight) {
+    btnSaveSpotlight.addEventListener('click', () => {
+      state.spotlightSlugs = getStagedPins().slice(0, MAX_PINNED_SHOWS);
+      savePinnedSpotlightSlugs();
+      stagedSpotlightSlugs = null;
+      setupSpotlightShow();
+      closeSettingsModal();
+      showToast(state.spotlightSlugs.length > 0 ? `Đã ghim ${state.spotlightSlugs.length} show hot! 📌` : 'Đã bỏ ghim show hot.', 'fa-thumbtack');
+    });
+  }
+
+  // Edit show search & select
+  const editSearch = document.getElementById('editSearchInput');
+  if (editSearch) {
+    editSearch.addEventListener('input', populateSettingsSelects);
+  }
+
+  const editSelect = document.getElementById('editShowSelect');
+  if (editSelect) {
+    editSelect.addEventListener('change', (e) => {
+      loadShowToEditForm(parseInt(e.target.value, 10));
+    });
+  }
+
+  // Dynamic link add buttons (Requirement 5)
+  const btnAddEditVietsubLink = document.getElementById('btnAddEditVietsubLink');
+  if (btnAddEditVietsubLink) {
+    btnAddEditVietsubLink.addEventListener('click', () => {
+      const list = document.getElementById('editVietsubLinksList');
+      if (list) list.appendChild(createDynamicLinkRow('Nguồn Vietsub', ''));
+    });
+  }
+
+  const btnAddEditOriginalLink = document.getElementById('btnAddEditOriginalLink');
+  if (btnAddEditOriginalLink) {
+    btnAddEditOriginalLink.addEventListener('click', () => {
+      const list = document.getElementById('editOriginalLinksList');
+      if (list) list.appendChild(createDynamicLinkRow('Nơi chiếu bản gốc', ''));
+    });
+  }
+
+  const btnAddAddVietsubLink = document.getElementById('btnAddAddVietsubLink');
+  if (btnAddAddVietsubLink) {
+    btnAddAddVietsubLink.addEventListener('click', () => {
+      const list = document.getElementById('addVietsubLinksList');
+      if (list) list.appendChild(createDynamicLinkRow('Nguồn Vietsub', ''));
+    });
+  }
+
+  const btnAddAddOriginalLink = document.getElementById('btnAddAddOriginalLink');
+  if (btnAddAddOriginalLink) {
+    btnAddAddOriginalLink.addEventListener('click', () => {
+      const list = document.getElementById('addOriginalLinksList');
+      if (list) list.appendChild(createDynamicLinkRow('Nơi chiếu bản gốc', ''));
+    });
+  }
+
+  // Expand textarea buttons (Requirement 5)
+  document.getElementById('btnExpandEditCast')?.addEventListener('click', () => {
+    openLargeEditor('editCast', 'Chỉnh sửa Dàn Cast & Diễn viên');
+  });
+
+  document.getElementById('btnExpandEditDesc')?.addEventListener('click', () => {
+    openLargeEditor('editDesc', 'Chỉnh sửa Giới thiệu nội dung');
+  });
+
+  document.getElementById('btnExpandAddCast')?.addEventListener('click', () => {
+    openLargeEditor('addCast', 'Nhập Dàn Cast & Diễn viên');
+  });
+
+  document.getElementById('btnExpandAddDesc')?.addEventListener('click', () => {
+    openLargeEditor('addDesc', 'Nhập Giới thiệu nội dung');
+  });
+
+  // Large Editor actions
+  document.getElementById('btnLargeEditorApply')?.addEventListener('click', applyLargeEditor);
+  document.getElementById('btnLargeEditorCancel')?.addEventListener('click', closeLargeEditor);
+  document.getElementById('btnLargeEditorClose')?.addEventListener('click', closeLargeEditor);
+
+  // Settings Save Buttons
+  document.getElementById('btnSaveEditedShow')?.addEventListener('click', saveEditedShow);
+  document.getElementById('btnSubmitAddShow')?.addEventListener('click', addNewShow);
+  document.getElementById('btnDownloadJson')?.addEventListener('click', downloadUpdatedJson);
+  document.getElementById('btnResetData')?.addEventListener('click', resetDataToDefault);
+
+  // Keyboard Shortcuts
+  window.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement !== searchInput && document.activeElement !== mobileSearchInput) {
+      e.preventDefault();
+      if (window.innerWidth <= 768 && mobileSearchInput) {
+        mobileSearchInput.focus();
+      } else if (searchInput) {
+        searchInput.focus();
+      }
+    }
+    if (e.key === 'Escape') {
+      closeShowDetail();
+      closeSettingsModal();
+      closeLargeEditor();
+    }
+  });
 }
 
-// Textarea Editor Modal Handlers
-let activeEditorTarget = { index: null, field: null };
-
-function openTextareaEditor(index, field, label) {
-  activeEditorTarget = { index, field };
-
-  const show = getEffectiveShows().find(s => s._index === index);
-  const showName = show ? (show.vietnamese || show.chinese || "") : "";
-
-  const titleEl = document.getElementById("textarea-editor-title");
-  if (titleEl) {
-    titleEl.innerHTML = `<i class="fa-solid fa-pen-to-square" style="color: var(--accent-color);"></i> Chỉnh sửa ${label} <span style="font-size: 1.1rem; color: var(--text-muted); font-weight: normal; margin-left: 0.5rem;">— ${escapeHtml(showName)}</span>`;
-  }
-
-  const mainTextarea = document.getElementById(`settings-${index}-${field}`);
-  const modalTextarea = document.getElementById("textarea-editor-input");
-
-  if (mainTextarea && modalTextarea) {
-    modalTextarea.value = mainTextarea.value;
-  }
-
-  if (modalTextarea) {
-    modalTextarea.disabled = settingsLocked;
-  }
-  const modalActions = document.querySelector("#textarea-editor-modal .modal-action-btn.edit");
-  if (modalActions) {
-    modalActions.disabled = settingsLocked;
-  }
-
-  const modal = document.getElementById("textarea-editor-modal");
-  if (modal) {
-    openAccessibleDialog(modal, modalTextarea || modal.querySelector(".modal-close"));
-  }
-}
-
-function closeTextareaEditor() {
-  const modal = document.getElementById("textarea-editor-modal");
-
-  const settingsModal = document.getElementById("settings-modal");
-  const keepScrollLocked = settingsModal && settingsModal.classList.contains("active");
-  closeAccessibleDialog(modal, { keepScrollLocked });
-  activeEditorTarget = { index: null, field: null };
-}
-
-function saveTextareaEditor() {
-  if (settingsLocked) return;
-
-  const { index, field } = activeEditorTarget;
-  if (index === null || field === null) return;
-
-  const mainTextarea = document.getElementById(`settings-${index}-${field}`);
-  const modalTextarea = document.getElementById("textarea-editor-input");
-
-  if (mainTextarea && modalTextarea) {
-    mainTextarea.value = modalTextarea.value;
-  }
-
-  closeTextareaEditor();
-  showToast("Đã cập nhật nội dung (Nhớ bấm 'Lưu show này' để lưu lại)");
-}
-
-document.addEventListener("DOMContentLoaded", async () => {
-  _bootedWithCache = applyCachedShowsData();
-  if (_bootedWithCache) bootAppOnce();
-  await fetchLatestShowsData();
-  if (!_appBooted) bootAppOnce();
+// App Entry Point
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  initFavorites();
+  initEventListeners();
+  loadShowsData();
 });
