@@ -1047,6 +1047,21 @@ function createListItem(show) {
 // ============================================================
 // SHOW DETAIL MODAL (FAVICONS & COPY BUTTONS IN MODAL)
 // ============================================================
+// Freeze modal height in px at open: mobile dvh changes when the browser
+// toolbar shows/hides, and resizing the modal mid-animation flashes its border.
+// px value still fits the visible area, just never shifts afterwards.
+function freezeModalHeight(modal) {
+  if (!modal) return;
+  const content = modal.querySelector('.modal-content');
+  if (content) content.style.maxHeight = Math.round(window.innerHeight * 0.9) + 'px';
+}
+
+function unfreezeModalHeight(modal) {
+  if (!modal) return;
+  const content = modal.querySelector('.modal-content');
+  if (content) content.style.maxHeight = '';
+}
+
 function openShowDetail(show, defaultTab = 'tab-watch') {
   state.activeShow = show;
   const modal = document.getElementById('detailModal');
@@ -1123,6 +1138,7 @@ function openShowDetail(show, defaultTab = 'tab-watch') {
   updateModalFavoriteButton(show);
   switchModalTab(defaultTab);
 
+  freezeModalHeight(modal);
   modal.classList.add('active');
   document.body.style.overflow = 'hidden';
 }
@@ -1130,6 +1146,7 @@ function openShowDetail(show, defaultTab = 'tab-watch') {
 function closeShowDetail() {
   const modal = document.getElementById('detailModal');
   if (!modal) return;
+  unfreezeModalHeight(modal);
   modal.classList.remove('active');
   document.body.style.overflow = '';
   state.activeShow = null;
@@ -1576,6 +1593,7 @@ function openSettingsModal() {
   stagedSpotlightSlugs = [...state.spotlightSlugs];
   populateSettingsSelects();
   renderStagedPins();
+  freezeModalHeight(modal);
   modal.classList.add('active');
   document.body.style.overflow = 'hidden';
 }
@@ -1583,6 +1601,7 @@ function openSettingsModal() {
 function closeSettingsModal() {
   const modal = document.getElementById('settingsModal');
   if (!modal) return;
+  unfreezeModalHeight(modal);
   modal.classList.remove('active');
   document.body.style.overflow = '';
 }
