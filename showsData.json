@@ -2579,26 +2579,28 @@
     ],
     "country": "korea",
     "year": "3-07-2026",
-    "detailNotes": "P1\t\nLee Sangmin\nPark Jimin\nJung Geunwoo\nLee Taekyun\n\nP2\nHa Seungjin\nHyun Sungjoo\nYunB\nLee Jinhyeong\n\nP3\nHong Jinho\nXitsuh\nChoi Hyeseon\nHeo Seongbeom\n\nChallenger\t (C)\nKim Kyunghoon\nKim Yoohyun\nKim Namhee\nKang Jihoo\n\nRookie (R)\nKwak Beom\nLee Gwanhee\nShin Seungyong\nChoi Yeoncheong",
+    "detailNotes": "P1\tLee Sangmin | Park Jimin | Jung Geunwoo | Lee Taekyun\n\nP2 Ha Seungjin | Hyun Sungjoo | YunB | Lee Jinhyeong\n\nP3 Hong Jinho | Xitsuh | Choi Hyeseon | Heo Seongbeom\n\nChallenger\t (C) Kim Kyunghoon | Kim Yoohyun | Kim Namhee | Kang Jihoo\n\nRookie (R) Kwak Beom | Lee Gwanhee | Shin Seungyong | Choi Yeoncheong",
     "vietnameseWatchUrls": [
       {
-        "url": "https://www.dailymotion.com/video/xalc3am",
-        "label": "Sub chuẩn"
+        "label": "Sub chuẩn",
+        "url": "https://www.dailymotion.com/video/xalc3am"
       },
       {
-        "url": "https://kisskh.co/Drama/Bloody-Game-X--2026-/Episode-1?id=13307&ep=217987&page=0&pageSize=100",
-        "label": "Sub auto"
+        "label": "Sub auto",
+        "url": "https://kisskh.co/Drama/Bloody-Game-X--2026-/Episode-1?id=13307&ep=217987&page=0&pageSize=100"
       },
       {
-        "url": "https://bili.im/Gl3wsM5",
-        "label": "Chỉ 720p"
+        "label": "Chỉ 720p",
+        "url": "https://bili.im/Gl3wsM5"
       }
     ],
     "vietnameseWatchUrl": "https://www.dailymotion.com/video/xalc3am",
     "rating": 5,
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/Show-102.png",
     "description": "Nó có các trò chơi sinh tồn khắc nghiệt giữa những người mạnh nhất về trí não và khả năng thể chất.\n\nMùa giải này thoát khỏi khuôn khổ hiện có tập trung vào sự sống còn của cá nhân bằng cách giới thiệu một cấu trúc 'chiến đấu đồng đội' chính thức, hứa hẹn một mức độ căng thẳng mới.",
-    "time": "18h T6"
+    "time": "18h T6",
+    "chineseWatchUrls": [],
+    "chineseWatchUrl": ""
   },
   {
     "chinese": "내 남은 연애",
@@ -2683,14 +2685,16 @@
     "description": "Mùa dành cho những người ế từ trong trứng (Mote solo)",
     "year": "6-08-2026",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-105.png",
-    "detailNotes": "Nam:\nYoung Soo (1988):  Sĩ quan cảnh sát.\nYoung Ho (1990):  Ảo thuật gia.\nYoung Sik (1992):  Phiên dịch viên và biên dịch viên tự do.\nYoung Chul (1991): Lính cứu hỏa.\nKwang Soo (1995): Công chức.\nSang Chul (1991):  Công chức.\n\nNữ:\nYoung Sook (1992):  Điều hành một trung tâm chăm sóc sức khỏe.\nJung Sook (1993): Trưởng nhóm marketing tại một công ty quản lý bệnh viện.\nSun Ja (1997): Làm việc trong lĩnh vực marketing tại một công ty khởi nghiệp thực phẩm.\nYoung Ja (1994): Y tá.\nOk Soon (1999): Nghệ sĩ cello.\nHyun Sook (1988): Cơ quan thương mại nhà nước.",
+    "detailNotes": "Nam 1 Young Soo (1988):  Sĩ quan cảnh sát.\nNam 2 Young Ho (1990):  Ảo thuật gia.\nNam 3 Young Sik (1992):  Phiên dịch viên và biên dịch viên tự do.\nNam 4 Young Chul (1991): Lính cứu hỏa.\nNam 5 Kwang Soo (1995): Công chức.\nNam 6 Sang Chul (1991):  Công chức.\n\nNữ 1 Young Sook (1992):  Điều hành một trung tâm chăm sóc sức khỏe.\nNữ 2 Jung Sook (1993): Trưởng nhóm marketing tại một công ty quản lý bệnh viện.\nNữ 3 Sun Ja (1997): Làm việc trong lĩnh vực marketing tại một công ty khởi nghiệp thực phẩm.\nNữ 4 Young Ja (1994): Y tá.\nNữ 5 Ok Soon (1999): Nghệ sĩ cello.\nNữ 6 Hyun Sook (1988): Cơ quan thương mại nhà nước.",
     "vietnameseWatchUrls": [
       {
-        "url": "https://bili.im/SXEazdg",
-        "label": "Sub auto"
+        "label": "Sub auto",
+        "url": "https://bili.im/SXEazdg"
       }
     ],
-    "vietnameseWatchUrl": "https://bili.im/SXEazdg"
+    "vietnameseWatchUrl": "https://bili.im/SXEazdg",
+    "chineseWatchUrls": [],
+    "chineseWatchUrl": ""
   },
   {
     "chinese": "나는 SOLO 그 후 사랑은 계속된다",
@@ -2708,12 +2712,15 @@
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-106-v2.png",
     "vietnameseWatchUrls": [
       {
-        "url": "https://bili.im/qgPrEue",
-        "label": "Sub auto"
+        "label": "Sub auto",
+        "url": "https://bili.im/qgPrEue"
       }
     ],
     "vietnameseWatchUrl": "https://bili.im/qgPrEue",
-    "detailNotes": "Nữ:\nS7 OS (1984) Làm việc trong lĩnh vực lập kế hoạch tài chính tại eBay.\nS14 YJ (1984) Thư ký, Tập đoàn Hyundai Heavy Industries.\nS24 HS\t(1990) Dược sĩ.\nS26 JS (1986) Luật sư.\nS26 YJ (1986) Kế toán.\nSGH9 Guk Hwa (1985) Từng là tiếp viên hàng không, hiện đang điều hành một viện đào tạo.\n\nNam:\nMr. Gong (1985) Quản lý kinh doanh vật tư tiêu hao tại một công ty thiết bị y tế nước ngoài.\nMr. Seo (1980) Chuyên viên phiên dịch thiết kế tại Phòng Thiết kế của S Electronics.\nMr. Jo (1978) Giám đốc thời trang.\nMr. Ji (1984) Làm việc tại bộ phận quản lý ứng dụng di động/trang web tại N Financial G.\nMr. Cha (1981) Giám đốc học viện nghệ thuật của riêng mình\nMr. Choi (1984) Làm việc tại bộ phận dịch vụ CNTT của Tập đoàn Hyundai Motor."
+    "detailNotes": "Nữ 1 S7 OS (1984) Làm việc trong lĩnh vực lập kế hoạch tài chính tại eBay.\nNữ 2 S14 YJ (1984) Thư ký, Tập đoàn Hyundai Heavy Industries.\nNữ 3 S24 HS\t(1990) Dược sĩ.\nNữ 4 S26 JS (1986) Luật sư.\nNữ 5 S26 YJ (1986) Kế toán.\nNữ 6 SGH9 Guk Hwa (1985) Từng là tiếp viên hàng không, hiện đang điều hành một viện đào tạo.\n\nNam 1 Mr. Gong (1985) Quản lý kinh doanh vật tư tiêu hao tại một công ty thiết bị y tế nước ngoài.\nNam 2 Mr. Seo (1980) Chuyên viên phiên dịch thiết kế tại Phòng Thiết kế của S Electronics.\nNam 3 Mr. Jo (1978) Giám đốc thời trang.\nNam 4 Mr. Ji (1984) Làm việc tại bộ phận quản lý ứng dụng di động/trang web tại N Financial G.\nNam 5 Mr. Cha (1981) Giám đốc học viện nghệ thuật của riêng mình\nNam 6 Mr. Choi (1984) Làm việc tại bộ phận dịch vụ CNTT của Tập đoàn Hyundai Motor.",
+    "chineseWatchUrls": [],
+    "chineseWatchUrl": "",
+    "description": ""
   },
   {
     "chinese": "전과팅 시즌2",
