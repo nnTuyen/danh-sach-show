@@ -20,13 +20,17 @@
   <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Image CDNs: connect early for faster poster/flag loading -->
+  <link rel="preconnect" href="https://wsrv.nl">
+  <link rel="preconnect" href="https://flagcdn.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- FontAwesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Main Stylesheet (v= date bump to force fresh load, avoid stale cache) -->
-  <link rel="stylesheet" href="style.css?v=20260924n">
+  <link rel="stylesheet" href="style.css?v=20260924w">
 </head>
 
 <body>
@@ -234,9 +238,10 @@
           <select id="tagSelect" class="select-filter" aria-label="Lọc theo thể loại">
             <option value="all">Mọi thể loại</option>
             <option value="normal">Nam & Nữ</option>
-            <option value="all-female">Bách Hợp (Nữ - Nữ)</option>
-            <option value="all-male">Đam Mỹ (Nam - Nam)</option>
+            <option value="all-female">Les (GL)</option>
+            <option value="all-male">Gay (BL)</option>
             <option value="bisexual">Song tính</option>
+            <option value="other">Khác</option>
           </select>
         </div>
 
@@ -528,6 +533,17 @@
               </div>
             </div>
 
+            <div class="settings-form-group">
+              <label class="settings-label">Thể loại:</label>
+              <div class="tag-check-group" id="editTagGroup">
+                <label class="tag-check"><input type="checkbox" value="normal"> Nam & Nữ</label>
+                <label class="tag-check"><input type="checkbox" value="all-female"> Les (GL)</label>
+                <label class="tag-check"><input type="checkbox" value="all-male"> Gay (BL)</label>
+                <label class="tag-check"><input type="checkbox" value="bisexual"> Song tính</label>
+                <label class="tag-check"><input type="checkbox" value="other"> Khác</label>
+              </div>
+            </div>
+
             <div class="settings-row-2col">
               <div class="settings-form-group">
                 <label class="settings-label">Link ảnh Poster (URL):</label>
@@ -640,6 +656,17 @@
               <div class="settings-form-group">
                 <label class="settings-label">Năm phát hành:</label>
                 <input type="text" id="addYear" class="settings-input" placeholder="2026">
+              </div>
+            </div>
+
+            <div class="settings-form-group">
+              <label class="settings-label">Thể loại:</label>
+              <div class="tag-check-group" id="addTagGroup">
+                <label class="tag-check"><input type="checkbox" value="normal" checked> Nam & Nữ</label>
+                <label class="tag-check"><input type="checkbox" value="all-female"> Les (GL)</label>
+                <label class="tag-check"><input type="checkbox" value="all-male"> Gay (BL)</label>
+                <label class="tag-check"><input type="checkbox" value="bisexual"> Song tính</label>
+                <label class="tag-check"><input type="checkbox" value="other"> Khác</label>
               </div>
             </div>
 
@@ -831,7 +858,7 @@
   </div>
 
   <!-- Main Application Script -->
-  <script src="app.js?v=20260924n"></script>
+  <script src="app.js?v=20260924x"></script>
 </body>
 
 </html>
