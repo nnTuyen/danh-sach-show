@@ -119,6 +119,7 @@ body {
   background-image: var(--hero-mesh);
   background-attachment: fixed;
   min-height: 100vh;
+  min-height: 100dvh;
   line-height: 1.6;
   position: relative;
   transition: background-color var(--transition-normal), color var(--transition-normal);
@@ -1328,6 +1329,7 @@ button, input, select, textarea {
   align-items: center;
   justify-content: center;
   padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--transition-normal);
@@ -1345,6 +1347,7 @@ button, input, select, textarea {
   width: 100%;
   max-width: 820px;
   max-height: 90vh;
+  max-height: 90dvh;
   box-shadow: var(--shadow-lg);
   position: relative;
   transform: translateY(20px) scale(0.97);
@@ -1415,12 +1418,12 @@ button, input, select, textarea {
   border-color: var(--primary-pink);
 }
 .img-lightbox-close {
-  top: 16px;
+  top: max(16px, env(safe-area-inset-top));
   right: 16px;
 }
 .img-lightbox-controls {
   position: absolute;
-  bottom: 20px;
+  bottom: calc(20px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -1774,6 +1777,7 @@ button, input, select, textarea {
   grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
   gap: 8px;
   max-height: 50vh;
+  max-height: 50dvh;
   overflow-y: auto;
 }
 .episode-pick-btn {
@@ -2158,7 +2162,7 @@ button, input, select, textarea {
    ============================================================ */
 .btn-back-to-top {
   position: fixed;
-  bottom: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom));
   right: 24px;
   width: 42px;
   height: 42px;
