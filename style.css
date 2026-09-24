@@ -1,5 +1,5 @@
 /* ============================================================
-   DATING SHOW HUB (HẸN HÒ HUB) - MODERN DESIGN SYSTEM
+   DATING SHOW - MODERN DESIGN SYSTEM
    Supports: Dark & Light Modes, Glassmorphism, Micro-animations
    Mobile-Optimized with Zero-Overflow & High-DPI Favicons
    ============================================================ */
@@ -2225,6 +2225,11 @@ button, input, select, textarea {
   /* REQUIREMENT 1: HIDE Country Pills on mobile & SHOW Mobile Search Bar right here! */
   .filter-row-countries {
     display: none !important;
+  }
+
+  /* Mobile: show country select inside the Filter & Sort panel */
+  #mobileCountrySelect {
+    display: block !important;
   }
 
   .mobile-top-search-wrapper {
