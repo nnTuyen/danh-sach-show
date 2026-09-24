@@ -82,6 +82,24 @@ function countryFlagHtml(code) {
   return `<img src="https://flagcdn.com/w40/${info.code}.png" alt="${escapeHtml(info.name)}" class="flag-img" loading="lazy" onerror="this.remove()">`;
 }
 
+// Genre icon badge like the old version (single badge, normal shows show nothing)
+function showGenreBadge(tags) {
+  const list = Array.isArray(tags) ? tags : [];
+  if (list.includes('all-female')) {
+    return `<span class="badge-genre"><i class="fa-solid fa-venus-double"></i> Les (GL)</span>`;
+  }
+  if (list.includes('all-male')) {
+    return `<span class="badge-genre"><i class="fa-solid fa-mars-double"></i> Gay (BL)</span>`;
+  }
+  if (list.includes('bisexual')) {
+    return `<span class="badge-genre"><i class="fa-solid fa-venus-mars"></i> Song tính</span>`;
+  }
+  if (list.includes('other')) {
+    return `<span class="badge-genre badge-genre-other"><i class="fa-solid fa-ellipsis"></i> Khác</span>`;
+  }
+  return '';
+}
+
 function getStatusBadge(status) {
   switch (status) {
     case 'airing':
@@ -740,7 +758,11 @@ function updateMobileFilterBadge() {
 
 function updateResultsCount() {
   const countEl = document.getElementById('resultsCount');
-  if (countEl) countEl.textContent = state.filteredShows.length;
+  if (countEl) {
+    countEl.textContent = showsRenderedCount < state.filteredShows.length
+      ? `${showsRenderedCount}/${state.filteredShows.length}`
+      : `${state.filteredShows.length}`;
+  }
 
   const resetBtn = document.getElementById('btnResetFilters');
   const hasActiveFilters =
@@ -804,14 +826,39 @@ function resetAllFilters() {
 // ============================================================
 // RENDERING SHOW CARDS (REQUIREMENT 6 & 7)
 // ============================================================
+// Infinite scroll learned from the old version: render in small chunks so the
+// first paint stays light and swiping stays smooth (DOM stays small).
+const SHOWS_PER_BATCH = 16;
+let showsRenderedCount = 0;
+let showsSentinelObserver = null;
+
+function getShowsSentinelObserver() {
+  if (!showsSentinelObserver) {
+    showsSentinelObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        // Sentinel fully above viewport (e.g. restored scroll): wait for real scroll
+        if (entry.boundingClientRect.bottom <= 0) return;
+        loadMoreShows();
+      });
+    }, { rootMargin: '400px' });
+  }
+  return showsSentinelObserver;
+}
+
 function renderShows() {
   const container = document.getElementById('showsGrid');
   const emptyState = document.getElementById('emptyState');
   if (!container) return;
 
+  const oldSentinel = container.querySelector('.shows-sentinel');
+  if (oldSentinel && showsSentinelObserver) showsSentinelObserver.unobserve(oldSentinel);
+
   if (state.filteredShows.length === 0) {
+    showsRenderedCount = 0;
     container.style.display = 'none';
     if (emptyState) emptyState.style.display = 'flex';
+    updateResultsCount();
     return;
   }
 
@@ -819,14 +866,47 @@ function renderShows() {
   container.className = state.viewMode === 'grid' ? 'shows-grid' : 'shows-list';
   if (emptyState) emptyState.style.display = 'none';
 
-  const fragment = document.createDocumentFragment();
-  state.filteredShows.forEach(show => {
-    const card = state.viewMode === 'grid' ? createGridCard(show) : createListItem(show);
-    fragment.appendChild(card);
-  });
-
+  showsRenderedCount = 0;
   container.innerHTML = '';
+  appendShowsBatch(container);
+}
+
+function appendShowsBatch(container) {
+  const total = state.filteredShows.length;
+  const canObserve = 'IntersectionObserver' in window;
+  const start = showsRenderedCount;
+  const end = canObserve ? Math.min(start + SHOWS_PER_BATCH, total) : total;
+  if (start >= end) {
+    updateResultsCount();
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  state.filteredShows.slice(start, end).forEach(show => {
+    fragment.appendChild(state.viewMode === 'grid' ? createGridCard(show) : createListItem(show));
+  });
+  showsRenderedCount = end;
+
+  if (end < total) {
+    const sentinel = document.createElement('div');
+    sentinel.className = 'shows-sentinel';
+    fragment.appendChild(sentinel);
+    getShowsSentinelObserver().observe(sentinel);
+  }
+
   container.appendChild(fragment);
+  updateResultsCount();
+}
+
+function loadMoreShows() {
+  const container = document.getElementById('showsGrid');
+  if (!container) return;
+  const oldSentinel = container.querySelector('.shows-sentinel');
+  if (oldSentinel) {
+    if (showsSentinelObserver) showsSentinelObserver.unobserve(oldSentinel);
+    oldSentinel.remove();
+  }
+  appendShowsBatch(container);
 }
 
 function createGridCard(show) {
@@ -843,7 +923,7 @@ function createGridCard(show) {
 
   let posterHtml = '';
   if (show.image) {
-    posterHtml = `<img src="${escapeHtml(getProxiedImageUrl(show.image, 400))}" data-original-src="${escapeHtml(show.image)}" alt="${vnTitleEscaped}" class="card-poster-img" loading="lazy" decoding="async">`;
+    posterHtml = `<img src="${escapeHtml(getProxiedImageUrl(show.image, 400))}" data-original-src="${escapeHtml(show.image)}" alt="${vnTitleEscaped}" class="card-poster-img" loading="lazy" decoding="async" onload="this.classList.add('loaded')">`;
   } else {
     posterHtml = `<div class="card-poster-fallback"><i class="fa-solid fa-heart fallback-icon"></i><div class="fallback-title">${vnTitleEscaped}</div></div>`;
   }
@@ -866,6 +946,7 @@ function createGridCard(show) {
       </div>
       <div class="card-status-row">
         <span class="badge-status ${statusInfo.className}">${statusInfo.html}</span>
+        ${showGenreBadge(show.tags)}
       </div>
 
       <h3 class="card-title-vn" title="${vnTitleEscaped}">${vnTitleEscaped}</h3>
@@ -936,7 +1017,7 @@ function createListItem(show) {
     : 'https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg';
 
   item.innerHTML = `
-    <img src="${escapeHtml(listPosterSrc)}"${listPosterOrig ? ` data-original-src="${escapeHtml(listPosterOrig)}"` : ''} alt="${vnTitleEscaped}" class="list-item-poster" loading="lazy" decoding="async" onerror="handlePosterImgError(this, 'https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg');">
+    <img src="${escapeHtml(listPosterSrc)}"${listPosterOrig ? ` data-original-src="${escapeHtml(listPosterOrig)}"` : ''} alt="${vnTitleEscaped}" class="list-item-poster" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="handlePosterImgError(this, 'https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg');">
     <div class="list-item-info">
       <div class="list-item-title">${vnTitleEscaped}</div>
       <div class="list-item-sub">
@@ -947,6 +1028,7 @@ function createListItem(show) {
         ${yearFormatted ? `<span>•</span><span>${yearFormatted}</span>` : ''}
         <span>•</span>
         <span class="badge-status ${statusInfo.className}" style="font-size: 10px; padding: 2px 6px;">${statusInfo.html}</span>
+        ${showGenreBadge(show.tags)}
       </div>
     </div>
     <div class="list-item-actions">
@@ -1009,6 +1091,13 @@ function openShowDetail(show, defaultTab = 'tab-watch') {
 
   const countryBadge = document.getElementById('modalCountryBadge');
   if (countryBadge) countryBadge.innerHTML = `${countryFlagHtml(show.country)} ${countryInfo.name}`;
+
+  const modalBadgesRow = document.querySelector('#detailModal .modal-badges-row');
+  if (modalBadgesRow) {
+    modalBadgesRow.querySelectorAll('.badge-genre').forEach(el => el.remove());
+    const genreBadgeHtml = showGenreBadge(show.tags);
+    if (genreBadgeHtml) modalBadgesRow.insertAdjacentHTML('beforeend', genreBadgeHtml);
+  }
 
   const ratingBadge = document.getElementById('modalRatingBadge');
   if (ratingBadge) {
@@ -1416,7 +1505,9 @@ function initWatchLinkTips() {
     const btn = e.target && e.target.closest ? e.target.closest('.watch-link-btn') : null;
     if (btn) e.preventDefault();
   });
-  window.addEventListener('scroll', hideLinkTip, true);
+  window.addEventListener('scroll', () => {
+    if (linkTipEl && linkTipEl.style.display !== 'none') hideLinkTip();
+  }, true);
 }
 
 function populateCastMembers(detailNotes) {
@@ -1573,6 +1664,8 @@ function createDynamicLinkRow(label = '', url = '', episodes = []) {
     <span class="link-editor-caption">Thông tin link</span>
     <div class="link-editor-row-top">
       <input type="text" class="settings-input link-label-input" placeholder="Tên nguồn (VD: Bilibili 720p)" value="${escapeHtml(label)}">
+      <button type="button" class="btn-pin-move btn-move-up" title="Chuyển link lên trên"><i class="fa-solid fa-chevron-up"></i></button>
+      <button type="button" class="btn-pin-move btn-move-down" title="Chuyển link xuống dưới"><i class="fa-solid fa-chevron-down"></i></button>
       <button type="button" class="btn-remove-row" title="Xóa link này"><i class="fa-solid fa-trash"></i></button>
     </div>
     <span class="link-editor-caption">Link show</span>
@@ -1580,8 +1673,14 @@ function createDynamicLinkRow(label = '', url = '', episodes = []) {
     <button type="button" class="btn-link-episodes" title="Gắn link theo tập cho link này"><i class="fa-solid fa-list-ol"></i> Link theo tập (<span class="ep-count">0</span>)</button>
   `;
 
-  row.querySelector('.btn-remove-row').onclick = () => row.remove();
+  row.querySelector('.btn-remove-row').onclick = () => {
+    const list = row.parentElement;
+    row.remove();
+    if (list) refreshLinkRowMoveButtons(list);
+  };
   row.querySelector('.btn-link-episodes').onclick = () => openEpisodeEditor(row);
+  row.querySelector('.btn-move-up').onclick = () => moveLinkRow(row, -1);
+  row.querySelector('.btn-move-down').onclick = () => moveLinkRow(row, 1);
   updateEpCountBadge(row);
   return row;
 }
@@ -1589,6 +1688,41 @@ function createDynamicLinkRow(label = '', url = '', episodes = []) {
 function updateEpCountBadge(row) {
   const badge = row.querySelector('.ep-count');
   if (badge) badge.textContent = (row._episodes || []).length;
+}
+
+// Reorder link rows inside the edit/add forms (save order = display order)
+function moveLinkRow(row, dir) {
+  if (!row || !row.parentElement) return;
+  const sibling = dir < 0 ? row.previousElementSibling : row.nextElementSibling;
+  if (sibling && sibling.classList.contains('link-editor-row')) {
+    if (dir < 0) sibling.before(row);
+    else sibling.after(row);
+  }
+  refreshLinkRowMoveButtons(row.parentElement);
+}
+
+function refreshLinkRowMoveButtons(container) {
+  if (!container) return;
+  const rows = [...container.querySelectorAll('.link-editor-row')];
+  rows.forEach((r, i) => {
+    const up = r.querySelector('.btn-move-up');
+    const down = r.querySelector('.btn-move-down');
+    if (up) up.disabled = i === 0;
+    if (down) down.disabled = i === rows.length - 1;
+  });
+}
+
+// Genre checkboxes helpers (edit/add forms). Defaults to ['normal'] when none checked.
+function getCheckedTags(groupId) {
+  const checked = [...document.querySelectorAll(`#${groupId} input[type="checkbox"]:checked`)].map(cb => cb.value);
+  return checked.length > 0 ? checked : ['normal'];
+}
+
+function setCheckedTags(groupId, tags) {
+  const list = Array.isArray(tags) && tags.length > 0 ? tags : ['normal'];
+  document.querySelectorAll(`#${groupId} input[type="checkbox"]`).forEach(cb => {
+    cb.checked = list.includes(cb.value);
+  });
 }
 
 function loadShowToEditForm(index) {
@@ -1605,6 +1739,7 @@ function loadShowToEditForm(index) {
   document.getElementById('editRating').value = show.rating || 5;
   document.getElementById('editImage').value = show.image || '';
   document.getElementById('editYear').value = show.year || '';
+  setCheckedTags('editTagGroup', show.tags);
 
   // Multiple Vietsub Links
   const vietsubListEl = document.getElementById('editVietsubLinksList');
@@ -1792,6 +1927,7 @@ function saveEditedShow() {
   show.rating = parseFloat(document.getElementById('editRating').value) || 5;
   show.image = document.getElementById('editImage').value.trim();
   show.year = document.getElementById('editYear').value.trim() || show.year;
+  show.tags = getCheckedTags('editTagGroup');
 
   // Save multiple links (Requirement 5)
   const vLinks = collectDynamicLinks('editVietsubLinksList');
@@ -1838,7 +1974,7 @@ function addNewShow() {
     chineseWatchUrl: oLinks.length > 0 ? oLinks[0].url : '',
     detailNotes: document.getElementById('addCast').value,
     description: document.getElementById('addDesc').value,
-    tags: ['normal'],
+    tags: getCheckedTags('addTagGroup'),
     _origIndex: state.shows.length
   };
 
@@ -1859,6 +1995,7 @@ function addNewShow() {
   document.getElementById('addDesc').value = '';
   document.getElementById('addVietsubLinksList').innerHTML = '';
   document.getElementById('addOriginalLinksList').innerHTML = '';
+  setCheckedTags('addTagGroup', ['normal']);
 
   closeSettingsModal();
 }
@@ -2073,10 +2210,25 @@ function initEventListeners() {
   const btnViewList = document.getElementById('btnViewList');
 
   if (btnViewGrid && btnViewList) {
+    // Restore saved view mode (grid/list) from previous visit
+    let savedView = 'grid';
+    try {
+      savedView = localStorage.getItem('datinghub_viewmode') || 'grid';
+    } catch (e) {}
+    if (savedView !== 'list') savedView = 'grid';
+    state.viewMode = savedView;
+    btnViewGrid.classList.toggle('active', savedView === 'grid');
+    btnViewList.classList.toggle('active', savedView === 'list');
+
+    const saveViewMode = mode => {
+      try { localStorage.setItem('datinghub_viewmode', mode); } catch (e) {}
+    };
+
     btnViewGrid.addEventListener('click', () => {
       state.viewMode = 'grid';
       btnViewGrid.classList.add('active');
       btnViewList.classList.remove('active');
+      saveViewMode('grid');
       renderShows();
     });
 
@@ -2084,6 +2236,7 @@ function initEventListeners() {
       state.viewMode = 'list';
       btnViewList.classList.add('active');
       btnViewGrid.classList.remove('active');
+      saveViewMode('list');
       renderShows();
     });
   }
@@ -2097,51 +2250,83 @@ function initEventListeners() {
   const emptyResetBtn = document.getElementById('btnEmptyReset');
   if (emptyResetBtn) emptyResetBtn.addEventListener('click', resetAllFilters);
 
-  // Back to top
-  const btnBackToTop = document.getElementById('btnBackToTop');
-  if (btnBackToTop) {
-    window.addEventListener('scroll', () => {
-      btnBackToTop.classList.toggle('show', window.scrollY > 300);
-    });
-    btnBackToTop.addEventListener('click', () => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-  }
-
+  // Unified rAF-throttled scroll handler (perf: zero layout reads per scroll
+  // event, cached metrics, DOM touched only on state change).
   // Desktop: site header (search bar) always visible; filter bar (country + sort)
   // hides when scrolling down and shows when scrolling up. Mobile: always visible.
+  const btnBackToTop = document.getElementById('btnBackToTop');
   const filterScrollHeader = document.querySelector('.site-header');
   const filterScrollSection = document.querySelector('.filter-section');
   const filterScrollMain = document.querySelector('main');
   let filterLastScrollY = window.scrollY;
   let filterScrollUpTravel = 0;
+  let filterHideThreshold = Infinity;
+  let backToTopShown = false;
+  let filterBarHidden = false;
+  let scrollTicking = false;
 
-  window.addEventListener('scroll', () => {
-    if (!filterScrollHeader || !filterScrollSection || !filterScrollMain) return;
+  function measureFilterBar() {
+    if (!filterScrollHeader || !filterScrollMain) return;
+    const headerHeight = filterScrollHeader.offsetHeight || 68;
+    filterHideThreshold = filterScrollMain.getBoundingClientRect().top + window.scrollY - headerHeight;
+  }
+
+  function handleScrollFrame() {
+    scrollTicking = false;
     const currentY = window.scrollY;
-    const delta = currentY - filterLastScrollY;
-    filterLastScrollY = currentY;
 
-    if (window.innerWidth <= 768) {
-      filterScrollUpTravel = 0;
-      filterScrollSection.classList.remove('filters-hidden');
-      return;
+    if (btnBackToTop) {
+      const shouldShow = currentY > 300;
+      if (shouldShow !== backToTopShown) {
+        backToTopShown = shouldShow;
+        btnBackToTop.classList.toggle('show', shouldShow);
+      }
     }
 
-    if (delta > 0) {
-      filterScrollUpTravel = 0;
-      const headerHeight = filterScrollHeader.offsetHeight;
-      const mainTop = filterScrollMain.getBoundingClientRect().top + currentY;
-      if (currentY >= mainTop - headerHeight) {
-        filterScrollSection.classList.add('filters-hidden');
+    if (filterScrollHeader && filterScrollSection && filterScrollMain) {
+      const delta = currentY - filterLastScrollY;
+      if (window.innerWidth <= 768) {
+        filterScrollUpTravel = 0;
+        if (filterBarHidden) {
+          filterBarHidden = false;
+          filterScrollSection.classList.remove('filters-hidden');
+        }
+      } else if (delta > 0) {
+        filterScrollUpTravel = 0;
+        if (!filterBarHidden && currentY >= filterHideThreshold) {
+          filterBarHidden = true;
+          filterScrollSection.classList.add('filters-hidden');
+        }
+      } else if (delta < 0) {
+        filterScrollUpTravel += -delta;
+        if (filterScrollUpTravel >= 4 && filterBarHidden) {
+          filterBarHidden = false;
+          filterScrollSection.classList.remove('filters-hidden');
+        }
       }
-    } else if (delta < 0) {
-      filterScrollUpTravel += -delta;
-      if (filterScrollUpTravel >= 4) {
-        filterScrollSection.classList.remove('filters-hidden');
-      }
+    }
+    filterLastScrollY = currentY;
+  }
+
+  measureFilterBar();
+  window.addEventListener('scroll', () => {
+    if (!scrollTicking) {
+      scrollTicking = true;
+      requestAnimationFrame(handleScrollFrame);
     }
   }, { passive: true });
+  window.addEventListener('load', measureFilterBar);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measureFilterBar);
+  let filterMeasureTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(filterMeasureTimer);
+    filterMeasureTimer = setTimeout(measureFilterBar, 150);
+  });
+  if (btnBackToTop) {
+    btnBackToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
 
   // Watch-link tooltip: full label on hover (desktop) / long-press (mobile)
   initWatchLinkTips();
@@ -2183,6 +2368,12 @@ function initEventListeners() {
   if (episodePickerModal) episodePickerModal.addEventListener('click', e => {
     if (e.target === episodePickerModal) closeEpisodePicker();
   });
+
+  // Keep link-row move buttons correctly enabled/disabled (capture runs first)
+  document.addEventListener('click', e => {
+    const row = e.target && e.target.closest ? e.target.closest('.link-editor-row') : null;
+    if (row && row.parentElement) refreshLinkRowMoveButtons(row.parentElement);
+  }, true);
 
   // Show Detail Modal Close
   const modalCloseBtn = document.getElementById('btnModalClose');
