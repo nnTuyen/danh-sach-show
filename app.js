@@ -517,11 +517,23 @@ function getDefaultSpotlightCandidates() {
 }
 
 function setupSpotlightShow() {
-  const pinned = state.spotlightSlugs
-    .map(slug => state.shows.find(s => slugify(s.vietnamese) === slug))
-    .filter(Boolean)
+  // Pins shared with EVERY visitor live in the data file (hotOrder 1..4).
+  // Personal localStorage pins are only a fallback when the data has none.
+  const dataPinned = state.shows
+    .filter(s => {
+      const n = Number(s.hotOrder);
+      return Number.isInteger(n) && n >= 1 && n <= MAX_PINNED_SHOWS;
+    })
+    .sort((a, b) => Number(a.hotOrder) - Number(b.hotOrder))
     .slice(0, MAX_PINNED_SHOWS);
-  spotlightQueue = pinned.length > 0 ? pinned : getDefaultSpotlightCandidates();
+  let queue = dataPinned;
+  if (queue.length === 0) {
+    queue = state.spotlightSlugs
+      .map(slug => state.shows.find(s => slugify(s.vietnamese) === slug))
+      .filter(Boolean)
+      .slice(0, MAX_PINNED_SHOWS);
+  }
+  spotlightQueue = queue.length > 0 ? queue : getDefaultSpotlightCandidates();
   spotlightIndex = 0;
   if (spotlightQueue.length === 0) return;
   renderSpotlightShow(spotlightQueue[0]);
@@ -2251,12 +2263,20 @@ function initEventListeners() {
   const btnSaveSpotlight = document.getElementById('btnSaveSpotlight');
   if (btnSaveSpotlight) {
     btnSaveSpotlight.addEventListener('click', () => {
-      state.spotlightSlugs = getStagedPins().slice(0, MAX_PINNED_SHOWS);
+      const staged = getStagedPins().slice(0, MAX_PINNED_SHOWS);
+      // Write pin order into the data so it can be published to every visitor
+      state.shows.forEach(s => { delete s.hotOrder; });
+      staged.forEach((slug, i) => {
+        const show = state.shows.find(s => slugify(s.vietnamese) === slug);
+        if (show) show.hotOrder = i + 1;
+      });
+      state.spotlightSlugs = staged;
       savePinnedSpotlightSlugs();
+      saveShowsToLocalStorage();
       stagedSpotlightSlugs = null;
       setupSpotlightShow();
       closeSettingsModal();
-      showToast(state.spotlightSlugs.length > 0 ? `Đã ghim ${state.spotlightSlugs.length} show hot! 📌` : 'Đã bỏ ghim show hot.', 'fa-thumbtack');
+      showToast(staged.length > 0 ? `Đã ghim ${staged.length} show hot! 📌` : 'Đã bỏ ghim show hot.', 'fa-thumbtack');
     });
   }
 
