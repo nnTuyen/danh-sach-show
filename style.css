@@ -2400,6 +2400,45 @@ button, input, select, textarea {
   .modal-body {
     padding: 14px;
   }
+
+  /* Mobile bottom-sheet detail modal (like old version: pure slide-up,
+     no scale animation, so the border never flashes on mobile GPUs) */
+  #detailModal.modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  #detailModal .modal-content {
+    width: 100%;
+    max-width: 100%;
+    max-height: 88vh;
+    max-height: 88dvh;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    transform: none;
+    transition: none;
+    overscroll-behavior-y: contain;
+  }
+  #detailModal.modal-overlay.active .modal-content {
+    animation: sheetUpDetail 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  #detailModal .modal-content::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 44px;
+    height: 5px;
+    background: rgba(125, 125, 125, 0.35);
+    border-radius: 3px;
+    z-index: 5;
+  }
+  @keyframes sheetUpDetail {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
 }
 
 @media (max-width: 480px) {
