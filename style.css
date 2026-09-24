@@ -171,8 +171,6 @@ button, input, select, textarea {
   top: 0;
   z-index: 100;
   background: var(--bg-glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-subtle);
   transition: all var(--transition-normal);
   width: 100%;
@@ -649,8 +647,6 @@ button, input, select, textarea {
   top: 68px;
   z-index: 90;
   background: var(--bg-glass);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-subtle);
   padding: 10px 0;
   margin-bottom: 18px;
@@ -1463,6 +1459,7 @@ button, input, select, textarea {
   overflow-x: hidden;
   padding-right: 2px;
   scrollbar-gutter: stable;
+  overscroll-behavior: contain;
 }
 
 .modal-scrollable::-webkit-scrollbar {
