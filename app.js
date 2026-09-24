@@ -885,6 +885,15 @@ function appendShowsBatch(container) {
   state.filteredShows.slice(start, end).forEach(show => {
     fragment.appendChild(state.viewMode === 'grid' ? createGridCard(show) : createListItem(show));
   });
+  // First paint: prioritize above-the-fold images (like onflix preloads its hero)
+  if (start === 0) {
+    fragment.querySelectorAll('img').forEach((img, i) => {
+      if (i < 6) {
+        img.loading = 'eager';
+        img.fetchPriority = 'high';
+      }
+    });
+  }
   showsRenderedCount = end;
 
   if (end < total) {
@@ -1141,6 +1150,7 @@ function openShowDetail(show, defaultTab = 'tab-watch') {
   freezeModalHeight(modal);
   modal.classList.add('active');
   document.body.style.overflow = 'hidden';
+  document.documentElement.style.overflow = 'hidden';
 }
 
 function closeShowDetail() {
@@ -1149,6 +1159,7 @@ function closeShowDetail() {
   unfreezeModalHeight(modal);
   modal.classList.remove('active');
   document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
   state.activeShow = null;
 
   if (window.location.hash.startsWith('#show=')) {
@@ -1217,6 +1228,7 @@ function openPosterLightbox(src, alt) {
   box.classList.add('open');
   box.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
+  document.documentElement.style.overflow = 'hidden';
 }
 
 function closePosterLightbox() {
@@ -1228,6 +1240,7 @@ function closePosterLightbox() {
   const detailModal = document.getElementById('detailModal');
   if (!detailModal || !detailModal.classList.contains('active')) {
     document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
   }
 }
 
@@ -1596,6 +1609,7 @@ function openSettingsModal() {
   freezeModalHeight(modal);
   modal.classList.add('active');
   document.body.style.overflow = 'hidden';
+  document.documentElement.style.overflow = 'hidden';
 }
 
 function closeSettingsModal() {
@@ -1604,6 +1618,7 @@ function closeSettingsModal() {
   unfreezeModalHeight(modal);
   modal.classList.remove('active');
   document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
 }
 
 function switchSettingsTab(tabId) {
