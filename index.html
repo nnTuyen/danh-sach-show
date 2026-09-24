@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a0c14">
+  <meta name="description"
+    content="Kho tổng hợp show hẹn hò Trung, Hàn, Nhật, Thái hàng đầu. Tra cứu link xem Vietsub Bilibili, YouTube, Odysee, WeTV, thông tin dàn cast và lịch phát sóng.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Hẹn Hò Hub - Tổng Hợp Show Hẹn Hò Vietsub">
+  <meta property="og:description"
+    content="Tra cứu và chia sẻ link xem các show hẹn hò Trung Quốc, Hàn Quốc, Nhật Bản, Thái Lan với phụ đề tiếng Việt.">
+  <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg">
+  <title>Hẹn Hò Hub 💕 - Tổng Hợp Show Hẹn Hò & Link Xem Vietsub</title>
+  
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💕</text></svg>">
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- Top Sticky Navigation Bar -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand-logo" id="brandLogo" title="Quay về trang chủ">
+        <div class="brand-icon">
+          <i class="fa-solid fa-heart"></i>
+        </div>
+        <div class="brand-name">
+          <span>HẸN HÒ HUB</span>
+          <span class="brand-subtitle">Dating Shows Portal</span>
+        </div>
+      </div>
+
+      <!-- Quick Search Bar -->
+      <div class="header-search-wrapper">
+        <i class="fa-solid fa-magnifying-glass header-search-icon"></i>
+        <input type="text" id="searchInput" class="header-search-input"
+          placeholder="Tìm tên show (Việt, Trung, Anh), dàn cast..." autocomplete="off">
+        <button id="searchClearBtn" class="header-search-clear" title="Xóa tìm kiếm">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Header Quick Actions -->
+      <div class="header-actions">
+        <!-- Random Show Button -->
+        <button class="btn-icon" id="btnRandomShow" title="Khám phá show ngẫu nhiên 🎲">
+          <i class="fa-solid fa-dice"></i>
+        </button>
+
+        <!-- Favorites Button -->
+        <button class="btn-icon" id="btnOpenFavorites" title="Show yêu thích đã lưu">
+          <i class="fa-solid fa-bookmark"></i>
+          <span class="badge-count" id="favCountBadge" style="display: none;">0</span>
+        </button>
+
+        <!-- Dark / Light Theme Toggle -->
+        <button class="btn-icon" id="themeToggleBtn" title="Chuyển chế độ Sáng / Tối">
+          <i class="fa-solid fa-moon" id="themeIcon"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="hero-banner">
+        <div class="hero-top-row">
+          <div class="hero-title-group">
+            <h1>Khám Phá Thế Giới <span class="hero-title-gradient">Show Hẹn Hò</span></h1>
+            <p class="hero-desc">
+              Tổng hợp link xem Vietsub bản đẹp, lịch phát sóng và thông tin dàn cast các chương trình tình cảm thực tế Trung - Hàn - Nhật - Thái.
+            </p>
+          </div>
+
+          <!-- Quick Live Stats -->
+          <div class="hero-stats">
+            <div class="stat-chip">
+              <i class="fa-solid fa-tv"></i>
+              <span id="statTotalShows">113</span> Show
+            </div>
+            <div class="stat-chip">
+              <span class="stat-pulse-dot"></span>
+              <span id="statAiringShows">--</span> Đang chiếu
+            </div>
+            <div class="stat-chip">
+              <i class="fa-solid fa-globe"></i>
+              <span>7 Quốc gia</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Featured Spotlight Card -->
+        <div class="hero-spotlight" id="heroSpotlight">
+          <img src="https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg" alt="Spotlight Show" class="spotlight-poster" id="spotlightPoster">
+          <div class="spotlight-info">
+            <span class="spotlight-badge">
+              <i class="fa-solid fa-fire"></i> Đang nổi bật
+            </span>
+            <h2 class="spotlight-title" id="spotlightTitle">Người Yêu Một Nửa Thân Thuộc S5</h2>
+            <div class="spotlight-subtitles" id="spotlightSubs">半熟恋人5 • Love Actually S5</div>
+            <p class="spotlight-desc" id="spotlightDesc">
+              Chương trình thực tế dành cho người độc thân trưởng thành tìm kiếm tình yêu đích thực nơi thành thị...
+            </p>
+            <div class="spotlight-meta-row">
+              <span id="spotlightCountry"><i class="fa-solid fa-earth-asia"></i> Trung Quốc</span>
+              <span id="spotlightPlatform"><i class="fa-solid fa-layer-group"></i> Tencent Video</span>
+              <span id="spotlightRating"><i class="fa-solid fa-star" style="color: #fbbf24;"></i> 5.0</span>
+            </div>
+            <div class="spotlight-actions">
+              <button class="btn-primary" id="btnSpotlightWatch">
+                <i class="fa-solid fa-play"></i> Xem Vietsub
+              </button>
+              <button class="btn-secondary" id="btnSpotlightDetail">
+                <i class="fa-solid fa-circle-info"></i> Chi tiết
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sticky Filter Bar -->
+  <section class="filter-section">
+    <div class="container filter-wrapper">
+      <!-- Country Tabs -->
+      <div class="filter-row-countries" id="countryPillsContainer">
+        <button class="pill-country active" data-country="all">
+          <span>🌏 Tất cả</span>
+        </button>
+        <button class="pill-country" data-country="china">
+          <span>🇨🇳 Trung Quốc</span>
+        </button>
+        <button class="pill-country" data-country="korea">
+          <span>🇰🇷 Hàn Quốc</span>
+        </button>
+        <button class="pill-country" data-country="japan">
+          <span>🇯🇵 Nhật Bản</span>
+        </button>
+        <button class="pill-country" data-country="thailand">
+          <span>🇹🇭 Thái Lan</span>
+        </button>
+        <button class="pill-country" data-country="hongkong">
+          <span>🇭🇰 Hồng Kông</span>
+        </button>
+        <button class="pill-country" data-country="taiwan">
+          <span>🇹🇼 Đài Loan</span>
+        </button>
+      </div>
+
+      <!-- Controls Row: Status, Platform, Tag, Sort, View Toggle -->
+      <div class="filter-row-controls">
+        <div class="filter-group-left">
+          <!-- Status Pills -->
+          <button class="btn-filter-pill active" data-status="all">Tất cả</button>
+          <button class="btn-filter-pill" data-status="airing">
+            <span class="stat-pulse-dot"></span> Đang chiếu
+          </button>
+          <button class="btn-filter-pill" data-status="completed">🏁 Đã hoàn thành</button>
+          <button class="btn-filter-pill" data-status="upcoming">⏳ Sắp chiếu</button>
+
+          <!-- Platform Dropdown -->
+          <select id="platformSelect" class="select-filter" aria-label="Lọc theo nền tảng">
+            <option value="all">Mọi nền tảng</option>
+          </select>
+
+          <!-- Tag Dropdown -->
+          <select id="tagSelect" class="select-filter" aria-label="Lọc theo thể loại">
+            <option value="all">Mọi thể loại</option>
+            <option value="normal">Nam & Nữ</option>
+            <option value="all-female">Bách Hợp (Nữ - Nữ)</option>
+            <option value="all-male">Đam Mỹ (Nam - Nam)</option>
+            <option value="bisexual">Song tính</option>
+          </select>
+        </div>
+
+        <div class="filter-group-right">
+          <!-- Sort Dropdown -->
+          <select id="sortSelect" class="select-filter" aria-label="Sắp xếp danh sách">
+            <option value="default">Sắp xếp: Mặc định</option>
+            <option value="rating-desc">Đánh giá sao: Cao ➔ Thấp</option>
+            <option value="title-asc">Tên show: A ➔ Z</option>
+            <option value="airing-first">Ưu tiên đang chiếu</option>
+          </select>
+
+          <!-- View Mode Toggle (Grid / List) -->
+          <div class="view-mode-toggle">
+            <button class="btn-view-mode active" id="btnViewGrid" title="Chế độ lưới (Thẻ)">
+              <i class="fa-solid fa-grip"></i>
+            </button>
+            <button class="btn-view-mode" id="btnViewList" title="Chế độ danh sách (Thu gọn)">
+              <i class="fa-solid fa-list-ul"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content Area -->
+  <main class="container">
+    <!-- Results Count Bar -->
+    <div class="results-info-bar">
+      <div>
+        Hiển thị <span class="results-count" id="resultsCount">0</span> show
+      </div>
+      <button class="btn-reset-filters" id="btnResetFilters" style="display: none;">
+        <i class="fa-solid fa-rotate-left"></i> Xoá bộ lọc
+      </button>
+    </div>
+
+    <!-- Shows List / Grid Container -->
+    <div class="shows-container">
+      <div class="shows-grid" id="showsGrid">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <div class="empty-state-icon">
+          <i class="fa-regular fa-face-frown-open"></i>
+        </div>
+        <h3 class="empty-state-title">Không tìm thấy show nào phù hợp</h3>
+        <p class="empty-state-desc">
+          Hãy thử đổi từ khóa tìm kiếm hoặc chọn lại các tiêu chí bộ lọc.
+        </p>
+        <button class="btn-primary" id="btnEmptyReset">
+          <i class="fa-solid fa-arrow-rotate-left"></i> Khôi phục bộ lọc
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Show Detail & Watch Links Modal -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal-content">
+      <button class="btn-modal-close" id="btnModalClose" title="Đóng">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- Modal Hero Header -->
+      <div class="modal-header-hero">
+        <img src="" alt="" class="modal-poster" id="modalPoster">
+        <div class="modal-info-col">
+          <div class="modal-badges-row">
+            <span class="badge-status airing" id="modalStatusBadge">Đang chiếu</span>
+            <span class="pill-country" id="modalCountryBadge">🇨🇳 Trung Quốc</span>
+            <span class="card-rating-pill" id="modalRatingBadge">
+              <i class="fa-solid fa-star"></i> <span>5.0</span>
+            </span>
+          </div>
+          <h2 class="modal-title" id="modalTitle">Tên Show</h2>
+          <div class="modal-subtitles" id="modalSubtitles">Tên gốc • English Title</div>
+          <div class="modal-meta-grid">
+            <div><i class="fa-solid fa-layer-group"></i> Nền tảng: <strong id="modalPlatform">--</strong></div>
+            <div><i class="fa-regular fa-clock"></i> Lịch: <strong id="modalSchedule">--</strong></div>
+            <div><i class="fa-regular fa-calendar"></i> Năm: <strong id="modalYear">--</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Tabs -->
+      <div class="modal-tabs">
+        <button class="modal-tab-btn active" data-tab="tab-watch">
+          <i class="fa-solid fa-play"></i> Link xem phim
+        </button>
+        <button class="modal-tab-btn" data-tab="tab-cast">
+          <i class="fa-solid fa-users"></i> Dàn Cast & Diễn viên
+        </button>
+        <button class="modal-tab-btn" data-tab="tab-desc">
+          <i class="fa-solid fa-align-left"></i> Giới thiệu nội dung
+        </button>
+      </div>
+
+      <!-- Modal Body Panes -->
+      <div class="modal-body">
+        <!-- Tab 1: Watch Links -->
+        <div class="tab-pane active" id="tab-watch">
+          <!-- Vietsub Links -->
+          <div class="watch-links-group">
+            <div class="watch-links-heading">
+              <i class="fa-solid fa-closed-captioning" style="color: var(--primary-pink);"></i>
+              Nguồn Vietsub (Bilibili, YouTube, Odysee, WeTV...)
+            </div>
+            <div class="links-grid" id="modalVietsubLinks">
+              <!-- Vietsub links generated by JS -->
+            </div>
+          </div>
+
+          <!-- Original Chinese / International Links -->
+          <div class="watch-links-group" id="modalChineseGroup">
+            <div class="watch-links-heading">
+              <i class="fa-solid fa-globe" style="color: #6366f1;"></i>
+              Nơi chiếu bản gốc / Quốc tế
+            </div>
+            <div class="links-grid" id="modalOriginalLinks">
+              <!-- Original links generated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Cast & Members Profiles -->
+        <div class="tab-pane" id="tab-cast">
+          <div class="cast-grid" id="modalCastGrid">
+            <!-- Cast cards generated by JS -->
+          </div>
+        </div>
+
+        <!-- Tab 3: Description -->
+        <div class="tab-pane" id="tab-desc">
+          <div class="modal-synopsis" id="modalDescription">
+            Chưa có thông tin giới thiệu cho chương trình này.
+          </div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="modal-footer-actions">
+          <button class="btn-primary" id="btnModalShare">
+            <i class="fa-solid fa-share-nodes"></i> Chia sẻ link show này
+          </button>
+          <button class="btn-secondary" id="btnModalFavorite">
+            <i class="fa-regular fa-heart"></i> Lưu vào Yêu thích
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="brand-logo">
+        <div class="brand-icon">
+          <i class="fa-solid fa-heart"></i>
+        </div>
+        <div class="brand-name">
+          <span>HẸN HÒ HUB</span>
+          <span class="brand-subtitle">Trang chia sẻ show hẹn hò phụ đề tiếng Việt</span>
+        </div>
+      </div>
+      <p class="footer-copy">
+        Dữ liệu được cập nhật liên tục từ cộng đồng yêu thích show truyền hình thực tế hẹn hò. Chúc bạn tìm được show ưng ý! 💕
+      </p>
+    </div>
+  </footer>
+
+  <!-- Main Application Script -->
+  <script src="app.js"></script>
+</body>
+
+</html>
