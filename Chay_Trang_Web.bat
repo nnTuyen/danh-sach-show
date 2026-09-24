@@ -1,17 +1,17 @@
 @echo off
-chcp 65001 >nul
-title Khởi động Hẹn Hò Hub (Local)
-echo ===================================================
-echo   Đang khởi động Hẹn Hò Hub trên máy tính...
-echo ===================================================
+cd /d "%~dp0"
+title Hen Ho Hub - Local Server
+echo ========================================================
+echo   DANG KHOI DONG HEN HO HUB TAI:
+echo   http://127.0.0.1:8000
+echo ========================================================
 echo.
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0chay_web.ps1"
+echo [1/2] Dang mo trinh duyet...
+start "" "http://127.0.0.1:8000"
+echo [2/2] Dang khoi dong may chu local...
+python -m http.server 8000 --bind 127.0.0.1
 if errorlevel 1 (
-  echo.
-  echo [LỖI] Không thể tự động mở trang web.
-  echo Bạn có thể mở PowerShell trong thư mục này và chạy:
-  echo   python -m http.server 8000
-  echo Sau đó mở trình duyệt vào http://127.0.0.1:8000
-  echo.
-  pause
+  echo Thu khoi dong voi py...
+  py -m http.server 8000 --bind 127.0.0.1
 )
+pause
