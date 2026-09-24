@@ -100,6 +100,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html, body {
@@ -928,6 +929,10 @@ button, input, select, textarea {
   box-shadow: var(--shadow-glow), var(--shadow-md);
 }
 
+.show-card:active {
+  transform: scale(0.98);
+}
+
 /* Poster Wrapper */
 .card-poster-wrapper {
   position: relative;
@@ -1351,7 +1356,7 @@ button, input, select, textarea {
   box-shadow: var(--shadow-lg);
   position: relative;
   transform: translateY(20px) scale(0.97);
-  transition: transform var(--transition-bounce);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden; /* Perfect corner clip without scrollbar leak */
   display: flex;
   flex-direction: column;
