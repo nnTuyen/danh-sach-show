@@ -108,6 +108,7 @@ html, body {
   max-width: 100%;
   overflow-x: hidden; /* Fallback for old browsers */
   overflow-x: clip; /* FIX: clip (not hidden) so position: sticky keeps working */
+  scrollbar-gutter: stable; /* FIX: locking body scroll for modals must not reflow the grid */
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -1326,6 +1327,7 @@ button, input, select, textarea {
 .modal-overlay {
   position: fixed;
   inset: 0;
+  transform: translateZ(0); /* FIX: own compositor layer, correct paint order above page */
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -1357,6 +1359,8 @@ button, input, select, textarea {
   position: relative;
   transform: translateY(20px) scale(0.97);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
   overflow: hidden; /* Perfect corner clip without scrollbar leak */
   display: flex;
   flex-direction: column;
@@ -2324,6 +2328,12 @@ button, input, select, textarea {
   /* Mobile: title bar scrolls away with the page, only search + filter stick to the very top */
   .site-header {
     position: static;
+  }
+
+  /* FIX: background-attachment:fixed causes repaint storms + compositing
+     glitches on mobile (iOS renders it as scroll anyway) */
+  body {
+    background-attachment: scroll;
   }
 
   .filter-section {
