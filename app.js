@@ -2826,15 +2826,6 @@ function initSheetSwipe() {
   content.addEventListener('touchcancel', resetDrag);
 }
 
-// PWA: register service worker for offline app shell (http(s) only, never file://)
-function initPWA() {
-  if (!('serviceWorker' in navigator)) return;
-  if (!/^https?:$/.test(window.location.protocol)) return;
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
-  });
-}
-
 // App Entry Point
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
@@ -2842,5 +2833,4 @@ document.addEventListener('DOMContentLoaded', () => {
   initEventListeners();
   renderShowsSkeleton(8);
   loadShowsData();
-  initPWA();
 });
