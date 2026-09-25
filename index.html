@@ -12,6 +12,20 @@
   <meta property="og:description"
     content="Tra cứu và chia sẻ link xem các show hẹn hò Trung Quốc, Hàn Quốc, Nhật Bản, Thái Lan với phụ đề tiếng Việt.">
   <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Dating show - Tổng Hợp Show Hẹn Hò Vietsub">
+  <meta name="twitter:description"
+    content="Tra cứu và chia sẻ link xem các show hẹn hò Trung Quốc, Hàn Quốc, Nhật Bản, Thái Lan với phụ đề tiếng Việt.">
+  <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Dating show - Tổng Hợp Show Hẹn Hò Vietsub",
+    "inLanguage": "vi",
+    "description": "Kho tổng hợp show hẹn hò Trung, Hàn, Nhật, Thái: link xem Vietsub, lịch phát sóng, dàn cast và đánh giá."
+  }
+  </script>
   <title>Dating show 💕 - Tổng Hợp Show Hẹn Hò & Link Xem Vietsub</title>
   
   <link rel="icon"
@@ -30,7 +44,13 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Main Stylesheet (v= date bump to force fresh load, avoid stale cache) -->
-  <link rel="stylesheet" href="style.css?v=20260925d">
+  <link rel="stylesheet" href="style.css?v=20260925f">
+
+  <!-- PWA: installable + offline app shell (see sw.js) -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 
 <body>
@@ -243,6 +263,11 @@
             <option value="bisexual">Song tính</option>
             <option value="other">Khác</option>
           </select>
+
+          <!-- Year Dropdown -->
+          <select id="yearSelect" class="select-filter" aria-label="Lọc theo năm phát hành">
+            <option value="all">Mọi năm</option>
+          </select>
         </div>
 
         <div class="filter-group-right">
@@ -303,7 +328,7 @@
   </main>
 
   <!-- Show Detail & Watch Links Modal (With Favicons & Copy Buttons) -->
-  <div class="modal-overlay" id="detailModal">
+  <div class="modal-overlay" id="detailModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-content">
       <button class="btn-modal-close" id="btnModalClose" title="Đóng">
         <i class="fa-solid fa-xmark"></i>
@@ -404,7 +429,7 @@
   </div>
 
   <!-- Settings & Show Management Modal (Requirements 4 & 5) -->
-  <div class="modal-overlay" id="settingsModal">
+  <div class="modal-overlay" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
     <div class="modal-content">
       <button class="btn-modal-close" id="btnSettingsClose" title="Đóng">
         <i class="fa-solid fa-xmark"></i>
@@ -413,7 +438,7 @@
       <div class="modal-scrollable">
         <div class="modal-header-hero" style="grid-template-columns: 1fr; padding: 22px;">
           <div>
-            <h2 class="modal-title" style="font-size: 20px;">
+            <h2 class="modal-title" id="settingsModalTitle" style="font-size: 20px;">
               <i class="fa-solid fa-gear" style="color: var(--primary-pink);"></i> Cài Đặt & Quản Lý Show
             </h2>
             <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
@@ -521,7 +546,7 @@
             <div class="settings-row-3col">
               <div class="settings-form-group">
                 <label class="settings-label">Nền tảng:</label>
-                <input type="text" id="editPlatform" class="settings-input" placeholder="Tencent, iQIYI, Mango TV...">
+                <input type="text" id="editPlatform" class="settings-input" list="platformDatalist" placeholder="Tencent, iQIYI, Mango TV..." autocomplete="off">
               </div>
               <div class="settings-form-group">
                 <label class="settings-label">Lịch phát sóng:</label>
@@ -647,7 +672,7 @@
             <div class="settings-row-3col">
               <div class="settings-form-group">
                 <label class="settings-label">Nền tảng:</label>
-                <input type="text" id="addPlatform" class="settings-input" placeholder="Tencent Video">
+                <input type="text" id="addPlatform" class="settings-input" list="platformDatalist" placeholder="Tencent Video" autocomplete="off">
               </div>
               <div class="settings-form-group">
                 <label class="settings-label">Lịch phát sóng:</label>
@@ -748,8 +773,11 @@
     </div>
   </div>
 
+  <!-- Shared platform suggestions for edit/add forms (combobox: pick or type new) -->
+  <datalist id="platformDatalist"></datalist>
+
   <!-- Large Text Editor Modal (Requirement 5) -->
-  <div class="modal-overlay large-editor-modal" id="largeEditorModal">
+  <div class="modal-overlay large-editor-modal" id="largeEditorModal" role="dialog" aria-modal="true" aria-labelledby="largeEditorTitle">
     <div class="modal-content">
       <button class="btn-modal-close" id="btnLargeEditorClose" title="Đóng">
         <i class="fa-solid fa-xmark"></i>
@@ -817,13 +845,13 @@
   </div>
 
   <!-- Episode links editor popup (in show edit form: left = episode, right = link) -->
-  <div class="modal-overlay modal-stack" id="episodeEditorModal">
+  <div class="modal-overlay modal-stack" id="episodeEditorModal" role="dialog" aria-modal="true" aria-labelledby="episodeEditorTitle">
     <div class="modal-content" style="max-width: 560px;">
       <button class="btn-modal-close" id="btnEpisodeEditorClose" title="Đóng">
         <i class="fa-solid fa-xmark"></i>
       </button>
       <div class="modal-body">
-        <h3 class="modal-title" style="font-size: 17px; margin-bottom: 4px;">Gắn link theo tập</h3>
+        <h3 class="modal-title" id="episodeEditorTitle" style="font-size: 17px; margin-bottom: 4px;">Gắn link theo tập</h3>
         <p id="episodeEditorLinkName" style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;"></p>
         <div id="episodeEditorList" class="episode-editor-list"></div>
         <div class="episode-editor-addrow">
@@ -844,7 +872,7 @@
   </div>
 
   <!-- Episode picker popup (in show detail: choose episode, open its link) -->
-  <div class="modal-overlay modal-stack" id="episodePickerModal">
+  <div class="modal-overlay modal-stack" id="episodePickerModal" role="dialog" aria-modal="true" aria-labelledby="episodePickerTitle">
     <div class="modal-content" style="max-width: 520px;">
       <button class="btn-modal-close" id="btnEpisodePickerClose" title="Đóng">
         <i class="fa-solid fa-xmark"></i>
@@ -858,7 +886,7 @@
   </div>
 
   <!-- Main Application Script -->
-  <script src="app.js?v=20260925b"></script>
+  <script src="app.js?v=20260925g"></script>
 </body>
 
 </html>
