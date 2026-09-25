@@ -5,7 +5,7 @@
    ============================================================ */
 
 :root {
-  --font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family: 'Plus Jakarta Sans', 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   
   /* Primary Brand Gradients */
   --primary-pink: #ff2e7e;
@@ -171,8 +171,10 @@ button, input, select, textarea {
   top: 0;
   z-index: 100;
   background: var(--bg-glass);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
   border-bottom: 1px solid var(--border-subtle);
-  transition: all var(--transition-normal);
+  transition: background-color var(--transition-normal), border-color var(--transition-normal);
   width: 100%;
 }
 
@@ -650,7 +652,7 @@ button, input, select, textarea {
   border-bottom: 1px solid var(--border-subtle);
   padding: 10px 0;
   margin-bottom: 18px;
-  transition: transform var(--transition-normal), all var(--transition-normal);
+  transition: transform var(--transition-normal), background-color var(--transition-normal), border-color var(--transition-normal);
   width: 100%;
 }
 
@@ -910,7 +912,8 @@ button, input, select, textarea {
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-normal);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+  will-change: transform;
   cursor: pointer;
   min-width: 0; /* CRITICAL: Allows grid item to shrink properly */
   width: 100%;
@@ -921,9 +924,9 @@ button, input, select, textarea {
 }
 
 .show-card:hover {
-  transform: translateY(-5px);
-  border-color: rgba(255, 46, 126, 0.4);
-  box-shadow: var(--shadow-glow), var(--shadow-md);
+  transform: translateY(-6px) scale(1.02);
+  border-color: rgba(244, 63, 94, 0.4);
+  box-shadow: 0 12px 28px rgba(244, 63, 94, 0.25), var(--shadow-md);
 }
 
 .show-card:active {
@@ -1060,6 +1063,57 @@ button, input, select, textarea {
   width: 100%;
   height: 8px;
   grid-column: 1 / -1;
+}
+
+/* Skeleton loading (shimmer) — same 3/4 footprint as real cards, CLS = 0 */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-card {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-card);
+  overflow: hidden;
+  background: var(--bg-surface);
+}
+
+.skeleton-poster {
+  aspect-ratio: 3 / 4;
+  width: 100%;
+  background: linear-gradient(90deg, #161824 25%, #232738 50%, #161824 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.skeleton-body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #161824 25%, #232738 50%, #161824 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.skeleton-line.short { width: 55%; }
+.skeleton-line.long { width: 90%; }
+
+[data-theme="light"] .skeleton-poster,
+[data-theme="light"] .skeleton-line {
+  background: linear-gradient(90deg, #e8edf5 25%, #f4f7fc 50%, #e8edf5 75%);
+  background-size: 200% 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-poster, .skeleton-line { animation: none; }
+  .show-card:hover { transform: none; }
+  .stat-pulse-dot { animation: none; }
 }
 
 /* Real flag image (emoji flags show as letter codes on Windows) */
@@ -1248,7 +1302,7 @@ button, input, select, textarea {
   padding: 10px 14px;
   gap: 14px;
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-normal);
+  transition: transform var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-normal);
   cursor: pointer;
   min-width: 0;
   /* PERF: skip rendering off-screen rows until scrolled near (lazy render) */
