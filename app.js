@@ -905,9 +905,8 @@ function resetAllFilters() {
   document.getElementById('searchClearBtn')?.classList.remove('active');
   document.getElementById('mobileSearchClearBtn')?.classList.remove('active');
 
-  document.querySelectorAll('#countryPillsContainer .pill-country').forEach(p => {
-    p.classList.toggle('active', p.dataset.country === 'all');
-  });
+  const countrySelectReset = document.getElementById('countrySelect');
+  if (countrySelectReset) countrySelectReset.value = 'all';
 
   const mobileCountrySelect = document.getElementById('mobileCountrySelect');
   if (mobileCountrySelect) mobileCountrySelect.value = 'all';
@@ -1050,7 +1049,7 @@ function createGridCard(show) {
     // Responsive proxy width: mobile 2-col cards are only ~160-180px wide,
     // no need to download the 400px desktop variant (~40% bytes saved)
     const posterWidth = window.matchMedia('(max-width: 480px)').matches ? 300 : 400;
-    posterHtml = `<img src="${escapeHtml(getProxiedImageUrl(show.image, posterWidth))}" data-original-src="${escapeHtml(show.image)}" alt="${vnTitleEscaped}" class="card-poster-img" loading="lazy" decoding="async" onload="this.classList.add('loaded')">`;
+    posterHtml = `<img src="${escapeHtml(getProxiedImageUrl(show.image, posterWidth))}" data-original-src="${escapeHtml(show.image)}" alt="${vnTitleEscaped}" class="card-poster-img" width="300" height="400" loading="lazy" decoding="async" onload="this.classList.add('loaded')">`;
   } else {
     posterHtml = `<div class="card-poster-fallback"><i class="fa-solid fa-heart fallback-icon"></i><div class="fallback-title">${vnTitleEscaped}</div></div>`;
   }
@@ -1144,7 +1143,7 @@ function createListItem(show) {
     : 'https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg';
 
   item.innerHTML = `
-    <img src="${escapeHtml(listPosterSrc)}"${listPosterOrig ? ` data-original-src="${escapeHtml(listPosterOrig)}"` : ''} alt="${vnTitleEscaped}" class="list-item-poster" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="handlePosterImgError(this, 'https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg');">
+    <img src="${escapeHtml(listPosterSrc)}"${listPosterOrig ? ` data-original-src="${escapeHtml(listPosterOrig)}"` : ''} alt="${vnTitleEscaped}" class="list-item-poster" width="52" height="70" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="handlePosterImgError(this, 'https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg');">
     <div class="list-item-info">
       <div class="list-item-title">${vnTitleEscaped}</div>
       <div class="list-item-sub">
@@ -2367,35 +2366,24 @@ function initEventListeners() {
     });
   }
 
-  // Country Pills (Desktop & Tablet)
-  const countryContainer = document.getElementById('countryPillsContainer');
-  if (countryContainer) {
-    countryContainer.addEventListener('click', (e) => {
-      const pill = e.target.closest('.pill-country');
-      if (!pill) return;
-
-      countryContainer.querySelectorAll('.pill-country').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      state.filters.country = pill.dataset.country;
-
-      // Sync mobile country select
-      const mobSelect = document.getElementById('mobileCountrySelect');
-      if (mobSelect) mobSelect.value = state.filters.country;
-
+  // Country Selects (desktop dropdown + mobile accordion select, kept in sync)
+  const countrySelect = document.getElementById('countrySelect');
+  const mobileCountrySelect = document.getElementById('mobileCountrySelect');
+  const syncCountrySelects = (value, except) => {
+    if (countrySelect && countrySelect !== except) countrySelect.value = value;
+    if (mobileCountrySelect && mobileCountrySelect !== except) mobileCountrySelect.value = value;
+  };
+  if (countrySelect) {
+    countrySelect.addEventListener('change', (e) => {
+      state.filters.country = e.target.value;
+      syncCountrySelects(state.filters.country, countrySelect);
       applyFilters();
     });
   }
-
-  // Mobile Country Select (inside accordion)
-  const mobileCountrySelect = document.getElementById('mobileCountrySelect');
   if (mobileCountrySelect) {
     mobileCountrySelect.addEventListener('change', (e) => {
       state.filters.country = e.target.value;
-      if (countryContainer) {
-        countryContainer.querySelectorAll('.pill-country').forEach(p => {
-          p.classList.toggle('active', p.dataset.country === state.filters.country);
-        });
-      }
+      syncCountrySelects(state.filters.country, mobileCountrySelect);
       applyFilters();
     });
   }
