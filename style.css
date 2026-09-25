@@ -1730,6 +1730,8 @@ button, input, select, textarea {
 }
 
 .watch-link-label span {
+  flex: 1 1 auto;
+  min-width: 0; /* REQUIRED: flex item must shrink, otherwise ellipsis never renders and JS truncation check always fails */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
