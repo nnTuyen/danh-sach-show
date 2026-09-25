@@ -174,9 +174,8 @@ button, input, select, textarea {
   top: 0;
   z-index: 100;
   background: var(--bg-glass);
-  /* No backdrop-filter: a full-width sticky blur re-runs on EVERY repaint
-     anywhere (card hover, image load, spotlight tick) = constant GPU drain.
-     The 0.9-alpha surface reads near-identical without it. */
+  /* DEBUG: blur removed again — verdict: harmless on hover, guilty on scroll
+     (a sticky blur re-runs every scroll frame). Stays off. */
   border-bottom: 1px solid var(--border-subtle);
   transition: background-color var(--transition-normal), border-color var(--transition-normal);
   width: 100%;
@@ -210,6 +209,10 @@ button, input, select, textarea {
   font-size: 18px;
   box-shadow: 0 4px 14px rgba(255, 46, 126, 0.4);
   transition: transform var(--transition-bounce);
+}
+
+.brand-logo:hover .brand-icon {
+  transform: scale(1.08) rotate(5deg);
 }
 
 .brand-name {
@@ -308,6 +311,14 @@ button, input, select, textarea {
   cursor: pointer;
   position: relative;
   transition: all var(--transition-fast);
+}
+
+.btn-icon:hover {
+  background: var(--bg-surface-hover);
+  transform: translateY(-2px);
+  border-color: var(--primary-pink);
+  color: var(--primary-pink);
+  box-shadow: var(--shadow-sm);
 }
 
 .badge-count {
@@ -598,6 +609,11 @@ button, input, select, textarea {
   transition: all var(--transition-fast);
 }
 
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 46, 126, 0.6);
+}
+
 .btn-secondary {
   display: inline-flex;
   align-items: center;
@@ -611,6 +627,12 @@ button, input, select, textarea {
   border-radius: var(--radius-full);
   cursor: pointer;
   transition: all var(--transition-fast);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--text-muted);
+  transform: translateY(-2px);
 }
 
 /* ============================================================
@@ -636,19 +658,6 @@ button, input, select, textarea {
   width: 100%;
 }
 
-/* Country Pills Row (Desktop) */
-.filter-row-countries {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 2px;
-  scrollbar-width: none;
-}
-.filter-row-countries::-webkit-scrollbar {
-  display: none;
-}
-
 .pill-country {
   display: inline-flex;
   align-items: center;
@@ -664,6 +673,12 @@ button, input, select, textarea {
   white-space: nowrap;
   transition: all var(--transition-fast);
   user-select: none;
+}
+
+.pill-country:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-main);
+  border-color: var(--border-focus);
 }
 
 .pill-country.active {
@@ -737,6 +752,11 @@ button, input, select, textarea {
   transition: all var(--transition-fast);
 }
 
+.btn-filter-pill:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-main);
+}
+
 .btn-filter-pill.active {
   background: var(--primary-pink);
   border-color: var(--primary-pink);
@@ -757,7 +777,7 @@ button, input, select, textarea {
   transition: all var(--transition-fast);
 }
 
-.select-filter:focus {
+.select-filter:hover, .select-filter:focus {
   border-color: var(--primary-pink);
 }
 
@@ -887,9 +907,7 @@ button, input, select, textarea {
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-sm);
-  /* No transition at all: hover only swaps border-color instantly = exactly
-     1 paint, zero animation frames (measured: even 0.3s transitions of cheap
-     properties keep weak iGPUs hot while the mouse moves across cards) */
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
   cursor: pointer;
   min-width: 0; /* CRITICAL: Allows grid item to shrink properly */
   width: 100%;
@@ -897,6 +915,16 @@ button, input, select, textarea {
   /* PERF: skip rendering off-screen cards until scrolled near (lazy render) */
   content-visibility: auto;
   contain-intrinsic-size: auto 420px;
+}
+
+.show-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  border-color: rgba(244, 63, 94, 0.4);
+  box-shadow: 0 12px 28px rgba(244, 63, 94, 0.25), var(--shadow-md);
+}
+
+.show-card:active {
+  transform: scale(0.98);
 }
 
 /* Poster Wrapper */
@@ -913,10 +941,14 @@ button, input, select, textarea {
   height: 100%;
   object-fit: cover;
   opacity: 0;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.4s ease, transform 0.5s ease;
 }
 .card-poster-img.loaded {
   opacity: 1;
+}
+
+.show-card:hover .card-poster-img {
+  transform: scale(1.06);
 }
 
 .card-poster-fallback {
@@ -1074,6 +1106,12 @@ button, input, select, textarea {
 
 @media (prefers-reduced-motion: reduce) {
   .skeleton-poster, .skeleton-line { animation: none; }
+  .show-card:hover, .show-card:active,
+  .show-list-item:hover,
+  .btn-primary:hover, .btn-secondary:hover, .btn-icon:hover,
+  .btn-back-to-top:hover, .btn-modal-close:hover,
+  .brand-logo:hover .brand-icon,
+  .watch-link-btn:hover { transform: none; }
   .shows-grid > .card-enter, .shows-list > .card-enter { animation: none; }
 }
 
@@ -1158,7 +1196,12 @@ button, input, select, textarea {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  transition: color var(--transition-fast);
   min-width: 0;
+}
+
+.show-card:hover .card-title-vn {
+  color: var(--primary-pink);
 }
 
 /* Requirement 6: Clean subtitle on card without copy buttons */
@@ -1226,6 +1269,12 @@ button, input, select, textarea {
   min-width: 0;
 }
 
+.btn-card-watch:hover {
+  background: var(--primary-gradient);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 46, 126, 0.4);
+}
+
 .btn-card-detail {
   width: 32px;
   height: 32px;
@@ -1238,6 +1287,11 @@ button, input, select, textarea {
   cursor: pointer;
   transition: all var(--transition-fast);
   flex-shrink: 0;
+}
+
+.btn-card-detail:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-main);
 }
 
 /* ============================================================
@@ -1259,11 +1313,18 @@ button, input, select, textarea {
   padding: 10px 14px;
   gap: 14px;
   box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-normal);
   cursor: pointer;
   min-width: 0;
   /* PERF: skip rendering off-screen rows until scrolled near (lazy render) */
   content-visibility: auto;
   contain-intrinsic-size: auto 96px;
+}
+
+.show-list-item:hover {
+  transform: translateX(3px);
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-md);
 }
 
 .list-item-poster {
@@ -1338,13 +1399,19 @@ button, input, select, textarea {
   padding: 16px;
   padding-bottom: max(16px, env(safe-area-inset-bottom));
   opacity: 0;
+  /* DEBUG STEP 6: hidden layers with backdrop-filter still sample the backdrop
+     on every repaint (5 fullscreen blurred sheets even when "invisible").
+     visibility:hidden removes them from rendering entirely. */
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity var(--transition-normal);
+  transition: opacity var(--transition-normal), visibility 0s linear 0.3s;
 }
 
 .modal-overlay.active {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
+  transition: opacity var(--transition-normal);
 }
 
 .modal-content {
@@ -1422,6 +1489,10 @@ button, input, select, textarea {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
+.img-lightbox-btn:hover {
+  background: var(--primary-pink);
+  border-color: var(--primary-pink);
+}
 .img-lightbox-close {
   top: max(16px, env(safe-area-inset-top));
   right: 16px;
@@ -1438,21 +1509,6 @@ button, input, select, textarea {
 .img-lightbox-controls .img-lightbox-btn {
   position: static;
 }
-.img-lightbox-hint {
-  position: absolute;
-  bottom: 72px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: rgba(255, 255, 255, 0.65);
-  font-size: 12px;
-  white-space: nowrap;
-  max-width: 94vw;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  z-index: 2;
-  pointer-events: none;
-}
-
 .modal-scrollable {
   flex: 1;
   overflow-y: auto;
@@ -1562,6 +1618,11 @@ button, input, select, textarea {
   transition: all var(--transition-fast);
 }
 
+.btn-copy-name:hover {
+  background: var(--bg-surface-elevated);
+  color: var(--primary-pink);
+}
+
 .modal-meta-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -1590,6 +1651,10 @@ button, input, select, textarea {
   cursor: pointer;
   white-space: nowrap;
   transition: all var(--transition-fast);
+}
+
+.modal-tab-btn:hover {
+  color: var(--text-main);
 }
 
 .modal-tab-btn.active {
@@ -1644,6 +1709,13 @@ button, input, select, textarea {
   transition: all var(--transition-fast);
   text-decoration: none;
   min-width: 0;
+}
+
+.watch-link-btn:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--primary-pink);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .watch-link-label {
@@ -1702,6 +1774,11 @@ button, input, select, textarea {
   cursor: pointer;
   transition: all var(--transition-fast);
 }
+.btn-link-episodes:hover {
+  color: var(--primary-pink);
+  border-color: var(--primary-pink);
+}
+
 /* Episode editor popup */
 .episode-editor-list {
   display: flex;
@@ -1773,6 +1850,11 @@ button, input, select, textarea {
   cursor: pointer;
   transition: all var(--transition-fast);
 }
+.episode-pick-btn:hover {
+  border-color: var(--primary-pink);
+  color: var(--primary-pink);
+}
+
 /* Episode count badge on watch-link buttons */
 .watch-link-side {
   display: flex;
@@ -1890,6 +1972,11 @@ button, input, select, textarea {
   align-items: center;
   gap: 4px;
   transition: all var(--transition-fast);
+}
+
+.btn-expand-field:hover {
+  background: var(--primary-pink);
+  color: #fff;
 }
 
 .settings-input, .settings-select, .settings-textarea {
@@ -2023,6 +2110,10 @@ button, input, select, textarea {
   justify-content: center;
   font-size: 10px;
 }
+.btn-pin-move:hover:not(:disabled) {
+  color: var(--text-main);
+  border-color: var(--primary-pink);
+}
 .btn-pin-move:disabled {
   opacity: 0.35;
   cursor: not-allowed;
@@ -2079,6 +2170,11 @@ button, input, select, textarea {
   transition: all var(--transition-fast);
 }
 
+.btn-remove-row:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
 .btn-add-link-row {
   background: var(--bg-surface-elevated);
   border: 1px dashed var(--border-subtle);
@@ -2094,6 +2190,11 @@ button, input, select, textarea {
   gap: 6px;
   transition: all var(--transition-fast);
   width: 100%;
+}
+
+.btn-add-link-row:hover {
+  border-color: var(--primary-pink);
+  color: var(--primary-pink);
 }
 
 /* Large Textarea Pop-up Editor (Requirement 5) */
@@ -2145,6 +2246,10 @@ button, input, select, textarea {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
+}
+
+.btn-back-to-top:hover {
+  transform: translateY(-3px) scale(1.08);
 }
 
 /* ============================================================
@@ -2217,7 +2322,12 @@ button, input, select, textarea {
     grid-template-columns: 1fr;
     text-align: center;
   }
-  .spotlight-poster {
+.hero-spotlight:hover {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-md);
+}
+
+.spotlight-poster {
     height: 240px;
   }
   .spotlight-info {
@@ -2226,7 +2336,12 @@ button, input, select, textarea {
   .spotlight-desc {
     display: none;
   }
-  .modal-header-hero {
+.btn-modal-close:hover {
+  background: var(--primary-pink);
+  transform: scale(1.1);
+}
+
+.modal-header-hero {
     grid-template-columns: 1fr;
     text-align: center;
   }
@@ -2251,11 +2366,6 @@ button, input, select, textarea {
     display: none;
   }
 
-  /* REQUIREMENT 1: HIDE Country Pills on mobile & SHOW Mobile Search Bar right here! */
-  .filter-row-countries {
-    display: none !important;
-  }
-
   /* Mobile: show country select inside the Filter & Sort panel */
   #mobileCountrySelect {
     display: block !important;
@@ -2263,6 +2373,11 @@ button, input, select, textarea {
 
   .mobile-top-search-wrapper {
     display: block !important;
+  }
+
+  /* Mobile hero title: forced 2-line break */
+  .hero-title-group h1 .hero-title-gradient {
+    display: block;
   }
 
   /* Mobile: title bar scrolls away with the page, only search + filter stick to the very top */
@@ -2410,3 +2525,6 @@ button, input, select, textarea {
   }
 
 }
+
+/* (debug blocks removed after root cause found: hidden fullscreen blurred
+   modals. See .modal-overlay visibility fix above.) */
