@@ -6,7 +6,7 @@
  *  - cross-origin requests (fonts, flag/poster CDNs, favicons) to avoid
  *    opaque-response storage bloat.
  */
-const CACHE_NAME = 'datinghub-shell-v1';
+const CACHE_NAME = 'datinghub-shell-v2';
 const CORE_SHELL = ['./', './index.html', './manifest.json', './images/icon.svg'];
 
 self.addEventListener('install', event => {
@@ -29,6 +29,20 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return; // CDN/fonts: passthrough
   if (url.pathname.endsWith('showsData.json')) return; // data: always network
+  // Navigations (index.html): network first — a cache-first HTML traps users
+  // on stale markup (with stale ?v= asset URLs) until the SW itself updates.
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request).then(res => {
+        if (res && res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
+        }
+        return res;
+      }).catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
   event.respondWith(
     caches.match(request, { ignoreSearch: false }).then(
       hit => hit || fetch(request).then(res => {
