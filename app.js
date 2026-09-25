@@ -13,16 +13,21 @@ const state = {
     status: 'all',
     platform: 'all',
     tag: 'all',
+    year: 'all',
     sort: 'airing-first', // Default sort is airing-first
     onlyFavorites: false
   },
   viewMode: 'grid', // 'grid' | 'list'
   theme: 'dark',
   favorites: [],
-    spotlightSlugs: [],
+  spotlightSlugs: [],
+  pushedShowHash: false, // true when THIS visit pushed #show= (safe to history.back on close)
   activeShow: null,
   activeEditorTargetId: null
 };
+
+// Original tab title (restored when the detail modal closes)
+const ORIGINAL_DOC_TITLE = document.title;
 
 // ============================================================
 // UTILITIES & SAFE ESCAPING
@@ -152,10 +157,14 @@ function getStatusBadge(status) {
   }
 }
 
-// Format year string nicely (e.g. "1-6-2026" -> "2026", "2025" -> "2025")
+// Format year string nicely: keep ranges ("2021-2026" -> "2021–2026"),
+// reduce full dates ("1-6-2026" -> "2026"), pass through plain years.
 function formatYear(yearStr) {
   if (!yearStr) return '';
-  const match = yearStr.toString().match(/\b(20\d\d)\b/);
+  const s = yearStr.toString();
+  const range = s.match(/\b(20\d\d)\s*[–—-]\s*(20\d\d)\b/);
+  if (range) return `${range[1]}–${range[2]}`;
+  const match = s.match(/\b(20\d\d)\b/);
   return match ? match[1] : yearStr;
 }
 
@@ -439,6 +448,7 @@ async function loadShowsData() {
 
     updateHeroStats();
     populatePlatformDropdown();
+    populateYearDropdown();
     setupSpotlightShow();
     populateSettingsSelects();
     applyFilters();
@@ -467,6 +477,20 @@ function updateHeroStats() {
   if (airingEl) airingEl.textContent = airing;
 }
 
+// All calendar years a show spans: expands ranges ("2021-2026" -> 2021..2026),
+// reduces full dates ("1-6-2026" -> [2026]). Empty year -> [].
+function getShowYears(show) {
+  if (!show || !show.year) return [];
+  const found = show.year.toString().match(/20\d\d/g);
+  if (!found) return [];
+  const nums = found.map(Number).filter(y => y >= 1990 && y <= 2100);
+  if (nums.length === 0) return [];
+  const min = Math.min(...nums), max = Math.max(...nums);
+  const years = [];
+  for (let y = min; y <= max; y++) years.push(y);
+  return years;
+}
+
 function populatePlatformDropdown() {
   const select = document.getElementById('platformSelect');
   if (!select) return;
@@ -477,6 +501,7 @@ function populatePlatformDropdown() {
   });
 
   const sortedPlatforms = Array.from(platforms).sort();
+  const keepValue = select.value || 'all';
   select.innerHTML = '<option value="all">Mọi nền tảng</option>';
   sortedPlatforms.forEach(p => {
     const opt = document.createElement('option');
@@ -484,6 +509,41 @@ function populatePlatformDropdown() {
     opt.textContent = p;
     select.appendChild(opt);
   });
+  // Keep the user's current filter if it still exists (rebuild wipes selection)
+  select.value = sortedPlatforms.includes(keepValue) ? keepValue : 'all';
+  state.filters.platform = select.value;
+
+  // Same list feeds the edit/add combobox: pick a suggestion or type a new one
+  const datalist = document.getElementById('platformDatalist');
+  if (datalist) {
+    datalist.innerHTML = '';
+    sortedPlatforms.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p;
+      datalist.appendChild(opt);
+    });
+  }
+}
+
+function populateYearDropdown() {
+  const select = document.getElementById('yearSelect');
+  if (!select) return;
+
+  const years = new Set();
+  state.shows.forEach(s => getShowYears(s).forEach(y => years.add(y)));
+
+  const sortedYears = Array.from(years).sort((a, b) => b - a);
+  const keepYear = select.value || 'all';
+  select.innerHTML = '<option value="all">Mọi năm</option>';
+  sortedYears.forEach(y => {
+    const opt = document.createElement('option');
+    opt.value = String(y);
+    opt.textContent = `Năm ${y}`;
+    select.appendChild(opt);
+  });
+  // Keep the user's current filter if it still exists (rebuild wipes selection)
+  select.value = keepYear !== 'all' && sortedYears.includes(Number(keepYear)) ? keepYear : 'all';
+  state.filters.year = select.value;
 }
 
 // Spotlight feature (Show hot carousel, max 4 pinned shows)
@@ -639,6 +699,24 @@ function initSpotlightCarousel() {
   if (heroEl) {
     heroEl.addEventListener('mouseenter', () => clearInterval(spotlightTimer));
     heroEl.addEventListener('mouseleave', restartSpotlightTimer);
+
+    // Touch swipe: horizontal swipe switches show, vertical scroll unaffected
+    let spX = 0, spY = 0;
+    heroEl.addEventListener('touchstart', e => {
+      const t = e.touches[0];
+      if (!t) return;
+      spX = t.clientX;
+      spY = t.clientY;
+    }, { passive: true });
+    heroEl.addEventListener('touchend', e => {
+      const t = e.changedTouches[0];
+      if (!t) return;
+      const dx = t.clientX - spX;
+      const dy = t.clientY - spY;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        goSpotlight(spotlightIndex + (dx < 0 ? 1 : -1));
+      }
+    }, { passive: true });
   }
 }
 
@@ -695,7 +773,7 @@ function renderSpotlightShow(candidate) {
 // FILTERING & SEARCH
 // ============================================================
 function applyFilters() {
-  const { search, country, status, platform, tag, sort, onlyFavorites } = state.filters;
+  const { search, country, status, platform, tag, year, sort, onlyFavorites } = state.filters;
   const searchKeyword = removeVietnameseAccents(search);
 
   const recognizedCountries = ['china', 'korea', 'japan', 'thailand', 'hongkong', 'taiwan', 'malaysia'];
@@ -719,6 +797,7 @@ function applyFilters() {
       const showTags = show.tags || [];
       if (!showTags.includes(tag)) return false;
     }
+    if (year !== 'all' && !getShowYears(show).includes(Number(year))) return false;
 
     if (searchKeyword) {
       const vn = removeVietnameseAccents(show.vietnamese);
@@ -780,6 +859,7 @@ function updateMobileFilterBadge() {
   }
 
   if (state.filters.platform !== 'all') parts.push(state.filters.platform);
+  if (state.filters.year !== 'all') parts.push(`Năm ${state.filters.year}`);
   badge.textContent = parts.length > 0 ? `(${parts.join(', ')})` : '';
 }
 
@@ -798,6 +878,7 @@ function updateResultsCount() {
     state.filters.status !== 'all' ||
     state.filters.platform !== 'all' ||
     state.filters.tag !== 'all' ||
+    state.filters.year !== 'all' ||
     state.filters.sort !== 'airing-first' ||
     state.filters.onlyFavorites;
 
@@ -811,6 +892,7 @@ function resetAllFilters() {
     status: 'all',
     platform: 'all',
     tag: 'all',
+    year: 'all',
     sort: 'airing-first',
     onlyFavorites: false
   };
@@ -839,6 +921,9 @@ function resetAllFilters() {
 
   const tagSelect = document.getElementById('tagSelect');
   if (tagSelect) tagSelect.value = 'all';
+
+  const yearSelect = document.getElementById('yearSelect');
+  if (yearSelect) yearSelect.value = 'all';
 
   const sortSelect = document.getElementById('sortSelect');
   if (sortSelect) sortSelect.value = 'airing-first';
@@ -909,8 +994,11 @@ function appendShowsBatch(container) {
   }
 
   const fragment = document.createDocumentFragment();
-  state.filteredShows.slice(start, end).forEach(show => {
-    fragment.appendChild(state.viewMode === 'grid' ? createGridCard(show) : createListItem(show));
+  state.filteredShows.slice(start, end).forEach((show, i) => {
+    const el = state.viewMode === 'grid' ? createGridCard(show) : createListItem(show);
+    el.classList.add('card-enter');
+    el.style.animationDelay = `${Math.min(i, 7) * 35}ms`;
+    fragment.appendChild(el);
   });
   // First paint: prioritize above-the-fold images (like onflix preloads its hero)
   if (start === 0) {
@@ -959,7 +1047,10 @@ function createGridCard(show) {
 
   let posterHtml = '';
   if (show.image) {
-    posterHtml = `<img src="${escapeHtml(getProxiedImageUrl(show.image, 400))}" data-original-src="${escapeHtml(show.image)}" alt="${vnTitleEscaped}" class="card-poster-img" loading="lazy" decoding="async" onload="this.classList.add('loaded')">`;
+    // Responsive proxy width: mobile 2-col cards are only ~160-180px wide,
+    // no need to download the 400px desktop variant (~40% bytes saved)
+    const posterWidth = window.matchMedia('(max-width: 480px)').matches ? 300 : 400;
+    posterHtml = `<img src="${escapeHtml(getProxiedImageUrl(show.image, posterWidth))}" data-original-src="${escapeHtml(show.image)}" alt="${vnTitleEscaped}" class="card-poster-img" loading="lazy" decoding="async" onload="this.classList.add('loaded')">`;
   } else {
     posterHtml = `<div class="card-poster-fallback"><i class="fa-solid fa-heart fallback-icon"></i><div class="fallback-title">${vnTitleEscaped}</div></div>`;
   }
@@ -1083,6 +1174,50 @@ function createListItem(show) {
 // ============================================================
 // SHOW DETAIL MODAL (FAVICONS & COPY BUTTONS IN MODAL)
 // ============================================================
+// ============================================================
+// A11Y: modal focus trap + restore focus on close.
+// A single global Tab handler covers every .modal-overlay; open/close
+// helpers move focus in and restore it so keyboard users never get
+// lost behind the overlay.
+// ============================================================
+let lastFocusedBeforeModal = null;
+
+function focusModalEntry(modal) {
+  lastFocusedBeforeModal = document.activeElement;
+  const closeBtn = modal.querySelector('.btn-modal-close');
+  const first = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  (closeBtn || first || modal).focus?.();
+}
+
+function restoreFocusAfterModal() {
+  if (document.querySelector('.modal-overlay.active')) return; // another modal still open
+  if (lastFocusedBeforeModal && document.contains(lastFocusedBeforeModal)) {
+    lastFocusedBeforeModal.focus?.();
+  }
+  lastFocusedBeforeModal = null;
+}
+
+function initModalFocusTrap() {
+  if (initModalFocusTrap.done) return;
+  initModalFocusTrap.done = true;
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Tab') return;
+    const openModals = [...document.querySelectorAll('.modal-overlay.active')];
+    if (openModals.length === 0) return;
+    const modal = openModals[openModals.length - 1]; // topmost stacked modal
+    const items = [...modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+      .filter(el => !el.disabled && el.getClientRects().length > 0);
+    if (items.length === 0) return;
+    const first = items[0], last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  });
+}
 // Freeze modal height in px at open: mobile dvh changes when the browser
 // toolbar shows/hides, and resizing the modal mid-animation flashes its border.
 // px value still fits the visible area, just never shifts afterwards.
@@ -1104,7 +1239,13 @@ function openShowDetail(show, defaultTab = 'tab-watch') {
   if (!modal) return;
 
   const slug = slugify(show.vietnamese);
-  if (slug) window.history.replaceState(null, '', `#show=${slug}`);
+  // pushState (not replaceState) so the system Back button / swipe-back gesture
+  // returns to the list. Skip when already on this hash (direct-link load).
+  if (slug && window.location.hash !== `#show=${slug}`) {
+    window.history.pushState({ modalOpen: true }, '', `#show=${slug}`);
+    state.pushedShowHash = true;
+  }
+  document.title = `${show.vietnamese} - Vietsub | Dating show 💕`;
 
   const poster = document.getElementById('modalPoster');
   if (poster) {
@@ -1178,9 +1319,10 @@ function openShowDetail(show, defaultTab = 'tab-watch') {
   modal.classList.add('active');
   document.body.style.overflow = 'hidden';
   document.documentElement.style.overflow = 'hidden';
+  focusModalEntry(modal);
 }
 
-function closeShowDetail() {
+function closeShowDetail(updateHistory = true) {
   const modal = document.getElementById('detailModal');
   if (!modal) return;
   unfreezeModalHeight(modal);
@@ -1188,8 +1330,16 @@ function closeShowDetail() {
   document.body.style.overflow = '';
   document.documentElement.style.overflow = '';
   state.activeShow = null;
+  restoreFocusAfterModal();
+  document.title = ORIGINAL_DOC_TITLE;
 
-  if (window.location.hash.startsWith('#show=')) {
+  if (!updateHistory) return;
+  if (state.pushedShowHash) {
+    // We pushed this entry: go back so Back/Forward stay consistent.
+    // The popstate handler below sees an inactive modal and does nothing.
+    state.pushedShowHash = false;
+    window.history.back();
+  } else if (window.location.hash.startsWith('#show=')) {
     window.history.replaceState(null, '', window.location.pathname + window.location.search);
   }
 }
@@ -1620,8 +1770,21 @@ function pickRandomShow() {
   if (state.shows.length === 0) return;
   const randomIndex = Math.floor(Math.random() * state.shows.length);
   const show = state.shows[randomIndex];
-  openShowDetail(show);
   showToast(`Khám phá ngẫu nhiên: "${show.vietnamese}" 🎲`, 'fa-dice');
+  const btn = document.getElementById('btnRandomShow');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!btn || reduceMotion) {
+    openShowDetail(show);
+    return;
+  }
+  // Let the dice tumble first, then reveal the show
+  btn.classList.remove('dice-rolling');
+  void btn.offsetWidth;
+  btn.classList.add('dice-rolling');
+  setTimeout(() => {
+    btn.classList.remove('dice-rolling');
+    openShowDetail(show);
+  }, 450);
 }
 
 // ============================================================
@@ -1637,6 +1800,7 @@ function openSettingsModal() {
   modal.classList.add('active');
   document.body.style.overflow = 'hidden';
   document.documentElement.style.overflow = 'hidden';
+  focusModalEntry(modal);
 }
 
 function closeSettingsModal() {
@@ -1646,6 +1810,7 @@ function closeSettingsModal() {
   modal.classList.remove('active');
   document.body.style.overflow = '';
   document.documentElement.style.overflow = '';
+  restoreFocusAfterModal();
 }
 
 function switchSettingsTab(tabId) {
@@ -2004,6 +2169,8 @@ function saveEditedShow() {
 
   saveShowsToLocalStorage();
   applyFilters();
+  populatePlatformDropdown();
+  populateYearDropdown();
   setupSpotlightShow();
   showToast(`Đã lưu thay đổi cho show "${show.vietnamese}"!`, 'fa-floppy-disk');
 }
@@ -2043,6 +2210,8 @@ function addNewShow() {
   saveShowsToLocalStorage();
   updateHeroStats();
   applyFilters();
+  populatePlatformDropdown();
+  populateYearDropdown();
   populateSettingsSelects();
 
   showToast(`Đã thêm show mới: "${newShow.vietnamese}"!`, 'fa-plus');
@@ -2258,6 +2427,14 @@ function initEventListeners() {
     });
   }
 
+  const yearSelect = document.getElementById('yearSelect');
+  if (yearSelect) {
+    yearSelect.addEventListener('change', (e) => {
+      state.filters.year = e.target.value;
+      applyFilters();
+    });
+  }
+
   // Sort Select
   const sortSelect = document.getElementById('sortSelect');
   if (sortSelect) {
@@ -2392,6 +2569,15 @@ function initEventListeners() {
 
   // Watch-link tooltip: full label on hover (desktop) / long-press (mobile)
   initWatchLinkTips();
+
+  // A11y: trap Tab focus inside open modals
+  initModalFocusTrap();
+
+  // Desktop card glow follows the cursor
+  initCardGlow();
+
+  // Mobile bottom-sheet: swipe down to dismiss
+  initSheetSwipe();
 
   // Poster lightbox: original quality + zoom from detail modal
   initPosterLightbox();
@@ -2618,10 +2804,120 @@ function initEventListeners() {
       }
     }
     if (e.key === 'Escape') {
+      // Close only the TOPMOST layer: lightbox has its own Esc handler,
+      // so just yield to it instead of also tearing down modals beneath.
+      const lightbox = document.getElementById('imageLightbox');
+      if (lightbox && lightbox.classList.contains('open')) return;
+      const picker = document.getElementById('episodePickerModal');
+      if (picker && picker.classList.contains('active')) { closeEpisodePicker(); return; }
+      const epEditor = document.getElementById('episodeEditorModal');
+      if (epEditor && epEditor.classList.contains('active')) { closeEpisodeEditor(false); return; }
+      const large = document.getElementById('largeEditorModal');
+      if (large && large.classList.contains('active')) { closeLargeEditor(); return; }
+      const settings = document.getElementById('settingsModal');
+      if (settings && settings.classList.contains('active')) { closeSettingsModal(); return; }
       closeShowDetail();
-      closeSettingsModal();
-      closeLargeEditor();
     }
+  });
+
+  // System Back button / swipe-back gesture: close the topmost detail modal,
+  // or re-open it when navigating Forward to a #show= URL.
+  window.addEventListener('popstate', () => {
+    const detailModal = document.getElementById('detailModal');
+    const isOpen = detailModal && detailModal.classList.contains('active');
+    const hash = window.location.hash;
+    if (isOpen && !hash.startsWith('#show=')) {
+      state.pushedShowHash = false;
+      closeShowDetail(false);
+    } else if (!isOpen && hash.startsWith('#show=')) {
+      const slug = hash.replace('#show=', '').trim();
+      const match = state.shows.find(s => slugify(s.vietnamese) === slug);
+      if (match) openShowDetail(match);
+    }
+  });
+}
+
+// Card mouse-glow follower: single delegated + rAF-throttled listener on the
+// grid (survives re-renders), writes cursor position as CSS vars per card.
+function initCardGlow() {
+  if (initCardGlow.done) return;
+  initCardGlow.done = true;
+  if (!window.matchMedia('(hover: hover)').matches) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const grid = document.getElementById('showsGrid');
+  if (!grid) return;
+  let raf = 0, lastCard = null, lx = 0, ly = 0;
+  grid.addEventListener('mousemove', e => {
+    const card = e.target && e.target.closest ? e.target.closest('.show-card') : null;
+    if (!card) return;
+    lastCard = card;
+    lx = e.clientX;
+    ly = e.clientY;
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      if (!lastCard || !lastCard.isConnected) return;
+      const r = lastCard.getBoundingClientRect();
+      lastCard.style.setProperty('--mx', `${lx - r.left}px`);
+      lastCard.style.setProperty('--my', `${ly - r.top}px`);
+    });
+  });
+}
+// Mobile bottom-sheet: drag down from the top handle zone to dismiss,
+// native-app style. Only engages when the sheet content is scrolled to top
+// so normal scrolling is never hijacked. Desktop untouched (touch only).
+function initSheetSwipe() {
+  if (initSheetSwipe.done) return;
+  initSheetSwipe.done = true;
+  const modal = document.getElementById('detailModal');
+  const content = modal ? modal.querySelector('.modal-content') : null;
+  const scroller = modal ? modal.querySelector('.modal-scrollable') : null;
+  if (!modal || !content) return;
+  const isSheet = () => window.matchMedia('(max-width: 768px)').matches;
+  let startY = 0, curY = 0, dragging = false;
+
+  content.addEventListener('touchstart', e => {
+    if (!isSheet() || !modal.classList.contains('active')) return;
+    if (scroller && scroller.scrollTop > 0) return;
+    const t = e.touches[0];
+    if (!t) return;
+    // Handle zone: top 90px (grabber + hero header), nowhere else
+    if (t.clientY - content.getBoundingClientRect().top > 90) return;
+    startY = t.clientY;
+    curY = startY;
+    dragging = true;
+    content.style.transition = 'none';
+  }, { passive: true });
+
+  content.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const t = e.touches[0];
+    if (!t) return;
+    curY = t.clientY;
+    const dy = curY - startY;
+    if (dy > 0) content.style.transform = `translateY(${dy}px)`;
+  }, { passive: true });
+
+  const resetDrag = () => {
+    dragging = false;
+    content.style.transition = '';
+    content.style.transform = '';
+  };
+  content.addEventListener('touchend', () => {
+    if (!dragging) return;
+    const dy = curY - startY;
+    resetDrag();
+    if (dy > 120) closeShowDetail();
+  });
+  content.addEventListener('touchcancel', resetDrag);
+}
+
+// PWA: register service worker for offline app shell (http(s) only, never file://)
+function initPWA() {
+  if (!('serviceWorker' in navigator)) return;
+  if (!/^https?:$/.test(window.location.protocol)) return;
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
   });
 }
 
@@ -2632,4 +2928,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initEventListeners();
   renderShowsSkeleton(8);
   loadShowsData();
+  initPWA();
 });
