@@ -855,6 +855,24 @@ button, input, select, textarea {
   transform: rotate(180deg);
 }
 
+/* Random dice button: 3D tumble before revealing the show (transform-only) */
+@keyframes diceTumble {
+  0% { transform: rotate(0) scale(1); }
+  30% { transform: rotate(160deg) scale(1.25); }
+  60% { transform: rotate(300deg) scale(0.92); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+#btnRandomShow.dice-rolling {
+  animation: diceTumble 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
+  border-color: var(--primary-pink);
+  color: var(--primary-pink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #btnRandomShow.dice-rolling { animation: none; }
+}
+
 /* Results Info Bar */
 .results-info-bar {
   display: flex;
@@ -1058,6 +1076,29 @@ button, input, select, textarea {
   gap: 6px;
 }
 
+/* Card mouse-glow follower (desktop hover devices only): a soft radial
+   highlight tracks the cursor across the card surface, Vercel/Linear style */
+@media (hover: hover) {
+  .show-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(244, 63, 94, 0.18), transparent 65%);
+  }
+
+  .show-card:hover::after {
+    opacity: 1;
+  }
+
+  [data-theme="light"] .show-card::after {
+    background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 46, 126, 0.12), transparent 65%);
+  }
+}
+
 /* Infinite-scroll sentinel (takes full grid row, invisible) */
 .shows-sentinel {
   width: 100%;
@@ -1114,6 +1155,19 @@ button, input, select, textarea {
   .skeleton-poster, .skeleton-line { animation: none; }
   .show-card:hover { transform: none; }
   .stat-pulse-dot { animation: none; }
+  .shows-grid > .card-enter, .shows-list > .card-enter { animation: none; }
+}
+
+/* Card entrance: subtle stagger on filter/render (GPU-only, fill backwards
+   so the finished state never overrides :hover transform) */
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+.shows-grid > .card-enter,
+.shows-list > .card-enter {
+  animation: cardEnter 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
 }
 
 /* Real flag image (emoji flags show as letter codes on Windows) */
