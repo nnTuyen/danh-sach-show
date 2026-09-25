@@ -2491,24 +2491,11 @@ function initEventListeners() {
 
   // Unified rAF-throttled scroll handler (perf: zero layout reads per scroll
   // event, cached metrics, DOM touched only on state change).
-  // Desktop: site header (search bar) always visible; filter bar (country + sort)
-  // hides when scrolling down and shows when scrolling up. Mobile: always visible.
+  // Header + filter bar are always visible (no auto-hide); this only toggles
+  // the back-to-top button.
   const btnBackToTop = document.getElementById('btnBackToTop');
-  const filterScrollHeader = document.querySelector('.site-header');
-  const filterScrollSection = document.querySelector('.filter-section');
-  const filterScrollMain = document.querySelector('main');
-  let filterLastScrollY = window.scrollY;
-  let filterScrollUpTravel = 0;
-  let filterHideThreshold = Infinity;
   let backToTopShown = false;
-  let filterBarHidden = false;
   let scrollTicking = false;
-
-  function measureFilterBar() {
-    if (!filterScrollHeader || !filterScrollMain) return;
-    const headerHeight = filterScrollHeader.offsetHeight || 68;
-    filterHideThreshold = filterScrollMain.getBoundingClientRect().top + window.scrollY - headerHeight;
-  }
 
   function handleScrollFrame() {
     scrollTicking = false;
@@ -2521,46 +2508,14 @@ function initEventListeners() {
         btnBackToTop.classList.toggle('show', shouldShow);
       }
     }
-
-    if (filterScrollHeader && filterScrollSection && filterScrollMain) {
-      const delta = currentY - filterLastScrollY;
-      if (window.innerWidth <= 768) {
-        filterScrollUpTravel = 0;
-        if (filterBarHidden) {
-          filterBarHidden = false;
-          filterScrollSection.classList.remove('filters-hidden');
-        }
-      } else if (delta > 0) {
-        filterScrollUpTravel = 0;
-        if (!filterBarHidden && currentY >= filterHideThreshold) {
-          filterBarHidden = true;
-          filterScrollSection.classList.add('filters-hidden');
-        }
-      } else if (delta < 0) {
-        filterScrollUpTravel += -delta;
-        if (filterScrollUpTravel >= 4 && filterBarHidden) {
-          filterBarHidden = false;
-          filterScrollSection.classList.remove('filters-hidden');
-        }
-      }
-    }
-    filterLastScrollY = currentY;
   }
 
-  measureFilterBar();
   window.addEventListener('scroll', () => {
     if (!scrollTicking) {
       scrollTicking = true;
       requestAnimationFrame(handleScrollFrame);
     }
   }, { passive: true });
-  window.addEventListener('load', measureFilterBar);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measureFilterBar);
-  let filterMeasureTimer = null;
-  window.addEventListener('resize', () => {
-    clearTimeout(filterMeasureTimer);
-    filterMeasureTimer = setTimeout(measureFilterBar, 150);
-  });
   if (btnBackToTop) {
     btnBackToTop.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2572,9 +2527,6 @@ function initEventListeners() {
 
   // A11y: trap Tab focus inside open modals
   initModalFocusTrap();
-
-  // Desktop card glow follows the cursor
-  initCardGlow();
 
   // Mobile bottom-sheet: swipe down to dismiss
   initSheetSwipe();
@@ -2837,32 +2789,6 @@ function initEventListeners() {
   });
 }
 
-// Card mouse-glow follower: single delegated + rAF-throttled listener on the
-// grid (survives re-renders), writes cursor position as CSS vars per card.
-function initCardGlow() {
-  if (initCardGlow.done) return;
-  initCardGlow.done = true;
-  if (!window.matchMedia('(hover: hover)').matches) return;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const grid = document.getElementById('showsGrid');
-  if (!grid) return;
-  let raf = 0, lastCard = null, lx = 0, ly = 0;
-  grid.addEventListener('mousemove', e => {
-    const card = e.target && e.target.closest ? e.target.closest('.show-card') : null;
-    if (!card) return;
-    lastCard = card;
-    lx = e.clientX;
-    ly = e.clientY;
-    if (raf) return;
-    raf = requestAnimationFrame(() => {
-      raf = 0;
-      if (!lastCard || !lastCard.isConnected) return;
-      const r = lastCard.getBoundingClientRect();
-      lastCard.style.setProperty('--mx', `${lx - r.left}px`);
-      lastCard.style.setProperty('--my', `${ly - r.top}px`);
-    });
-  });
-}
 // Mobile bottom-sheet: drag down from the top handle zone to dismiss,
 // native-app style. Only engages when the sheet content is scrolled to top
 // so normal scrolling is never hijacked. Desktop untouched (touch only).
