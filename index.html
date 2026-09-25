@@ -44,7 +44,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Main Stylesheet (v= date bump to force fresh load, avoid stale cache) -->
-  <link rel="stylesheet" href="style.css?v=20260925n">
+  <link rel="stylesheet" href="style.css?v=20260925t">
 
   <!-- PWA: installable + offline app shell (see sw.js) -->
   <link rel="manifest" href="manifest.json">
@@ -174,36 +174,6 @@
   <!-- Sticky Filter Bar -->
   <section class="filter-section">
     <div class="container filter-wrapper">
-      <!-- Desktop Country Tabs (Requirement 8: Added 'other' country pill) -->
-      <div class="filter-row-countries" id="countryPillsContainer">
-        <button class="pill-country active" data-country="all">
-          <span>🌏 Tất cả</span>
-        </button>
-        <button class="pill-country" data-country="china">
-          <span><img src="https://flagcdn.com/w40/cn.png" class="flag-img" alt="" loading="lazy" onerror="this.remove()"> Trung Quốc</span>
-        </button>
-        <button class="pill-country" data-country="korea">
-          <span><img src="https://flagcdn.com/w40/kr.png" class="flag-img" alt="" loading="lazy" onerror="this.remove()"> Hàn Quốc</span>
-        </button>
-        <button class="pill-country" data-country="japan">
-          <span><img src="https://flagcdn.com/w40/jp.png" class="flag-img" alt="" loading="lazy" onerror="this.remove()"> Nhật Bản</span>
-        </button>
-        <button class="pill-country" data-country="thailand">
-          <span><img src="https://flagcdn.com/w40/th.png" class="flag-img" alt="" loading="lazy" onerror="this.remove()"> Thái Lan</span>
-        </button>
-        <button class="pill-country" data-country="hongkong">
-          <span><img src="https://flagcdn.com/w40/hk.png" class="flag-img" alt="" loading="lazy" onerror="this.remove()"> Hồng Kông</span>
-        </button>
-        <button class="pill-country" data-country="taiwan">
-          <span><img src="https://flagcdn.com/w40/tw.png" class="flag-img" alt="" loading="lazy" onerror="this.remove()"> Đài Loan</span>
-        </button>
-        <button class="pill-country" data-country="malaysia">
-          <span><img src="https://flagcdn.com/w40/my.png" class="flag-img" alt="" loading="lazy" onerror="this.remove()"> Malaysia</span>
-        </button>
-        <button class="pill-country" data-country="other">
-          <span>🌏 Quốc gia khác</span>
-        </button>
-      </div>
 
       <!-- Mobile Top Search Box (Requirement 1: Replaces Country pills on mobile) -->
       <div class="mobile-top-search-wrapper" id="mobileTopSearchWrapper">
@@ -236,17 +206,30 @@
             <button class="btn-filter-pill" data-status="upcoming">⏳ Sắp chiếu</button>
           </div>
 
+          <!-- Country Dropdown (right after status pills) -->
+          <select id="countrySelect" class="select-filter" aria-label="Lọc theo quốc gia">
+            <option value="all">Mọi quốc gia</option>
+            <option value="china">Trung Quốc</option>
+            <option value="korea">Hàn Quốc</option>
+            <option value="japan">Nhật Bản</option>
+            <option value="thailand">Thái Lan</option>
+            <option value="hongkong">Hồng Kông</option>
+            <option value="taiwan">Đài Loan</option>
+            <option value="malaysia">Malaysia</option>
+            <option value="other">Quốc gia khác</option>
+          </select>
+
           <!-- Mobile Country Select (Included inside accordion for mobile users) -->
           <select id="mobileCountrySelect" class="select-filter" aria-label="Lọc theo quốc gia" style="display: none;">
             <option value="all">Mọi quốc gia</option>
-            <option value="china">🇨🇳 Trung Quốc</option>
-            <option value="korea">🇰🇷 Hàn Quốc</option>
-            <option value="japan">🇯🇵 Nhật Bản</option>
-            <option value="thailand">🇹🇭 Thái Lan</option>
-            <option value="hongkong">🇭🇰 Hồng Kông</option>
-            <option value="taiwan">🇹🇼 Đài Loan</option>
-            <option value="malaysia">🇲🇾 Malaysia</option>
-            <option value="other">🌏 Khác</option>
+            <option value="china">Trung Quốc</option>
+            <option value="korea">Hàn Quốc</option>
+            <option value="japan">Nhật Bản</option>
+            <option value="thailand">Thái Lan</option>
+            <option value="hongkong">Hồng Kông</option>
+            <option value="taiwan">Đài Loan</option>
+            <option value="malaysia">Malaysia</option>
+            <option value="other">Quốc gia khác</option>
           </select>
 
           <!-- Platform Dropdown -->
@@ -841,7 +824,6 @@
         <i class="fa-solid fa-plus"></i>
       </button>
     </div>
-    <div class="img-lightbox-hint">Lăn chuột / pinch 2 ngón để thu phóng • Kéo để di chuyển • Chạm 2 lần để phóng to</div>
   </div>
 
   <!-- Episode links editor popup (in show edit form: left = episode, right = link) -->
@@ -886,7 +868,7 @@
   </div>
 
   <!-- Main Application Script -->
-  <script src="app.js?v=20260925i"></script>
+  <script src="app.js?v=20260925m"></script>
 </body>
 
 </html>
