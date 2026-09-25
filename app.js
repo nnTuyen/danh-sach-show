@@ -58,6 +58,33 @@ function slugify(str) {
     .replace(/^-+|-+$/g, '');
 }
 
+// Debounce: delay expensive filter+render while user is still typing (200-300ms)
+function debounce(func, delay = 250) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => func.apply(this, args), delay);
+  };
+}
+
+// Skeleton placeholders: same footprint as real cards so CLS stays 0
+function renderShowsSkeleton(count = 8) {
+  const container = document.getElementById('showsGrid');
+  const emptyState = document.getElementById('emptyState');
+  if (!container) return;
+  if (emptyState) emptyState.style.display = 'none';
+  container.style.display = 'grid';
+  container.className = 'shows-grid';
+  container.innerHTML = Array.from({ length: count }, () => `
+    <div class="skeleton-card" aria-hidden="true">
+      <div class="skeleton-poster"></div>
+      <div class="skeleton-body">
+        <div class="skeleton-line long"></div>
+        <div class="skeleton-line short"></div>
+      </div>
+    </div>`).join('');
+}
+
 // Requirement 8: Enhanced Country mapping including 'other' and 'malaysia'
 const COUNTRY_MAP = {
   china: { name: 'Trung Quốc', flag: '🇨🇳', code: 'cn' },
@@ -2110,9 +2137,10 @@ function initEventListeners() {
     });
   }
 
-  // Desktop Search
+  // Desktop Search (debounced: avoid re-render on every keystroke)
   const searchInput = document.getElementById('searchInput');
   const searchClearBtn = document.getElementById('searchClearBtn');
+  const debouncedApplyFilters = debounce(() => applyFilters(), 250);
 
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
@@ -2120,7 +2148,7 @@ function initEventListeners() {
       const mobInput = document.getElementById('mobileSearchInput');
       if (mobInput) mobInput.value = state.filters.search;
       if (searchClearBtn) searchClearBtn.classList.toggle('active', state.filters.search.length > 0);
-      applyFilters();
+      debouncedApplyFilters();
     });
   }
 
@@ -2145,7 +2173,7 @@ function initEventListeners() {
       state.filters.search = e.target.value.trim();
       if (searchInput) searchInput.value = state.filters.search;
       if (mobileSearchClearBtn) mobileSearchClearBtn.classList.toggle('active', state.filters.search.length > 0);
-      applyFilters();
+      debouncedApplyFilters();
     });
   }
 
@@ -2602,5 +2630,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initFavorites();
   initEventListeners();
+  renderShowsSkeleton(8);
   loadShowsData();
 });
