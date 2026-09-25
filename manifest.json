@@ -1,0 +1,20 @@
+{
+  "name": "Dating show - Tổng Hợp Show Hẹn Hò Vietsub",
+  "short_name": "Dating show",
+  "description": "Tra cứu link xem Vietsub, lịch phát sóng và dàn cast các show hẹn hò Trung - Hàn - Nhật - Thái.",
+  "lang": "vi",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0c14",
+  "theme_color": "#0a0c14",
+  "icons": [
+    {
+      "src": "images/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
