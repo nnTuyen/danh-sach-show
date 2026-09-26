@@ -22,6 +22,7 @@ const state = {
   favorites: [],
   spotlightSlugs: [],
   pushedShowHash: false, // true when THIS visit pushed #show= (safe to history.back on close)
+  detailSourceEl: null, // card poster element to morph back into on close
   activeShow: null,
   activeEditorTargetId: null
 };
@@ -42,6 +43,17 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+// Escape for single-quoted JS strings inside HTML attributes
+// (onclick="copyText('...')"). escapeHtml is WRONG here: &#039; would be
+// copied literally into the clipboard for names with apostrophes.
+function escapeJsSq(str) {
+  if (!str) return '';
+  return str
+    .toString()
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'");
 }
 
 function removeVietnameseAccents(str) {
@@ -294,31 +306,55 @@ function handlePosterImgError(img, fallbackUrl) {
 }
 
 // ============================================================
-// THEME MANAGER
+// THEME MANAGER (dark / light / auto-follow-system)
 // ============================================================
+function resolveTheme() {
+  if (state.theme === 'auto') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  return state.theme;
+}
+
 function initTheme() {
   const savedTheme = localStorage.getItem('datinghub_theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  state.theme = savedTheme || (prefersDark ? 'dark' : 'light');
-  applyTheme(state.theme);
+  state.theme = (savedTheme === 'dark' || savedTheme === 'light' || savedTheme === 'auto')
+    ? savedTheme
+    : 'auto';
+  applyTheme(resolveTheme(), state.theme);
+
+  // Live-follow the OS/browser theme while in Auto mode
+  try {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (state.theme === 'auto') applyTheme(resolveTheme(), 'auto');
+    });
+  } catch (e) { /* older browsers: stays on last applied theme */ }
 
   const toggleBtn = document.getElementById('themeToggleBtn');
   if (toggleBtn) {
     toggleBtn.addEventListener('click', () => {
-      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      state.theme = state.theme === 'dark' ? 'light' : state.theme === 'light' ? 'auto' : 'dark';
       localStorage.setItem('datinghub_theme', state.theme);
-      applyTheme(state.theme);
-      showToast(`Đã chuyển sang giao diện ${state.theme === 'dark' ? 'Tối' : 'Sáng'}`);
+      applyTheme(resolveTheme(), state.theme);
+      showToast(
+        state.theme === 'dark' ? 'Giao diện Tối 🌙' :
+        state.theme === 'light' ? 'Giao diện Sáng ☀️' : 'Tự động theo trình duyệt 🔄',
+        state.theme === 'auto' ? 'fa-circle-half-stroke' : state.theme === 'dark' ? 'fa-moon' : 'fa-sun'
+      );
     });
   }
 }
 
-function applyTheme(theme) {
+function applyTheme(theme, mode) {
   document.documentElement.setAttribute('data-theme', theme);
+  const activeMode = mode || state.theme;
   const themeIcon = document.getElementById('themeIcon');
   if (themeIcon) {
-    themeIcon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-    themeIcon.title = theme === 'dark' ? 'Chuyển sang chế độ Sáng' : 'Chuyển sang chế độ Tối';
+    themeIcon.className = activeMode === 'auto'
+      ? 'fa-solid fa-circle-half-stroke'
+      : theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    themeIcon.title = activeMode === 'auto'
+      ? 'Đang tự động theo trình duyệt (bấm để chuyển Tối)'
+      : theme === 'dark' ? 'Chế độ Tối (bấm để chuyển Sáng)' : 'Chế độ Sáng (bấm để theo trình duyệt)';
   }
 }
 
@@ -438,12 +474,15 @@ async function loadShowsData() {
       });
     });
 
+    state.shows = data;
+    ensureShowIds();
+    syncSpotlightSlugsFromData();
+
     // Preserve original file index for "None / Original sort"
     data.forEach((item, index) => {
       if (item._origIndex === undefined) item._origIndex = index;
     });
 
-    state.shows = data;
     if (healedTitles > 0 && local) saveShowsToLocalStorage();
     state.spotlightSlugs = loadPinnedSpotlightSlugs();
 
@@ -597,6 +636,49 @@ function savePinnedSpotlightSlugs() {
   localStorage.setItem('datinghub_spotlight', JSON.stringify(state.spotlightSlugs));
 }
 
+// Every show gets a permanent unique id (stable across adds, renames and
+// re-sorts). Pins reference ids, so near-duplicate titles (same slugified
+// name) can never collide or pin the wrong show.
+function ensureShowIds() {
+  const used = new Set();
+  state.shows.forEach(s => {
+    if (typeof s.id === 'string' && s.id.trim() && !used.has(s.id.trim())) {
+      s.id = s.id.trim();
+      used.add(s.id);
+      return;
+    }
+    const base = slugify(s.vietnamese) || 'show';
+    let id = base, n = 2;
+    while (used.has(id)) id = `${base}-${n++}`;
+    s.id = id;
+    used.add(id);
+  });
+}
+
+// Pins used to be slugified names (which collide for near-duplicate titles).
+// New pins are permanent ids; old slug pins still resolve best-effort.
+function findShowByPin(key) {
+  if (!key) return undefined;
+  return state.shows.find(s => s.id === key)
+    || state.shows.find(s => slugify(s.vietnamese) === key);
+}
+
+// If local pin storage is empty but the data file carries shared pins
+// (hotOrder), adopt them so the settings pin list always reflects reality.
+function syncSpotlightSlugsFromData() {
+  if (state.spotlightSlugs.length > 0) return;
+  const pinned = state.shows
+    .filter(s => {
+      const n = Number(s.hotOrder);
+      return Number.isInteger(n) && n >= 1 && n <= MAX_PINNED_SHOWS;
+    })
+    .sort((a, b) => Number(a.hotOrder) - Number(b.hotOrder));
+  if (pinned.length > 0) {
+    state.spotlightSlugs = pinned.map(s => s.id);
+    savePinnedSpotlightSlugs();
+  }
+}
+
 // Staged pins while the settings modal is open (persisted on Save)
 let stagedSpotlightSlugs = null;
 function getStagedPins() {
@@ -614,29 +696,29 @@ function renderStagedPins() {
     box.innerHTML = `<div style="color: var(--text-muted); font-size: 13px;">Chưa ghim show nào. Chọn show bên trên rồi bấm “Thêm ghim”.</div>`;
     return;
   }
-  box.innerHTML = `<div style="font-size: 13px; font-weight: 700; margin-bottom: 2px;">Đã ghim (${staged.length}/${MAX_PINNED_SHOWS}) — show đầu hiển thị trước:</div>` + staged.map((slug, i) => {
-    const show = state.shows.find(s => slugify(s.vietnamese) === slug);
-    const name = show ? show.vietnamese : slug;
+  box.innerHTML = `<div style="font-size: 13px; font-weight: 700; margin-bottom: 2px;">Đã ghim (${staged.length}/${MAX_PINNED_SHOWS}) — show đầu hiển thị trước:</div>` + staged.map((uid, i) => {
+    const show = findShowByPin(uid);
+    const name = show ? show.vietnamese : uid;
     return `<div class="pinned-show-item">
       <span class="pinned-show-num">${i + 1}</span>
       <span class="pinned-show-name">${escapeHtml(name)}</span>
       <span class="pinned-move-group">
-        <button type="button" class="btn-pin-move" data-slug="${escapeHtml(slug)}" data-move="-1" title="Chuyển lên trên"${i === 0 ? ' disabled' : ''}><i class="fa-solid fa-chevron-up"></i></button>
-        <button type="button" class="btn-pin-move" data-slug="${escapeHtml(slug)}" data-move="1" title="Chuyển xuống dưới"${i === staged.length - 1 ? ' disabled' : ''}><i class="fa-solid fa-chevron-down"></i></button>
+        <button type="button" class="btn-pin-move" data-uid="${escapeHtml(uid)}" data-move="-1" title="Chuyển lên trên"${i === 0 ? ' disabled' : ''}><i class="fa-solid fa-chevron-up"></i></button>
+        <button type="button" class="btn-pin-move" data-uid="${escapeHtml(uid)}" data-move="1" title="Chuyển xuống dưới"${i === staged.length - 1 ? ' disabled' : ''}><i class="fa-solid fa-chevron-down"></i></button>
       </span>
-      <button type="button" class="btn-remove-row btn-unpin" data-slug="${escapeHtml(slug)}" title="Bỏ ghim"><i class="fa-solid fa-xmark"></i></button>
+      <button type="button" class="btn-remove-row btn-unpin" data-uid="${escapeHtml(uid)}" title="Bỏ ghim"><i class="fa-solid fa-xmark"></i></button>
     </div>`;
   }).join('');
   box.querySelectorAll('.btn-unpin').forEach(btn => {
     btn.onclick = () => {
-      stagedSpotlightSlugs = getStagedPins().filter(s => s !== btn.dataset.slug);
+      stagedSpotlightSlugs = getStagedPins().filter(s => s !== btn.dataset.uid);
       renderStagedPins();
     };
   });
   box.querySelectorAll('.btn-pin-move').forEach(btn => {
     btn.onclick = () => {
       const staged = getStagedPins();
-      const i = staged.indexOf(btn.dataset.slug);
+      const i = staged.indexOf(btn.dataset.uid);
       const j = i + Number(btn.dataset.move);
       if (i < 0 || j < 0 || j >= staged.length) return;
       [staged[i], staged[j]] = [staged[j], staged[i]];
@@ -665,14 +747,15 @@ function setupSpotlightShow() {
   let queue = dataPinned;
   if (queue.length === 0) {
     queue = state.spotlightSlugs
-      .map(slug => state.shows.find(s => slugify(s.vietnamese) === slug))
+      .map(key => findShowByPin(key))
       .filter(Boolean)
       .slice(0, MAX_PINNED_SHOWS);
   }
   spotlightQueue = queue.length > 0 ? queue : getDefaultSpotlightCandidates();
   spotlightIndex = 0;
   if (spotlightQueue.length === 0) return;
-  renderSpotlightShow(spotlightQueue[0]);
+  buildSpotlightSlides();
+  updateSpotlightPosition(true);
   renderSpotlightDots();
   restartSpotlightTimer();
 }
@@ -683,8 +766,7 @@ function restartSpotlightTimer() {
   if (spotlightQueue.length > 1) {
     spotlightTimer = setInterval(() => {
       spotlightIndex = (spotlightIndex + 1) % spotlightQueue.length;
-      renderSpotlightShow(spotlightQueue[spotlightIndex]);
-      renderSpotlightDots();
+      updateSpotlightPosition();
     }, 6000);
   }
 }
@@ -692,9 +774,67 @@ function restartSpotlightTimer() {
 function goSpotlight(index) {
   if (spotlightQueue.length === 0) return;
   spotlightIndex = (index + spotlightQueue.length) % spotlightQueue.length;
-  renderSpotlightShow(spotlightQueue[spotlightIndex]);
-  renderSpotlightDots();
+  updateSpotlightPosition();
   restartSpotlightTimer();
+}
+
+// Slide-track carousel: all slides pre-rendered once, moves are a single
+// transform on the track (no innerHTML churn, no image pop-in per rotation).
+function buildSpotlightSlides() {
+  const track = document.getElementById('spotlightTrack');
+  const heroEl = document.getElementById('heroSpotlight');
+  if (!track) return;
+  track.innerHTML = '';
+  spotlightQueue.forEach((candidate, i) => {
+    track.appendChild(buildSpotlightSlide(candidate, i));
+  });
+  if (heroEl) heroEl.classList.toggle('has-multiple', spotlightQueue.length > 1);
+}
+
+function buildSpotlightSlide(candidate, i) {
+  const slide = document.createElement('div');
+  slide.className = 'spotlight-slide';
+  const cInfo = getCountryInfo(candidate.country);
+  const rating = candidate.rating ? Number(candidate.rating).toFixed(1) : '5.0';
+  const title = escapeHtml(candidate.vietnamese || candidate.english || '');
+  const posterHtml = candidate.image
+    ? `<img src="${escapeHtml(getProxiedImageUrl(candidate.image, 360))}" data-original-src="${escapeHtml(candidate.image)}" alt="${title}" class="spotlight-poster" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async" onload="this.classList.add('loaded')" onerror="handlePosterImgError(this, 'https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg')">`
+    : `<div class="spotlight-poster" style="display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-heart" style="font-size:28px;color:var(--primary-pink);"></i></div>`;
+  slide.innerHTML = `
+    ${posterHtml}
+    <div class="spotlight-info">
+      <span class="spotlight-badge"><i class="fa-solid fa-fire"></i> Show hot</span>
+      <h2 class="spotlight-title">${title}</h2>
+      <div class="spotlight-subtitles">
+        ${candidate.english ? `<span class="name-chip">${escapeHtml(candidate.english)} <button class="btn-copy-name" title="Sao chép tên tiếng Anh" onclick="copyText('${escapeJsSq(candidate.english)}', 'tên tiếng Anh', event)"><i class="fa-regular fa-copy"></i></button></span>` : ''}
+      </div>
+      <p class="spotlight-desc">${escapeHtml(candidate.description || 'Chương trình truyền hình thực tế hẹn hò đặc sắc.')}</p>
+      <div class="spotlight-meta-row">
+        <span>${countryFlagHtml(candidate.country)} ${cInfo.name}</span>
+        <span><i class="fa-solid fa-star" style="color: #fbbf24;"></i> ${rating}</span>
+      </div>
+      <div class="spotlight-actions">
+        <button class="btn-primary" data-act="watch"><i class="fa-solid fa-play"></i> Xem Vietsub</button>
+        <button class="btn-secondary" data-act="detail"><i class="fa-solid fa-circle-info"></i> Chi tiết</button>
+      </div>
+    </div>`;
+  slide.querySelector('[data-act="watch"]').onclick = () => openShowDetailAnimated(candidate, 'tab-watch', slide);
+  slide.querySelector('[data-act="detail"]').onclick = () => openShowDetailAnimated(candidate, 'tab-desc', slide);
+  return slide;
+}
+
+function updateSpotlightPosition(instant = false) {
+  const track = document.getElementById('spotlightTrack');
+  if (!track) return;
+  if (instant) {
+    track.style.transition = 'none';
+    track.style.transform = `translateX(-${spotlightIndex * 100}%)`;
+    void track.offsetWidth;
+    track.style.transition = '';
+  } else {
+    track.style.transform = `translateX(-${spotlightIndex * 100}%)`;
+  }
+  renderSpotlightDots();
 }
 
 function renderSpotlightDots() {
@@ -751,54 +891,6 @@ function initSpotlightCarousel() {
   }
 }
 
-function renderSpotlightShow(candidate) {
-  if (!candidate) return;
-
-  const poster = document.getElementById('spotlightPoster');
-  const title = document.getElementById('spotlightTitle');
-  const subs = document.getElementById('spotlightSubs');
-  const desc = document.getElementById('spotlightDesc');
-  const country = document.getElementById('spotlightCountry');
-  const rating = document.getElementById('spotlightRating');
-
-  if (poster) {
-    delete poster.dataset.origTried;
-    if (candidate.image) {
-      poster.setAttribute('data-original-src', candidate.image);
-      poster.src = getProxiedImageUrl(candidate.image, 360);
-    } else {
-      poster.removeAttribute('data-original-src');
-      poster.src = './images/show-0.jpg';
-    }
-    poster.onerror = () => handlePosterImgError(poster, 'https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg');
-  }
-  if (title) title.textContent = candidate.vietnamese || candidate.english;
-
-  if (subs) {
-    subs.innerHTML = `
-      ${candidate.english ? `<span class="name-chip">${escapeHtml(candidate.english)} <button class="btn-copy-name" title="Sao chép tên tiếng Anh" onclick="copyText('${escapeHtml(candidate.english)}', 'tên tiếng Anh', event)"><i class="fa-regular fa-copy"></i></button></span>` : ''}
-    `;
-  }
-
-  if (desc) desc.textContent = candidate.description || 'Chương trình truyền hình thực tế hẹn hò đặc sắc.';
-  if (country) {
-    const cInfo = getCountryInfo(candidate.country);
-    country.innerHTML = `${countryFlagHtml(candidate.country)} ${cInfo.name}`;
-  }
-  if (rating) rating.innerHTML = `<i class="fa-solid fa-star" style="color: #fbbf24;"></i> ${candidate.rating ? Number(candidate.rating).toFixed(1) : '5.0'}`;
-
-  const watchBtn = document.getElementById('btnSpotlightWatch');
-  const detailBtn = document.getElementById('btnSpotlightDetail');
-  if (watchBtn) watchBtn.onclick = () => openShowDetail(candidate, 'tab-watch');
-  if (detailBtn) detailBtn.onclick = () => openShowDetail(candidate, 'tab-desc');
-
-  const heroEl = document.getElementById('heroSpotlight');
-  if (heroEl) {
-    heroEl.classList.remove('spotlight-enter');
-    void heroEl.offsetWidth;
-    heroEl.classList.add('spotlight-enter');
-  }
-}
 
 // ============================================================
 // FILTERING & SEARCH
@@ -1066,7 +1158,7 @@ function loadMoreShows() {
 function createGridCard(show) {
   const card = document.createElement('div');
   card.className = 'show-card';
-  card.onclick = () => openShowDetail(show);
+  card.onclick = () => openShowDetailAnimated(show, 'tab-watch', cardPosterEl(card));
 
   const countryInfo = getCountryInfo(show.country);
   const statusInfo = getStatusBadge(show.status);
@@ -1087,8 +1179,8 @@ function createGridCard(show) {
 
   card.innerHTML = `
     <div class="card-poster-wrapper">
-      ${posterHtml}
-      <div class="card-poster-gradient">
+      <div class="card-zoom">
+        ${posterHtml}
         <div class="card-rating-pill">
           <i class="fa-solid fa-star"></i>
           <span>${ratingValue}</span>
@@ -1147,14 +1239,21 @@ function createGridCard(show) {
         wrapper.prepend(fallback);
       }
     };
+    // Proxy/CDN requests can hang forever (neither load nor error) leaving a
+    // permanently invisible card: force the fallback path after 8s of silence.
+    setTimeout(() => {
+      if (imgEl.isConnected && !imgEl.classList.contains('loaded') && imgEl.naturalWidth === 0) {
+        imgEl.onerror();
+      }
+    }, 8000);
   }
 
   // Bind Actions
   const watchBtn = card.querySelector('[data-action="watch"]');
-  if (watchBtn) watchBtn.onclick = (e) => { e.stopPropagation(); openShowDetail(show, 'tab-watch'); };
+  if (watchBtn) watchBtn.onclick = (e) => { e.stopPropagation(); openShowDetailAnimated(show, 'tab-watch', cardPosterEl(card)); };
 
   const detailBtn = card.querySelector('[data-action="detail"]');
-  if (detailBtn) detailBtn.onclick = (e) => { e.stopPropagation(); openShowDetail(show, 'tab-desc'); };
+  if (detailBtn) detailBtn.onclick = (e) => { e.stopPropagation(); openShowDetailAnimated(show, 'tab-desc', cardPosterEl(card)); };
 
   return card;
 }
@@ -1162,7 +1261,7 @@ function createGridCard(show) {
 function createListItem(show) {
   const item = document.createElement('div');
   item.className = 'show-list-item';
-  item.onclick = () => openShowDetail(show);
+  item.onclick = () => openShowDetailAnimated(show, 'tab-watch', item.querySelector('.list-item-poster'));
 
   const countryInfo = getCountryInfo(show.country);
   const statusInfo = getStatusBadge(show.status);
@@ -1196,7 +1295,7 @@ function createListItem(show) {
   `;
 
   const watchBtn = item.querySelector('[data-action="watch"]');
-  if (watchBtn) watchBtn.onclick = (e) => { e.stopPropagation(); openShowDetail(show, 'tab-watch'); };
+  if (watchBtn) watchBtn.onclick = (e) => { e.stopPropagation(); openShowDetailAnimated(show, 'tab-watch', item.querySelector('.list-item-poster')); };
 
   return item;
 }
@@ -1211,18 +1310,23 @@ function createListItem(show) {
 // lost behind the overlay.
 // ============================================================
 let lastFocusedBeforeModal = null;
+let savedPageScrollY = 0;
 
 function focusModalEntry(modal) {
   lastFocusedBeforeModal = document.activeElement;
+  savedPageScrollY = window.scrollY;
   const closeBtn = modal.querySelector('.btn-modal-close');
   const first = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-  (closeBtn || first || modal).focus?.();
+  (closeBtn || first || modal).focus?.({ preventScroll: true });
 }
 
 function restoreFocusAfterModal() {
   if (document.querySelector('.modal-overlay.active')) return; // another modal still open
+  // Only touch scroll/focus when a modal was actually open (lastFocused is
+  // set on open). Otherwise Esc on the homepage would yank the page to top.
   if (lastFocusedBeforeModal && document.contains(lastFocusedBeforeModal)) {
-    lastFocusedBeforeModal.focus?.();
+    window.scrollTo(0, savedPageScrollY);
+    lastFocusedBeforeModal.focus?.({ preventScroll: true });
   }
   lastFocusedBeforeModal = null;
 }
@@ -1263,10 +1367,129 @@ function unfreezeModalHeight(modal) {
   if (content) content.style.maxHeight = '';
 }
 
+// Poster element inside a grid card used as shared-element morph source
+// (photo, gradient fallback art, or the card itself as last resort).
+function cardPosterEl(card) {
+  return card.querySelector('.card-poster-img')
+    || card.querySelector('.card-poster-fallback')
+    || card;
+}
+
+// iOS app open/close style: the whole card expands into the modal and shrinks
+// back on close (spring easing ~cubic-bezier iOS, corner morph 14px -> modal).
+// Finite <0.5s, transform-only. Falls back to plain open when reduced motion
+// or when there is no source card (spotlight/random/shared link).
+const IOS_SPRING = 'cubic-bezier(0.32, 0.72, 0, 1)';
+// Open uses a gentle overshoot: the settle masks the heavy final frame
+// (full-size modal raster + backdrop at full opacity) that otherwise reads
+// as a last-second hitch. Radius keeps the smooth curve (overshoot on
+// corners would visibly bulge).
+const IOS_SPRING_OPEN = 'cubic-bezier(0.34, 1.3, 0.64, 1)';
+
+function modalContentEl() {
+  const modal = document.getElementById('detailModal');
+  return modal ? modal.querySelector('.modal-content') : null;
+}
+
+function flipCleanup(content, onEnd) {
+  content.style.transition = '';
+  content.style.transform = '';
+  content.style.borderRadius = '';
+  content.style.visibility = '';
+  if (onEnd) content.removeEventListener('transitionend', onEnd);
+}
+
+// Open with shared-element morph from the card poster when possible:
+// the poster visually expands into the modal (and shrinks back on close).
+// No VT support / reduced motion / no source element -> plain open.
+function openShowDetailAnimated(show, defaultTab = 'tab-watch', sourceEl = null) {
+  const card = sourceEl && sourceEl.closest
+    ? (sourceEl.closest('.show-card, .show-list-item') || sourceEl)
+    : null;
+  state.detailSourceEl = (card && card.isConnected) ? card : null;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const content = modalContentEl();
+  if (reduceMotion || !state.detailSourceEl || !content) {
+    openShowDetail(show, defaultTab);
+    return;
+  }
+
+  // 1. Render the modal instantly with its built-in motion suppressed.
+  // Keep it invisible while the poster decodes: async waiting would otherwise
+  // flash the full modal statically before the morph starts (blink bug).
+  content.classList.add('no-anim');
+  content.style.visibility = 'hidden';
+  openShowDetail(show, defaultTab);
+
+  // 2. Let the modal poster finish decoding first (capped 180ms): morphing
+  // while the photo still decodes is the main source of mid-flight stutter.
+  const mp = document.getElementById('modalPoster');
+  const waitDecode = (mp && !mp.complete && mp.decode)
+    ? Promise.race([mp.decode(), new Promise(res => setTimeout(res, 180))]).catch(() => {})
+    : Promise.resolve();
+  waitDecode.then(() => {
+    if (!document.getElementById('detailModal').classList.contains('active')) {
+      content.classList.remove('no-anim');
+      content.style.visibility = '';
+      return;
+    }
+    startFlipOpen(content);
+  });
+}
+
+function startFlipOpen(content) {
+  // Invert: shrink it onto the card rect (FLIP first frame)
+  const s = state.detailSourceEl.getBoundingClientRect();
+  const t = content.getBoundingClientRect();
+  if (s.width < 4 || s.height < 4 || t.width < 4 || t.height < 4) {
+    content.classList.remove('no-anim');
+    content.style.visibility = '';
+    return;
+  }
+  const dx = (s.left + s.width / 2) - (t.left + t.width / 2);
+  const dy = (s.top + s.height / 2) - (t.top + t.height / 2);
+  const targetRadius = getComputedStyle(content).borderRadius || '20px';
+  content.style.transform = `translate(${dx}px, ${dy}px) scale(${s.width / t.width}, ${s.height / t.height})`;
+  content.style.borderRadius = '14px';
+  void content.offsetWidth;
+
+  // 3. Play: reveal and expand to identity on an iOS spring (backdrop fades via overlay)
+  content.classList.remove('no-anim');
+  content.style.visibility = '';
+  content.style.transition = `transform 400ms ${IOS_SPRING_OPEN}, border-radius 400ms ${IOS_SPRING}`;
+  content.style.transform = 'none';
+  content.style.borderRadius = targetRadius;
+  let done = false;
+  const onEnd = (e) => { if (e.propertyName === 'transform') { done = true; flipCleanup(content, onEnd); } };
+  content.addEventListener('transitionend', onEnd);
+  setTimeout(() => { if (!done) { done = true; flipCleanup(content, onEnd); } }, 600);
+}
+
+// Lock page scroll WITHOUT breaking position:sticky bars. overflow:hidden
+// turns <body> into a scroll container, so sticky header/filter re-anchor
+// to the document and slide offscreen the moment a modal opens (measured:
+// header rect jumps to -1500). overflow:clip forbids scrolling but never
+// creates a scroll container, so sticky keeps sticking to the viewport.
+function lockPageScroll() {
+  document.body.style.overflow = 'hidden';
+  document.body.style.overflow = 'clip';
+  document.documentElement.style.overflow = 'hidden';
+  document.documentElement.style.overflow = 'clip';
+}
+function unlockPageScroll() {
+  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
+}
+
 function openShowDetail(show, defaultTab = 'tab-watch') {
   state.activeShow = show;
   const modal = document.getElementById('detailModal');
   if (!modal) return;
+
+  // Pause spotlight rotation while a modal owns the screen: a 6s tick firing
+  // mid-morph steals the compositor and reads as stutter. Resumed on close.
+  clearInterval(spotlightTimer);
+  spotlightTimer = null;
 
   const slug = slugify(show.vietnamese);
   // pushState (not replaceState) so the system Back button / swipe-back gesture
@@ -1297,8 +1520,8 @@ function openShowDetail(show, defaultTab = 'tab-watch') {
   const subs = document.getElementById('modalSubtitles');
   if (subs) {
     subs.innerHTML = `
-      ${show.chinese ? `<span class="name-chip">${escapeHtml(show.chinese)} <button class="btn-copy-name" title="Sao chép tên tiếng Trung" onclick="copyText('${escapeHtml(show.chinese)}', 'tên tiếng Trung', event)"><i class="fa-regular fa-copy"></i> Copy</button></span>` : ''}
-      ${show.english ? `<span class="name-chip">${escapeHtml(show.english)} <button class="btn-copy-name" title="Sao chép tên tiếng Anh" onclick="copyText('${escapeHtml(show.english)}', 'tên tiếng Anh', event)"><i class="fa-regular fa-copy"></i> Copy</button></span>` : ''}
+      ${show.chinese ? `<span class="name-chip">${escapeHtml(show.chinese)} <button class="btn-copy-name" title="Sao chép tên tiếng Trung" onclick="copyText('${escapeJsSq(show.chinese)}', 'tên tiếng Trung', event)"><i class="fa-regular fa-copy"></i> Copy</button></span>` : ''}
+      ${show.english ? `<span class="name-chip">${escapeHtml(show.english)} <button class="btn-copy-name" title="Sao chép tên tiếng Anh" onclick="copyText('${escapeJsSq(show.english)}', 'tên tiếng Anh', event)"><i class="fa-regular fa-copy"></i> Copy</button></span>` : ''}
     `;
   }
 
@@ -1347,20 +1570,60 @@ function openShowDetail(show, defaultTab = 'tab-watch') {
 
   freezeModalHeight(modal);
   modal.classList.add('active');
-  document.body.style.overflow = 'hidden';
-  document.documentElement.style.overflow = 'hidden';
+  lockPageScroll();
   focusModalEntry(modal);
 }
 
 function closeShowDetail(updateHistory = true) {
   const modal = document.getElementById('detailModal');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const src = state.detailSourceEl;
+  const content = modal ? modal.querySelector('.modal-content') : null;
+  const flipping = modal && modal.classList.contains('active') && content &&
+    !reduceMotion && src && src.isConnected;
+  if (!flipping) {
+    doCloseShowDetail(updateHistory);
+    return;
+  }
+
+  const s = src.getBoundingClientRect();
+  const t = content.getBoundingClientRect();
+  if (s.width < 4 || s.height < 4 || t.width < 4 || t.height < 4) {
+    doCloseShowDetail(updateHistory);
+    return;
+  }
+  const dx = (s.left + s.width / 2) - (t.left + t.width / 2);
+  const dy = (s.top + s.height / 2) - (t.top + t.height / 2);
+
+  // Backdrop fades via overlay class removal; content morphs back to the card
+  modal.classList.remove('active');
+  content.style.transition = `transform 380ms ${IOS_SPRING}, border-radius 380ms ${IOS_SPRING}`;
+  let done = false;
+  const onEnd = (e) => { if (e.propertyName === 'transform') finish(); };
+  const finish = () => {
+    if (done) return;
+    done = true;
+    flipCleanup(content, onEnd);
+    doCloseShowDetail(updateHistory);
+  };
+  content.addEventListener('transitionend', onEnd);
+  requestAnimationFrame(() => {
+    content.style.transform = `translate(${dx}px, ${dy}px) scale(${s.width / t.width}, ${s.height / t.height})`;
+    content.style.borderRadius = '14px';
+  });
+  setTimeout(finish, 520);
+}
+
+function doCloseShowDetail(updateHistory = true) {
+  const modal = document.getElementById('detailModal');
+  state.detailSourceEl = null;
   if (!modal) return;
   unfreezeModalHeight(modal);
   modal.classList.remove('active');
-  document.body.style.overflow = '';
-  document.documentElement.style.overflow = '';
+  unlockPageScroll();
   state.activeShow = null;
   restoreFocusAfterModal();
+  restartSpotlightTimer();
   document.title = ORIGINAL_DOC_TITLE;
 
   if (!updateHistory) return;
@@ -1434,8 +1697,7 @@ function openPosterLightbox(src, alt) {
   if (sameSrc && img.complete && img.naturalWidth) fitLightboxImage();
   box.classList.add('open');
   box.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
-  document.documentElement.style.overflow = 'hidden';
+  lockPageScroll();
 }
 
 function closePosterLightbox() {
@@ -1446,8 +1708,7 @@ function closePosterLightbox() {
   box.setAttribute('aria-hidden', 'true');
   const detailModal = document.getElementById('detailModal');
   if (!detailModal || !detailModal.classList.contains('active')) {
-    document.body.style.overflow = '';
-    document.documentElement.style.overflow = '';
+    unlockPageScroll();
   }
 }
 
@@ -1828,8 +2089,7 @@ function openSettingsModal() {
   renderStagedPins();
   freezeModalHeight(modal);
   modal.classList.add('active');
-  document.body.style.overflow = 'hidden';
-  document.documentElement.style.overflow = 'hidden';
+  lockPageScroll();
   focusModalEntry(modal);
 }
 
@@ -1838,8 +2098,7 @@ function closeSettingsModal() {
   if (!modal) return;
   unfreezeModalHeight(modal);
   modal.classList.remove('active');
-  document.body.style.overflow = '';
-  document.documentElement.style.overflow = '';
+  unlockPageScroll();
   restoreFocusAfterModal();
 }
 
@@ -1885,7 +2144,7 @@ function populateSettingsSelects() {
     const sorted = getAlphabeticalShows(spotlightKeyword);
     sorted.forEach(s => {
       const opt = document.createElement('option');
-      opt.value = slugify(s.vietnamese);
+      opt.value = s.id;
       opt.textContent = showFullNameLabel(s);
       spotlightSelect.appendChild(opt);
     });
@@ -2067,7 +2326,7 @@ function openEpisodeEditor(row) {
   const modal = document.getElementById('episodeEditorModal');
   if (modal) {
     modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    lockPageScroll();
   }
 }
 
@@ -2084,7 +2343,7 @@ function closeEpisodeEditor(save) {
   const settingsModal = document.getElementById('settingsModal');
   if ((!detailModal || !detailModal.classList.contains('active')) &&
       (!settingsModal || !settingsModal.classList.contains('active'))) {
-    document.body.style.overflow = '';
+    unlockPageScroll();
   }
 }
 
@@ -2237,6 +2496,7 @@ function addNewShow() {
   };
 
   state.shows.unshift(newShow);
+  ensureShowIds();
   saveShowsToLocalStorage();
   updateHeroStats();
   applyFilters();
@@ -2547,6 +2807,21 @@ function initEventListeners() {
   // A11y: trap Tab focus inside open modals
   initModalFocusTrap();
 
+  // Hover preload: warm the 600px modal poster into cache while the user is
+  // still deciding, so opening never decodes mid-morph (once per photo).
+  const warmedPosters = new Set();
+  document.addEventListener('mouseover', e => {
+    const img = e.target && e.target.closest
+      ? e.target.closest('.card-poster-img, .spotlight-poster, .list-item-poster')
+      : null;
+    if (!img) return;
+    const orig = img.getAttribute('data-original-src');
+    if (!orig || warmedPosters.has(orig)) return;
+    warmedPosters.add(orig);
+    const pre = new Image();
+    pre.src = getProxiedImageUrl(orig, 600);
+  }, { passive: true });
+
   // Mobile bottom-sheet: swipe down to dismiss
   initSheetSwipe();
 
@@ -2651,13 +2926,14 @@ function initEventListeners() {
   if (btnAddSpotlight) {
     btnAddSpotlight.addEventListener('click', () => {
       const select = document.getElementById('spotlightSelect');
-      const slug = select ? select.value : '';
-      if (!slug) {
+      const uid = select ? select.value : '';
+      const show = findShowByPin(uid);
+      if (!show) {
         showToast('Hãy chọn 1 show trong danh sách trước.', 'fa-circle-info');
         return;
       }
       const staged = getStagedPins();
-      if (staged.includes(slug)) {
+      if (staged.includes(show.id)) {
         showToast('Show này đã được ghim rồi.', 'fa-circle-info');
         return;
       }
@@ -2665,7 +2941,7 @@ function initEventListeners() {
         showToast(`Chỉ ghim tối đa ${MAX_PINNED_SHOWS} show hot.`, 'fa-triangle-exclamation');
         return;
       }
-      staged.push(slug);
+      staged.push(show.id);
       renderStagedPins();
     });
   }
@@ -2676,8 +2952,8 @@ function initEventListeners() {
       const staged = getStagedPins().slice(0, MAX_PINNED_SHOWS);
       // Write pin order into the data so it can be published to every visitor
       state.shows.forEach(s => { delete s.hotOrder; });
-      staged.forEach((slug, i) => {
-        const show = state.shows.find(s => slugify(s.vietnamese) === slug);
+      staged.forEach((uid, i) => {
+        const show = findShowByPin(uid);
         if (show) show.hotOrder = i + 1;
       });
       state.spotlightSlugs = staged;
