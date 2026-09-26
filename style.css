@@ -2371,6 +2371,11 @@ button, input, select, textarea {
     display: block !important;
   }
 
+  /* Mobile: hide the desktop country dropdown (avoid duplicate filters) */
+  #countrySelect {
+    display: none !important;
+  }
+
   .mobile-top-search-wrapper {
     display: block !important;
   }
