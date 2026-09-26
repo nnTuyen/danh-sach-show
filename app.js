@@ -408,14 +408,15 @@ function fixBrokenTitleCase(text) {
 // ============================================================
 async function loadShowsData() {
   try {
-    const localModified = localStorage.getItem('datinghub_local_shows');
-    let data;
+    const local = readLocalShows();
+    let data = null;
 
-    if (localModified) {
-      try {
-        data = JSON.parse(localModified);
-      } catch (e) {
-        data = null;
+    if (local) {
+      // Fresh local edits win over an old file; a newer file
+      // (fresh download copied in / redeployed) wins over old local data.
+      const fileTime = await getBundledFileTime();
+      if (fileTime === null || local.savedAt >= fileTime) {
+        data = local.shows;
       }
     }
 
@@ -443,7 +444,7 @@ async function loadShowsData() {
     });
 
     state.shows = data;
-    if (healedTitles > 0 && localModified) saveShowsToLocalStorage();
+    if (healedTitles > 0 && local) saveShowsToLocalStorage();
     state.spotlightSlugs = loadPinnedSpotlightSlugs();
 
     updateHeroStats();
@@ -461,9 +462,39 @@ async function loadShowsData() {
 
 function saveShowsToLocalStorage() {
   try {
-    localStorage.setItem('datinghub_local_shows', JSON.stringify(state.shows));
+    localStorage.setItem('datinghub_local_shows', JSON.stringify({
+      savedAt: Date.now(),
+      shows: state.shows
+    }));
   } catch (e) {
     console.warn('LocalStorage limit exceeded');
+  }
+}
+
+// Read local copy (supports legacy raw-array format from older versions)
+function readLocalShows() {
+  try {
+    const raw = localStorage.getItem('datinghub_local_shows');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return { savedAt: 0, shows: parsed };
+    if (parsed && Array.isArray(parsed.shows)) return parsed;
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Last-Modified of the bundled file: lets a NEWER copied/redeployed
+// showsData.json win over an older local copy (the old code always
+// preferred localStorage, so updating the file had no visible effect).
+async function getBundledFileTime() {
+  try {
+    const res = await fetch('./showsData.json', { method: 'HEAD' });
+    const t = Date.parse(res.headers.get('Last-Modified') || '');
+    return Number.isNaN(t) ? null : t;
+  } catch (e) {
+    return null;
   }
 }
 
