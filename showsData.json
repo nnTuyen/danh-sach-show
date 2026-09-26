@@ -44,7 +44,8 @@
         "label": "Tập mới ra chậm 1 tuần - Sub auto"
       }
     ],
-    "vietnameseWatchUrl": "https://www.bilibili.tv/vi/video/4800351518202880"
+    "vietnameseWatchUrl": "https://www.bilibili.tv/vi/video/4800351518202880",
+    "hotOrder": 2
   },
   {
     "chinese": "心动的信号9",
@@ -1249,7 +1250,7 @@
     "chineseWatchUrls": [],
     "chineseWatchUrl": "",
     "detailNotes": "",
-    "hotOrder": 3
+    "hotOrder": 4
   },
   {
     "chinese": "心动的信号 1-8",
@@ -1723,8 +1724,7 @@
     "country": "korea",
     "rating": 5,
     "description": "Mắc kẹt và sẵn sàng hẹn hò, hội độc thân ưa tán tỉnh tìm tình yêu trên hòn đảo hoang. Chỉ khi có đôi họ mới có thể thoát ra và tận hưởng đêm hẹn lãng mạn nơi thiên đườn",
-    "year": "2021-2026",
-    "hotOrder": 4
+    "year": "2021-2026"
   },
   {
     "chinese": "Selling Sunset",
@@ -2785,7 +2785,7 @@
       }
     ],
     "vietnameseWatchUrl": "https://kisskh.co/Drama/The-Community-2--Invisible-Hand/Episode-2?id=13709&ep=223879&page=0&pageSize=100",
-    "hotOrder": 2
+    "hotOrder": 3
   },
   {
     "chinese": "喜歡請點頭",
