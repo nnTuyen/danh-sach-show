@@ -44,9 +44,9 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Main Stylesheet (v= date bump to force fresh load, avoid stale cache) -->
-  <link rel="stylesheet" href="style.css?v=20260925u">
+  <link rel="stylesheet" href="style.css?v=20260926h">
 
-  <!-- PWA: installable + offline app shell (see sw.js) -->
+  <!-- PWA manifest (service worker removed; manifest kept for future use) -->
   <link rel="manifest" href="manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -134,30 +134,8 @@
 
         <!-- Featured Spotlight Card -->
         <div class="hero-spotlight" id="heroSpotlight">
-          <img src="https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg" alt="Spotlight Show" class="spotlight-poster" id="spotlightPoster">
-          <div class="spotlight-info">
-            <span class="spotlight-badge">
-              <i class="fa-solid fa-fire"></i> Show hot
-            </span>
-            <h2 class="spotlight-title" id="spotlightTitle">Tín Hiệu Con Tim S9</h2>
-            <div class="spotlight-subtitles" id="spotlightSubs">
-              <!-- Subtitles rendered by JS -->
-            </div>
-            <p class="spotlight-desc" id="spotlightDesc">
-              Chương trình thực tế dành cho người độc thân tìm kiếm tình yêu đích thực...
-            </p>
-            <div class="spotlight-meta-row">
-              <span id="spotlightCountry"><i class="fa-solid fa-earth-asia"></i> Trung Quốc</span>
-              <span id="spotlightRating"><i class="fa-solid fa-star" style="color: #fbbf24;"></i> 5.0</span>
-            </div>
-            <div class="spotlight-actions">
-              <button class="btn-primary" id="btnSpotlightWatch">
-                <i class="fa-solid fa-play"></i> Xem Vietsub
-              </button>
-              <button class="btn-secondary" id="btnSpotlightDetail">
-                <i class="fa-solid fa-circle-info"></i> Chi tiết
-              </button>
-            </div>
+          <div class="spotlight-track" id="spotlightTrack">
+            <!-- Slides built by JS (one per pinned show) -->
           </div>
           <button class="spotlight-nav spotlight-prev" id="spotlightPrev" aria-label="Show hot trước">
             <i class="fa-solid fa-chevron-left"></i>
@@ -321,7 +299,7 @@
       <div class="modal-scrollable">
         <!-- Modal Hero Header -->
         <div class="modal-header-hero">
-          <img src="" alt="" class="modal-poster" id="modalPoster" title="Bấm để xem ảnh gốc">
+          <img src="./images/show-0.jpg" alt="" class="modal-poster" id="modalPoster" title="Bấm để xem ảnh gốc">
           <div class="modal-info-col">
             <div class="modal-badges-row">
               <span class="badge-status airing" id="modalStatusBadge">Đang chiếu</span>
@@ -868,7 +846,7 @@
   </div>
 
   <!-- Main Application Script -->
-  <script src="app.js?v=20260925o"></script>
+  <script src="app.js?v=20260926j"></script>
 </body>
 
 </html>
