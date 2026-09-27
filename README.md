@@ -11,7 +11,7 @@ Website tổng hợp link xem Vietsub, thông tin dàn cast, lịch phát sóng 
 - ❤️ **Đánh dấu Yêu thích**: Lưu danh sách show muốn xem vào Bookmark (sử dụng LocalStorage).
 - 🎲 **Nút khám phá ngẫu nhiên**: Giúp chọn nhanh 1 show hay để xem khi chưa biết chọn gì.
 - 🔗 **Deep Linking & Chia sẻ link trực tiếp**: Mỗi show có link riêng dạng `#show=ten-show`, chỉ cần bấm nút Chia sẻ là sao chép link gửi cho bạn bè, người nhận mở ra sẽ xem được ngay chi tiết và nguồn Vietsub.
-- 🚀 **Tối ưu Vercel**: Có sẵn `vercel.json` hỗ trợ Clean URLs, nén tĩnh và UTF-8.
+- 🚀 **Tối ưu Vercel**: Có sẵn `vercel.json` hỗ trợ Clean URLs, chống cache sai và UTF-8 cho `showsData.json`.
 
 ## 🚀 Hướng dẫn chạy và Deploy lên Vercel
 
@@ -35,8 +35,10 @@ npx vercel
 Làm theo hướng dẫn đăng nhập và chọn cấu hình mặc định là xong!
 
 ### Chạy thử trên máy tính (Local)
-Chạy bằng lệnh Python:
+Cách nhanh nhất: bấm đúp vào `Chay_Trang_Web.bat` (mở `http://127.0.0.1:8001`).
+
+Hoặc chạy bằng lệnh Python (cùng cổng 8001):
 ```bash
-python -m http.server 8000
+python -m http.server 8001
 ```
 Hoặc mở trực tiếp file `index.html` trong trình duyệt.

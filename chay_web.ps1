@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $siteDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$port = 8000
+$port = 8001
 $url = "http://127.0.0.1:$port/index.html"
 
 function Test-LocalServer {

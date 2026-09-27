@@ -3,16 +3,30 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0a0c14">
   <meta name="description"
     content="Kho tổng hợp show hẹn hò Trung, Hàn, Nhật, Thái hàng đầu. Tra cứu link xem Vietsub Bilibili, YouTube, Odysee, WeTV, thông tin dàn cast và lịch phát sóng.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Hẹn Hò Hub - Tổng Hợp Show Hẹn Hò Vietsub">
+  <meta property="og:title" content="Dating show - Tổng Hợp Show Hẹn Hò Vietsub">
   <meta property="og:description"
     content="Tra cứu và chia sẻ link xem các show hẹn hò Trung Quốc, Hàn Quốc, Nhật Bản, Thái Lan với phụ đề tiếng Việt.">
   <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg">
-  <title>Hẹn Hò Hub 💕 - Tổng Hợp Show Hẹn Hò & Link Xem Vietsub</title>
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Dating show - Tổng Hợp Show Hẹn Hò Vietsub">
+  <meta name="twitter:description"
+    content="Tra cứu và chia sẻ link xem các show hẹn hò Trung Quốc, Hàn Quốc, Nhật Bản, Thái Lan với phụ đề tiếng Việt.">
+  <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Dating show - Tổng Hợp Show Hẹn Hò Vietsub",
+    "inLanguage": "vi",
+    "description": "Kho tổng hợp show hẹn hò Trung, Hàn, Nhật, Thái: link xem Vietsub, lịch phát sóng, dàn cast và đánh giá."
+  }
+  </script>
+  <title>Dating show 💕 - Tổng Hợp Show Hẹn Hò & Link Xem Vietsub</title>
   
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💕</text></svg>">
@@ -20,13 +34,23 @@
   <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Image CDNs: connect early for faster poster/flag loading -->
+  <link rel="preconnect" href="https://wsrv.nl">
+  <link rel="preconnect" href="https://flagcdn.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- FontAwesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css">
+  <!-- Main Stylesheet (v= date bump to force fresh load, avoid stale cache) -->
+  <link rel="stylesheet" href="style.css?v=20260927e">
+
+  <!-- PWA manifest (service worker removed; manifest kept for future use) -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 
 <body>
@@ -39,8 +63,7 @@
           <i class="fa-solid fa-heart"></i>
         </div>
         <div class="brand-name">
-          <span>HẸN HÒ HUB</span>
-          <span class="brand-subtitle">Dating Shows Portal</span>
+          <span>Dating show</span>
         </div>
       </div>
 
@@ -48,49 +71,33 @@
       <div class="header-search-wrapper">
         <i class="fa-solid fa-magnifying-glass header-search-icon"></i>
         <input type="text" id="searchInput" class="header-search-input"
-          placeholder="Tìm tên show (Việt, Trung, Anh), dàn cast..." autocomplete="off">
-        <button id="searchClearBtn" class="header-search-clear" title="Xóa tìm kiếm">
+          placeholder="Tìm tên show (Việt, Trung, Anh), dàn cast..." autocomplete="off" aria-label="Tìm tên show">
+        <button type="button" id="searchClearBtn" class="header-search-clear" title="Xóa tìm kiếm">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
       <!-- Header Quick Actions -->
       <div class="header-actions">
-        <!-- Mobile Search Button -->
-        <button class="btn-icon btn-mobile-search-toggle" id="btnMobileSearchToggle" title="Tìm kiếm" style="display: none;">
-          <i class="fa-solid fa-magnifying-glass"></i>
-        </button>
-
         <!-- Random Show Button -->
-        <button class="btn-icon" id="btnRandomShow" title="Khám phá show ngẫu nhiên 🎲">
+        <button type="button" class="btn-icon" id="btnRandomShow" title="Khám phá show ngẫu nhiên 🎲">
           <i class="fa-solid fa-dice"></i>
         </button>
 
         <!-- Favorites Button -->
-        <button class="btn-icon" id="btnOpenFavorites" title="Show yêu thích đã lưu">
+        <button type="button" class="btn-icon" id="btnOpenFavorites" title="Show yêu thích đã lưu">
           <i class="fa-solid fa-bookmark"></i>
           <span class="badge-count" id="favCountBadge" style="display: none;">0</span>
         </button>
 
         <!-- Settings Button -->
-        <button class="btn-icon" id="btnOpenSettings" title="Cài đặt & Quản lý Show ⚙️">
+        <button type="button" class="btn-icon" id="btnOpenSettings" title="Cài đặt & Quản lý Show ⚙️">
           <i class="fa-solid fa-gear"></i>
         </button>
 
         <!-- Dark / Light Theme Toggle -->
-        <button class="btn-icon" id="themeToggleBtn" title="Chuyển chế độ Sáng / Tối">
+        <button type="button" class="btn-icon" id="themeToggleBtn" title="Chuyển chế độ Sáng / Tối">
           <i class="fa-solid fa-moon" id="themeIcon"></i>
-        </button>
-      </div>
-    </div>
-
-    <!-- Mobile Collapsible Search Row -->
-    <div class="mobile-search-bar" id="mobileSearchBar">
-      <div style="position: relative;">
-        <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px;"></i>
-        <input type="text" id="mobileSearchInput" class="header-search-input" placeholder="Tìm tên show (Việt, Trung, Anh)..." autocomplete="off">
-        <button id="mobileSearchClearBtn" class="header-search-clear" title="Xóa tìm kiếm">
-          <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
     </div>
@@ -120,40 +127,24 @@
             </div>
             <div class="stat-chip">
               <i class="fa-solid fa-globe"></i>
-              <span>7 Quốc gia</span>
+              <span>7+ Quốc gia</span>
             </div>
           </div>
         </div>
 
         <!-- Featured Spotlight Card -->
         <div class="hero-spotlight" id="heroSpotlight">
-          <img src="https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg" alt="Spotlight Show" class="spotlight-poster" id="spotlightPoster">
-          <div class="spotlight-info">
-            <span class="spotlight-badge">
-              <i class="fa-solid fa-fire"></i> Đang ghim nổi bật
-            </span>
-            <h2 class="spotlight-title" id="spotlightTitle">Người Yêu Một Nửa Thân Thuộc S5</h2>
-            <div class="spotlight-subtitles" id="spotlightSubs">
-              <!-- Rendered with copy buttons -->
-            </div>
-            <p class="spotlight-desc" id="spotlightDesc">
-              Chương trình thực tế dành cho người độc thân trưởng thành tìm kiếm tình yêu đích thực nơi thành thị...
-            </p>
-            <div class="spotlight-meta-row">
-              <span id="spotlightCountry"><i class="fa-solid fa-earth-asia"></i> Trung Quốc</span>
-              <span id="spotlightPlatform"><i class="fa-solid fa-layer-group"></i> Tencent Video</span>
-              <span id="spotlightRating"><i class="fa-solid fa-star" style="color: #fbbf24;"></i> 5.0</span>
-            </div>
-            <div class="spotlight-actions">
-              <button class="btn-primary" id="btnSpotlightWatch">
-                <i class="fa-solid fa-play"></i> Xem Vietsub
-              </button>
-              <button class="btn-secondary" id="btnSpotlightDetail">
-                <i class="fa-solid fa-circle-info"></i> Chi tiết
-              </button>
-            </div>
+          <div class="spotlight-track" id="spotlightTrack">
+            <!-- Slides built by JS (one per pinned show) -->
           </div>
+          <button type="button" class="spotlight-nav spotlight-prev" id="spotlightPrev" aria-label="Show hot trước">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button type="button" class="spotlight-nav spotlight-next" id="spotlightNext" aria-label="Show hot tiếp">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
         </div>
+        <div class="spotlight-dots" id="spotlightDots" style="display: none;"></div>
       </div>
     </div>
   </section>
@@ -161,33 +152,18 @@
   <!-- Sticky Filter Bar -->
   <section class="filter-section">
     <div class="container filter-wrapper">
-      <!-- Country Tabs (Always visible & swipable) -->
-      <div class="filter-row-countries" id="countryPillsContainer">
-        <button class="pill-country active" data-country="all">
-          <span>🌏 Tất cả</span>
-        </button>
-        <button class="pill-country" data-country="china">
-          <span>🇨🇳 Trung Quốc</span>
-        </button>
-        <button class="pill-country" data-country="korea">
-          <span>🇰🇷 Hàn Quốc</span>
-        </button>
-        <button class="pill-country" data-country="japan">
-          <span>🇯🇵 Nhật Bản</span>
-        </button>
-        <button class="pill-country" data-country="thailand">
-          <span>🇹🇭 Thái Lan</span>
-        </button>
-        <button class="pill-country" data-country="hongkong">
-          <span>🇭🇰 Hồng Kông</span>
-        </button>
-        <button class="pill-country" data-country="taiwan">
-          <span>🇹🇼 Đài Loan</span>
+
+      <!-- Mobile Top Search Box (Requirement 1: Replaces Country pills on mobile) -->
+      <div class="mobile-top-search-wrapper" id="mobileTopSearchWrapper">
+        <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px;"></i>
+        <input type="text" id="mobileSearchInput" class="mobile-top-search-input" placeholder="🔍 Tìm tên show (Việt, Trung, Anh)..." autocomplete="off" aria-label="Tìm tên show">
+        <button type="button" id="mobileSearchClearBtn" class="header-search-clear" style="right: 10px;" title="Xóa tìm kiếm">
+          <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <!-- Mobile Filter Accordion Toggle Button (Shown only on small screens) -->
-      <button class="btn-mobile-filter-toggle" id="btnMobileFilterToggle">
+      <!-- Mobile Filter Accordion Toggle Button -->
+      <button type="button" class="btn-mobile-filter-toggle" id="btnMobileFilterToggle" aria-expanded="false" aria-controls="filterRowControls">
         <span>
           <i class="fa-solid fa-sliders" style="color: var(--primary-pink); margin-right: 6px;"></i>
           Bộ lọc & Sắp xếp <span id="mobileFilterBadge" style="color: var(--primary-pink); font-size: 11px;">(Đang chiếu)</span>
@@ -195,18 +171,44 @@
         <i class="fa-solid fa-chevron-down"></i>
       </button>
 
-      <!-- Controls Row: Status, Platform, Tag, Sort, View Toggle -->
+      <!-- Controls Row: Status, Country (on mobile), Platform, Tag, Sort, View Toggle -->
       <div class="filter-row-controls" id="filterRowControls">
         <div class="filter-group-left">
           <!-- Status Pills -->
           <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-            <button class="btn-filter-pill active" data-status="all">Tất cả</button>
-            <button class="btn-filter-pill" data-status="airing">
+            <button type="button" class="btn-filter-pill active" data-status="all" aria-pressed="true">Tất cả</button>
+            <button type="button" class="btn-filter-pill" data-status="airing" aria-pressed="false">
               <span class="stat-pulse-dot"></span> Đang chiếu
             </button>
-            <button class="btn-filter-pill" data-status="completed">🏁 Đã hoàn thành</button>
-            <button class="btn-filter-pill" data-status="upcoming">⏳ Sắp chiếu</button>
+            <button type="button" class="btn-filter-pill" data-status="completed" aria-pressed="false">🏁 Hoàn thành</button>
+            <button type="button" class="btn-filter-pill" data-status="upcoming" aria-pressed="false">⏳ Sắp chiếu</button>
           </div>
+
+          <!-- Country Dropdown (right after status pills) -->
+          <select id="countrySelect" class="select-filter" aria-label="Lọc theo quốc gia">
+            <option value="all">Mọi quốc gia</option>
+            <option value="china">Trung Quốc</option>
+            <option value="korea">Hàn Quốc</option>
+            <option value="japan">Nhật Bản</option>
+            <option value="thailand">Thái Lan</option>
+            <option value="hongkong">Hồng Kông</option>
+            <option value="taiwan">Đài Loan</option>
+            <option value="malaysia">Malaysia</option>
+            <option value="other">Quốc gia khác</option>
+          </select>
+
+          <!-- Mobile Country Select (Included inside accordion for mobile users) -->
+          <select id="mobileCountrySelect" class="select-filter" aria-label="Lọc theo quốc gia" style="display: none;">
+            <option value="all">Mọi quốc gia</option>
+            <option value="china">Trung Quốc</option>
+            <option value="korea">Hàn Quốc</option>
+            <option value="japan">Nhật Bản</option>
+            <option value="thailand">Thái Lan</option>
+            <option value="hongkong">Hồng Kông</option>
+            <option value="taiwan">Đài Loan</option>
+            <option value="malaysia">Malaysia</option>
+            <option value="other">Quốc gia khác</option>
+          </select>
 
           <!-- Platform Dropdown -->
           <select id="platformSelect" class="select-filter" aria-label="Lọc theo nền tảng">
@@ -217,14 +219,20 @@
           <select id="tagSelect" class="select-filter" aria-label="Lọc theo thể loại">
             <option value="all">Mọi thể loại</option>
             <option value="normal">Nam & Nữ</option>
-            <option value="all-female">Bách Hợp (Nữ - Nữ)</option>
-            <option value="all-male">Đam Mỹ (Nam - Nam)</option>
+            <option value="all-female">Les (GL)</option>
+            <option value="all-male">Gay (BL)</option>
             <option value="bisexual">Song tính</option>
+            <option value="other">Khác</option>
+          </select>
+
+          <!-- Year Dropdown -->
+          <select id="yearSelect" class="select-filter" aria-label="Lọc theo năm phát hành">
+            <option value="all">Mọi năm</option>
           </select>
         </div>
 
         <div class="filter-group-right">
-          <!-- Sort Dropdown (Default: airing-first) -->
+          <!-- Sort Dropdown -->
           <select id="sortSelect" class="select-filter" aria-label="Sắp xếp danh sách">
             <option value="airing-first" selected>Sắp xếp: Đang chiếu trước</option>
             <option value="none">Không sắp xếp (Thứ tự gốc)</option>
@@ -234,10 +242,10 @@
 
           <!-- View Mode Toggle (Grid / List) -->
           <div class="view-mode-toggle">
-            <button class="btn-view-mode active" id="btnViewGrid" title="Chế độ lưới (Thẻ)">
+            <button type="button" class="btn-view-mode active" id="btnViewGrid" title="Chế độ lưới (Thẻ)" aria-pressed="true">
               <i class="fa-solid fa-grip"></i>
             </button>
-            <button class="btn-view-mode" id="btnViewList" title="Chế độ danh sách (Thu gọn)">
+            <button type="button" class="btn-view-mode" id="btnViewList" title="Chế độ danh sách (Thu gọn)" aria-pressed="false">
               <i class="fa-solid fa-list-ul"></i>
             </button>
           </div>
@@ -248,17 +256,24 @@
 
   <!-- Main Content Area -->
   <main class="container">
+    <noscript>
+      <div class="empty-state" style="display: flex;">
+        <div class="empty-state-icon"><i class="fa-solid fa-code"></i></div>
+        <h3 class="empty-state-title">Cần bật JavaScript</h3>
+        <p class="empty-state-desc">Trang này hiển thị danh sách show bằng JavaScript. Vui lòng bật JavaScript trong trình duyệt.</p>
+      </div>
+    </noscript>
     <!-- Results Count Bar -->
     <div class="results-info-bar">
       <div>
         Hiển thị <span class="results-count" id="resultsCount">0</span> show
       </div>
-      <button class="btn-reset-filters" id="btnResetFilters" style="display: none;">
+      <button type="button" class="btn-reset-filters" id="btnResetFilters" style="display: none;">
         <i class="fa-solid fa-rotate-left"></i> Xoá bộ lọc
       </button>
     </div>
 
-    <!-- Shows List / Grid Container -->
+    <!-- Shows List / Grid Container (Requirement 2: Zero Overflow on phones) -->
     <div class="shows-container">
       <div class="shows-grid" id="showsGrid">
         <!-- Rendered dynamically by app.js -->
@@ -273,17 +288,17 @@
         <p class="empty-state-desc">
           Hãy thử đổi từ khóa tìm kiếm hoặc chọn lại các tiêu chí bộ lọc.
         </p>
-        <button class="btn-primary" id="btnEmptyReset">
+        <button type="button" class="btn-primary" id="btnEmptyReset">
           <i class="fa-solid fa-arrow-rotate-left"></i> Khôi phục bộ lọc
         </button>
       </div>
     </div>
   </main>
 
-  <!-- Show Detail & Watch Links Modal (With Scrollbar Corner Fix) -->
-  <div class="modal-overlay" id="detailModal">
+  <!-- Show Detail & Watch Links Modal (With Favicons & Copy Buttons) -->
+  <div class="modal-overlay" id="detailModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-content">
-      <button class="btn-modal-close" id="btnModalClose" title="Đóng">
+      <button type="button" class="btn-modal-close" id="btnModalClose" title="Đóng">
         <i class="fa-solid fa-xmark"></i>
       </button>
 
@@ -291,16 +306,14 @@
       <div class="modal-scrollable">
         <!-- Modal Hero Header -->
         <div class="modal-header-hero">
-          <img src="" alt="" class="modal-poster" id="modalPoster">
+          <img src="./images/show-0.jpg" alt="" class="modal-poster" id="modalPoster" title="Bấm để xem ảnh gốc">
           <div class="modal-info-col">
             <div class="modal-badges-row">
               <span class="badge-status airing" id="modalStatusBadge">Đang chiếu</span>
-              <span class="pill-country" id="modalCountryBadge">🇨🇳 Trung Quốc</span>
-              <span class="card-rating-pill" id="modalRatingBadge">
-                <i class="fa-solid fa-star"></i> <span>5.0</span>
-              </span>
+              <span class="pill-country" id="modalCountryBadge"><img src="https://flagcdn.com/w40/cn.png" class="flag-img" alt="" loading="lazy" onerror="this.remove()"> Trung Quốc</span>
             </div>
             <h2 class="modal-title" id="modalTitle">Tên Show</h2>
+            <!-- Requirement 6: Copy buttons live inside modal -->
             <div class="modal-subtitles" id="modalSubtitles">
               <!-- Rendered with individual copy buttons -->
             </div>
@@ -308,27 +321,28 @@
               <div><i class="fa-solid fa-layer-group"></i> Nền tảng: <strong id="modalPlatform">--</strong></div>
               <div><i class="fa-regular fa-clock"></i> Lịch: <strong id="modalSchedule">--</strong></div>
               <div><i class="fa-regular fa-calendar"></i> Năm: <strong id="modalYear">--</strong></div>
+              <div><i class="fa-solid fa-star" style="color: #fbbf24;"></i> Đánh giá: <strong id="modalRatingBadge">–</strong></div>
             </div>
           </div>
         </div>
 
         <!-- Modal Tabs -->
-        <div class="modal-tabs">
-          <button class="modal-tab-btn active" data-tab="tab-watch">
+        <div class="modal-tabs" role="tablist">
+          <button type="button" class="modal-tab-btn active" data-tab="tab-watch" role="tab" aria-selected="true" aria-controls="tab-watch">
             <i class="fa-solid fa-play"></i> Link xem phim
           </button>
-          <button class="modal-tab-btn" data-tab="tab-cast">
+          <button type="button" class="modal-tab-btn" data-tab="tab-cast" role="tab" aria-selected="false" aria-controls="tab-cast">
             <i class="fa-solid fa-users"></i> Dàn Cast & Diễn viên
           </button>
-          <button class="modal-tab-btn" data-tab="tab-desc">
+          <button type="button" class="modal-tab-btn" data-tab="tab-desc" role="tab" aria-selected="false" aria-controls="tab-desc">
             <i class="fa-solid fa-align-left"></i> Giới thiệu nội dung
           </button>
         </div>
 
         <!-- Modal Body Panes -->
         <div class="modal-body">
-          <!-- Tab 1: Watch Links -->
-          <div class="tab-pane active" id="tab-watch">
+          <!-- Tab 1: Watch Links (Requirement 3: Official Site Favicons) -->
+          <div class="tab-pane active" id="tab-watch" role="tabpanel">
             <!-- Vietsub Links -->
             <div class="watch-links-group">
               <div class="watch-links-heading">
@@ -336,11 +350,11 @@
                 Nguồn Vietsub (Bilibili, YouTube, Odysee, WeTV...)
               </div>
               <div class="links-grid" id="modalVietsubLinks">
-                <!-- Brand Logo Buttons generated by JS -->
+                <!-- Favicon Buttons generated by JS -->
               </div>
             </div>
 
-            <!-- Original Chinese / International Links -->
+            <!-- Original Links -->
             <div class="watch-links-group" id="modalChineseGroup">
               <div class="watch-links-heading">
                 <i class="fa-solid fa-globe" style="color: #6366f1;"></i>
@@ -352,15 +366,15 @@
             </div>
           </div>
 
-          <!-- Tab 2: Cast & Members Profiles -->
-          <div class="tab-pane" id="tab-cast">
+          <!-- Tab 2: Cast Profiles -->
+          <div class="tab-pane" id="tab-cast" role="tabpanel">
             <div class="cast-grid" id="modalCastGrid">
               <!-- Cast cards generated by JS -->
             </div>
           </div>
 
           <!-- Tab 3: Description -->
-          <div class="tab-pane" id="tab-desc">
+          <div class="tab-pane" id="tab-desc" role="tabpanel">
             <div class="modal-synopsis" id="modalDescription">
               Chưa có thông tin giới thiệu cho chương trình này.
             </div>
@@ -368,10 +382,10 @@
 
           <!-- Modal Footer Actions -->
           <div class="modal-footer-actions">
-            <button class="btn-primary" id="btnModalShare">
+            <button type="button" class="btn-primary" id="btnModalShare">
               <i class="fa-solid fa-share-nodes"></i> Chia sẻ link show này
             </button>
-            <button class="btn-secondary" id="btnModalFavorite">
+            <button type="button" class="btn-secondary" id="btnModalFavorite">
               <i class="fa-regular fa-heart"></i> Lưu vào Yêu thích
             </button>
           </div>
@@ -380,85 +394,100 @@
     </div>
   </div>
 
-  <!-- Settings & Show Management Modal -->
-  <div class="modal-overlay" id="settingsModal">
+  <!-- Settings & Show Management Modal (Requirements 4 & 5) -->
+  <div class="modal-overlay" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
     <div class="modal-content">
-      <button class="btn-modal-close" id="btnSettingsClose" title="Đóng">
+      <button type="button" class="btn-modal-close" id="btnSettingsClose" title="Đóng">
         <i class="fa-solid fa-xmark"></i>
       </button>
 
       <div class="modal-scrollable">
-        <div class="modal-header-hero" style="grid-template-columns: 1fr; padding: 24px;">
+        <div class="modal-header-hero" style="grid-template-columns: 1fr; padding: 22px;">
           <div>
-            <h2 class="modal-title" style="font-size: 20px;">
+            <h2 class="modal-title" id="settingsModalTitle" style="font-size: 20px;">
               <i class="fa-solid fa-gear" style="color: var(--primary-pink);"></i> Cài Đặt & Quản Lý Show
             </h2>
             <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
-              Chọn show ghim đầu trang (Spotlight), thêm show mới hoặc chỉnh sửa link các show hiện có.
+              Danh sách show được sắp xếp theo bảng chữ cái A-Z để tìm nhanh. Bạn có thể ghim spotlight, sửa/thêm nhiều link xem và mở rộng khung soạn thảo.
             </p>
           </div>
         </div>
 
         <!-- Settings Tabs -->
-        <div class="modal-tabs">
-          <button class="modal-tab-btn active" data-stab="stab-spotlight">
+        <div class="modal-tabs" role="tablist">
+          <button type="button" class="modal-tab-btn active" data-stab="stab-spotlight" role="tab" aria-selected="true" aria-controls="stab-spotlight">
             <i class="fa-solid fa-thumbtack"></i> Ghim Spotlight
           </button>
-          <button class="modal-tab-btn" data-stab="stab-edit">
+          <button type="button" class="modal-tab-btn" data-stab="stab-edit" role="tab" aria-selected="false" aria-controls="stab-edit">
             <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa Show
           </button>
-          <button class="modal-tab-btn" data-stab="stab-add">
+          <button type="button" class="modal-tab-btn" data-stab="stab-add" role="tab" aria-selected="false" aria-controls="stab-add">
             <i class="fa-solid fa-plus"></i> Thêm Show Mới
           </button>
-          <button class="modal-tab-btn" data-stab="stab-data">
+          <button type="button" class="modal-tab-btn" data-stab="stab-data" role="tab" aria-selected="false" aria-controls="stab-data">
             <i class="fa-solid fa-download"></i> Tải showsData.json
           </button>
         </div>
 
         <div class="modal-body">
-          <!-- Settings Tab 1: Pin Spotlight Show -->
-          <div class="tab-pane active" id="stab-spotlight">
+          <!-- Settings Tab 1: Pin Spotlight Show (Sorted A-Z & Instant Search) -->
+          <div class="tab-pane active" id="stab-spotlight" role="tabpanel">
             <div class="settings-form-group">
-              <label class="settings-label">Chọn Show Ghim Ở Vị Trí Đầu Trang (Spotlight Banner):</label>
-              <select id="spotlightSelect" class="settings-select">
-                <!-- Populated dynamically with all shows -->
+              <label class="settings-label" for="spotlightSearchInput">Tìm nhanh show để ghim:</label>
+              <input type="text" id="spotlightSearchInput" class="settings-input" placeholder="🔍 Gõ tên show để lọc..." autocomplete="off">
+            </div>
+            <div class="settings-form-group">
+              <label class="settings-label" for="spotlightSelect">Chọn show để ghim (tối đa 4):</label>
+              <select id="spotlightSelect" class="settings-select" size="6" style="height: auto; max-height: 180px;">
+                <!-- Populated dynamically alphabetically -->
               </select>
             </div>
-            <div id="spotlightPreviewBox" style="background: var(--bg-surface-elevated); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 13px;">
-              <!-- Preview of selected spotlight -->
-            </div>
-            <button class="btn-primary" id="btnSaveSpotlight">
-              <i class="fa-solid fa-check"></i> Lưu Ghim Show Này
+            <button type="button" class="btn-secondary" id="btnAddSpotlight" style="margin-bottom: 12px;">
+              <i class="fa-solid fa-plus"></i> Thêm ghim show này
             </button>
+            <div id="pinnedShowsList" class="pinned-shows-list">
+              <!-- Staged pinned shows rendered by JS -->
+            </div>
+            <button type="button" class="btn-primary" id="btnSaveSpotlight">
+              <i class="fa-solid fa-check"></i> Lưu Ghim Show Hot
+            </button>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 10px; line-height: 1.6;">
+              Lưu mới chỉ hiện trên máy này. Để mọi trình duyệt cùng thấy, vào tab <strong>Tải showsData.json</strong> bấm “Tải showsData.json Mới Về Máy” rồi đẩy file lên GitHub.
+            </p>
           </div>
 
-          <!-- Settings Tab 2: Edit Existing Show -->
-          <div class="tab-pane" id="stab-edit">
+          <!-- Settings Tab 2: Edit Existing Show (Multi-link + Expand editor) -->
+          <div class="tab-pane" id="stab-edit" role="tabpanel">
             <div class="settings-form-group">
-              <label class="settings-label">Chọn show cần chỉnh sửa:</label>
-              <select id="editShowSelect" class="settings-select">
-                <!-- Populated dynamically -->
+              <label class="settings-label" for="editSearchInput">Tìm nhanh show cần sửa (Sắp xếp A-Z):</label>
+              <input type="text" id="editSearchInput" class="settings-input" placeholder="🔍 Gõ tên show để lọc..." autocomplete="off">
+            </div>
+
+            <div class="settings-form-group">
+              <label class="settings-label" for="editShowSelect">Chọn show trong danh sách:</label>
+              <select id="editShowSelect" class="settings-select" size="5" style="height: auto; max-height: 140px;">
+                <!-- Populated dynamically alphabetically -->
               </select>
             </div>
 
             <div class="settings-row-2col">
               <div class="settings-form-group">
-                <label class="settings-label">Tên Tiếng Việt *:</label>
+                <label class="settings-label" for="editVn">Tên Tiếng Việt *:</label>
                 <input type="text" id="editVn" class="settings-input">
               </div>
               <div class="settings-form-group">
-                <label class="settings-label">Tên Tiếng Trung:</label>
+                <label class="settings-label" for="editZh">Tên Tiếng Trung:</label>
                 <input type="text" id="editZh" class="settings-input">
               </div>
             </div>
 
             <div class="settings-row-3col">
               <div class="settings-form-group">
-                <label class="settings-label">Tên Tiếng Anh:</label>
+                <label class="settings-label" for="editEn">Tên Tiếng Anh:</label>
                 <input type="text" id="editEn" class="settings-input">
               </div>
               <div class="settings-form-group">
-                <label class="settings-label">Quốc gia:</label>
+                <label class="settings-label" for="editCountry">Quốc gia:</label>
                 <select id="editCountry" class="settings-select">
                   <option value="china">Trung Quốc</option>
                   <option value="korea">Hàn Quốc</option>
@@ -466,11 +495,12 @@
                   <option value="thailand">Thái Lan</option>
                   <option value="hongkong">Hồng Kông</option>
                   <option value="taiwan">Đài Loan</option>
-                  <option value="other">Khác</option>
+                  <option value="malaysia">Malaysia</option>
+                  <option value="other">Quốc gia khác</option>
                 </select>
               </div>
               <div class="settings-form-group">
-                <label class="settings-label">Trạng thái:</label>
+                <label class="settings-label" for="editStatus">Trạng thái:</label>
                 <select id="editStatus" class="settings-select">
                   <option value="airing">Đang chiếu</option>
                   <option value="completed">Đã hoàn thành</option>
@@ -481,64 +511,109 @@
 
             <div class="settings-row-3col">
               <div class="settings-form-group">
-                <label class="settings-label">Nền tảng:</label>
-                <input type="text" id="editPlatform" class="settings-input" placeholder="Tencent, iQIYI, Mango TV...">
+                <label class="settings-label" for="editPlatform">Nền tảng:</label>
+                <input type="text" id="editPlatform" class="settings-input" list="platformDatalist" placeholder="Tencent, iQIYI, Mango TV..." autocomplete="off">
               </div>
               <div class="settings-form-group">
-                <label class="settings-label">Lịch phát sóng:</label>
+                <label class="settings-label" for="editTime">Lịch phát sóng:</label>
                 <input type="text" id="editTime" class="settings-input" placeholder="18h T3 T4...">
               </div>
               <div class="settings-form-group">
-                <label class="settings-label">Đánh giá (1-5 sao):</label>
+                <label class="settings-label" for="editRating">Đánh giá (1-5 sao):</label>
                 <input type="number" id="editRating" class="settings-input" min="1" max="5" step="0.5">
               </div>
             </div>
 
             <div class="settings-form-group">
-              <label class="settings-label">Link ảnh Poster (URL):</label>
-              <input type="text" id="editImage" class="settings-input">
+              <label class="settings-label" id="editTagGroup-label">Thể loại:</label>
+              <div aria-labelledby="editTagGroup-label" class="tag-check-group" id="editTagGroup">
+                <label class="tag-check"><input type="checkbox" value="normal"> Nam & Nữ</label>
+                <label class="tag-check"><input type="checkbox" value="all-female"> Les (GL)</label>
+                <label class="tag-check"><input type="checkbox" value="all-male"> Gay (BL)</label>
+                <label class="tag-check"><input type="checkbox" value="bisexual"> Song tính</label>
+                <label class="tag-check"><input type="checkbox" value="other"> Khác</label>
+              </div>
             </div>
 
-            <div class="settings-form-group">
-              <label class="settings-label">Link Vietsub chính:</label>
-              <input type="text" id="editVietsubUrl" class="settings-input" placeholder="https://www.bilibili.tv/...">
+            <div class="settings-row-2col">
+              <div class="settings-form-group">
+                <label class="settings-label" for="editImage">Link ảnh Poster (URL):</label>
+                <input type="text" id="editImage" class="settings-input">
+              </div>
+              <div class="settings-form-group">
+                <label class="settings-label" for="editYear">Năm phát hành (VD: 2026):</label>
+                <input type="text" id="editYear" class="settings-input" placeholder="2026">
+              </div>
             </div>
 
+            <!-- Requirement 5: Dynamic Multiple Vietsub Links -->
             <div class="settings-form-group">
-              <label class="settings-label">Dàn Cast & Diễn viên (mỗi người 1 dòng):</label>
+              <label class="settings-label" id="editVietsubLinksList-label">Danh sách link xem Vietsub (Có thể thêm nhiều nguồn):</label>
+              <div aria-labelledby="editVietsubLinksList-label" id="editVietsubLinksList" class="dynamic-links-list">
+                <!-- Dynamic rows created by JS -->
+              </div>
+              <button type="button" class="btn-add-link-row" id="btnAddEditVietsubLink">
+                <i class="fa-solid fa-plus"></i> Thêm link xem Vietsub
+              </button>
+            </div>
+
+            <!-- Requirement 5: Dynamic Multiple Original Links -->
+            <div class="settings-form-group">
+              <label class="settings-label" id="editOriginalLinksList-label">Danh sách link xem bản gốc / Tiếng Trung:</label>
+              <div aria-labelledby="editOriginalLinksList-label" id="editOriginalLinksList" class="dynamic-links-list">
+                <!-- Dynamic rows created by JS -->
+              </div>
+              <button type="button" class="btn-add-link-row" id="btnAddEditOriginalLink">
+                <i class="fa-solid fa-plus"></i> Thêm link bản gốc
+              </button>
+            </div>
+
+            <!-- Requirement 5: Expand buttons for Cast & Synopsis -->
+            <div class="settings-form-group">
+              <div class="settings-label-row">
+                <label class="settings-label" for="editCast">Dàn Cast & Diễn viên (mỗi người 1 dòng):</label>
+                <button type="button" class="btn-expand-field" id="btnExpandEditCast">
+                  <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Mở rộng
+                </button>
+              </div>
               <textarea id="editCast" class="settings-textarea" placeholder="Nữ 1 - Trần Đan Kỳ | 30t&#10;Nam 1 - Chu Hữu Lăng | 36t"></textarea>
             </div>
 
             <div class="settings-form-group">
-              <label class="settings-label">Giới thiệu nội dung:</label>
+              <div class="settings-label-row">
+                <label class="settings-label" for="editDesc">Giới thiệu nội dung:</label>
+                <button type="button" class="btn-expand-field" id="btnExpandEditDesc">
+                  <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Mở rộng
+                </button>
+              </div>
               <textarea id="editDesc" class="settings-textarea"></textarea>
             </div>
 
-            <button class="btn-primary" id="btnSaveEditedShow">
+            <button type="button" class="btn-primary" id="btnSaveEditedShow">
               <i class="fa-solid fa-floppy-disk"></i> Lưu Thay Đổi Cho Show Này
             </button>
           </div>
 
-          <!-- Settings Tab 3: Add New Show -->
-          <div class="tab-pane" id="stab-add">
+          <!-- Settings Tab 3: Add New Show (Multi-link + Expand editor) -->
+          <div class="tab-pane" id="stab-add" role="tabpanel">
             <div class="settings-row-2col">
               <div class="settings-form-group">
-                <label class="settings-label">Tên Tiếng Việt *:</label>
+                <label class="settings-label" for="addVn">Tên Tiếng Việt *:</label>
                 <input type="text" id="addVn" class="settings-input" placeholder="Ví dụ: Tín Hiệu Con Tim Mùa 10">
               </div>
               <div class="settings-form-group">
-                <label class="settings-label">Tên Tiếng Trung:</label>
+                <label class="settings-label" for="addZh">Tên Tiếng Trung:</label>
                 <input type="text" id="addZh" class="settings-input" placeholder="心动的信号10">
               </div>
             </div>
 
             <div class="settings-row-3col">
               <div class="settings-form-group">
-                <label class="settings-label">Tên Tiếng Anh:</label>
+                <label class="settings-label" for="addEn">Tên Tiếng Anh:</label>
                 <input type="text" id="addEn" class="settings-input" placeholder="Heart Signal 10">
               </div>
               <div class="settings-form-group">
-                <label class="settings-label">Quốc gia:</label>
+                <label class="settings-label" for="addCountry">Quốc gia:</label>
                 <select id="addCountry" class="settings-select">
                   <option value="china" selected>Trung Quốc</option>
                   <option value="korea">Hàn Quốc</option>
@@ -546,11 +621,12 @@
                   <option value="thailand">Thái Lan</option>
                   <option value="hongkong">Hồng Kông</option>
                   <option value="taiwan">Đài Loan</option>
-                  <option value="other">Khác</option>
+                  <option value="malaysia">Malaysia</option>
+                  <option value="other">Quốc gia khác</option>
                 </select>
               </div>
               <div class="settings-form-group">
-                <label class="settings-label">Trạng thái:</label>
+                <label class="settings-label" for="addStatus">Trạng thái:</label>
                 <select id="addStatus" class="settings-select">
                   <option value="airing" selected>Đang chiếu</option>
                   <option value="completed">Đã hoàn thành</option>
@@ -561,54 +637,99 @@
 
             <div class="settings-row-3col">
               <div class="settings-form-group">
-                <label class="settings-label">Nền tảng:</label>
-                <input type="text" id="addPlatform" class="settings-input" placeholder="Tencent Video">
+                <label class="settings-label" for="addPlatform">Nền tảng:</label>
+                <input type="text" id="addPlatform" class="settings-input" list="platformDatalist" placeholder="Tencent Video" autocomplete="off">
               </div>
               <div class="settings-form-group">
-                <label class="settings-label">Lịch phát sóng:</label>
+                <label class="settings-label" for="addTime">Lịch phát sóng:</label>
                 <input type="text" id="addTime" class="settings-input" placeholder="18h Thứ 6">
               </div>
               <div class="settings-form-group">
-                <label class="settings-label">Đánh giá sao:</label>
+                <label class="settings-label" for="addYear">Năm phát hành:</label>
+                <input type="text" id="addYear" class="settings-input" placeholder="2026">
+              </div>
+            </div>
+
+            <div class="settings-form-group">
+              <label class="settings-label" id="addTagGroup-label">Thể loại:</label>
+              <div aria-labelledby="addTagGroup-label" class="tag-check-group" id="addTagGroup">
+                <label class="tag-check"><input type="checkbox" value="normal" checked> Nam & Nữ</label>
+                <label class="tag-check"><input type="checkbox" value="all-female"> Les (GL)</label>
+                <label class="tag-check"><input type="checkbox" value="all-male"> Gay (BL)</label>
+                <label class="tag-check"><input type="checkbox" value="bisexual"> Song tính</label>
+                <label class="tag-check"><input type="checkbox" value="other"> Khác</label>
+              </div>
+            </div>
+
+            <div class="settings-row-2col">
+              <div class="settings-form-group">
+                <label class="settings-label" for="addImage">Link ảnh poster (URL):</label>
+                <input type="text" id="addImage" class="settings-input" placeholder="https://...">
+              </div>
+              <div class="settings-form-group">
+                <label class="settings-label" for="addRating">Đánh giá sao:</label>
                 <input type="number" id="addRating" class="settings-input" min="1" max="5" value="5">
               </div>
             </div>
 
+            <!-- Dynamic Vietsub Links for Add -->
             <div class="settings-form-group">
-              <label class="settings-label">Link ảnh poster (URL):</label>
-              <input type="text" id="addImage" class="settings-input" placeholder="https://...">
+              <label class="settings-label" id="addVietsubLinksList-label">Danh sách link xem Vietsub:</label>
+              <div aria-labelledby="addVietsubLinksList-label" id="addVietsubLinksList" class="dynamic-links-list">
+                <!-- Generated by JS -->
+              </div>
+              <button type="button" class="btn-add-link-row" id="btnAddAddVietsubLink">
+                <i class="fa-solid fa-plus"></i> Thêm link Vietsub
+              </button>
             </div>
 
+            <!-- Dynamic Original Links for Add -->
             <div class="settings-form-group">
-              <label class="settings-label">Link xem Vietsub chính:</label>
-              <input type="text" id="addVietsubUrl" class="settings-input" placeholder="https://www.bilibili.tv/...">
+              <label class="settings-label" id="addOriginalLinksList-label">Danh sách link xem bản gốc / Tiếng Trung:</label>
+              <div aria-labelledby="addOriginalLinksList-label" id="addOriginalLinksList" class="dynamic-links-list">
+                <!-- Generated by JS -->
+              </div>
+              <button type="button" class="btn-add-link-row" id="btnAddAddOriginalLink">
+                <i class="fa-solid fa-plus"></i> Thêm link bản gốc
+              </button>
             </div>
 
+            <!-- Expand buttons for Add -->
             <div class="settings-form-group">
-              <label class="settings-label">Dàn Cast / Thành viên (mỗi người 1 dòng):</label>
+              <div class="settings-label-row">
+                <label class="settings-label" for="addCast">Dàn Cast / Thành viên (mỗi người 1 dòng):</label>
+                <button type="button" class="btn-expand-field" id="btnExpandAddCast">
+                  <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Mở rộng
+                </button>
+              </div>
               <textarea id="addCast" class="settings-textarea" placeholder="Nữ 1 - Tên | Tuổi | Nghề nghiệp&#10;Nam 1 - Tên | Tuổi | Nghề nghiệp"></textarea>
             </div>
 
             <div class="settings-form-group">
-              <label class="settings-label">Tóm tắt nội dung:</label>
+              <div class="settings-label-row">
+                <label class="settings-label" for="addDesc">Tóm tắt nội dung:</label>
+                <button type="button" class="btn-expand-field" id="btnExpandAddDesc">
+                  <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Mở rộng
+                </button>
+              </div>
               <textarea id="addDesc" class="settings-textarea" placeholder="Giới thiệu về show..."></textarea>
             </div>
 
-            <button class="btn-primary" id="btnSubmitAddShow">
+            <button type="button" class="btn-primary" id="btnSubmitAddShow">
               <i class="fa-solid fa-plus"></i> Thêm Show Này Vào Danh Sách
             </button>
           </div>
 
           <!-- Settings Tab 4: Export Data -->
-          <div class="tab-pane" id="stab-data">
+          <div class="tab-pane" id="stab-data" role="tabpanel">
             <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px;">
               Sau khi bạn thêm show mới, sửa thông tin hoặc thay đổi show ghim, bấm nút bên dưới để <strong>tải file showsData.json mới</strong>. Dùng file vừa tải này để thay thế file <code style="color: var(--primary-pink);">showsData.json</code> trong thư mục hoặc đẩy lên GitHub/Vercel.
             </p>
             <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-              <button class="btn-primary" id="btnDownloadJson">
+              <button type="button" class="btn-primary" id="btnDownloadJson">
                 <i class="fa-solid fa-file-arrow-down"></i> Tải showsData.json Mới Về Máy
               </button>
-              <button class="btn-secondary" id="btnResetData">
+              <button type="button" class="btn-secondary" id="btnResetData">
                 <i class="fa-solid fa-arrow-rotate-left"></i> Khôi phục dữ liệu ban đầu
               </button>
             </div>
@@ -618,8 +739,32 @@
     </div>
   </div>
 
+  <!-- Shared platform suggestions for edit/add forms (combobox: pick or type new) -->
+  <datalist id="platformDatalist"></datalist>
+
+  <!-- Large Text Editor Modal (Requirement 5) -->
+  <div class="modal-overlay large-editor-modal" id="largeEditorModal" role="dialog" aria-modal="true" aria-labelledby="largeEditorTitle">
+    <div class="modal-content">
+      <button type="button" class="btn-modal-close" id="btnLargeEditorClose" title="Đóng">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div style="padding: 20px; display: flex; flex-direction: column; height: 100%;">
+        <h3 id="largeEditorTitle" style="font-size: 18px; margin-bottom: 12px; color: var(--text-main);">
+          Chỉnh sửa chi tiết
+        </h3>
+        <textarea id="largeEditorTextarea" class="large-editor-textarea"></textarea>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px;">
+          <button type="button" class="btn-secondary" id="btnLargeEditorCancel">Hủy bỏ</button>
+          <button type="button" class="btn-primary" id="btnLargeEditorApply">
+            <i class="fa-solid fa-check"></i> Xong & Áp dụng
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Floating Back to Top Button -->
-  <button class="btn-back-to-top" id="btnBackToTop" title="Trở về đầu trang">
+  <button type="button" class="btn-back-to-top" id="btnBackToTop" title="Trở về đầu trang">
     <i class="fa-solid fa-arrow-up"></i>
   </button>
 
@@ -634,7 +779,7 @@
           <i class="fa-solid fa-heart"></i>
         </div>
         <div class="brand-name">
-          <span>HẸN HÒ HUB</span>
+          <span>Dating show</span>
           <span class="brand-subtitle">Trang chia sẻ show hẹn hò phụ đề tiếng Việt</span>
         </div>
       </div>
@@ -644,8 +789,69 @@
     </div>
   </footer>
 
+  <!-- Fullscreen poster lightbox (original quality + zoom) -->
+  <div class="img-lightbox" id="imageLightbox" role="dialog" aria-modal="true" aria-label="Xem ảnh chất lượng gốc" aria-hidden="true">
+    <div class="img-lightbox-backdrop" id="imageLightboxBackdrop"></div>
+    <img class="img-lightbox-img" id="imageLightboxImg" alt="Ảnh chất lượng gốc">
+    <button type="button" class="img-lightbox-btn img-lightbox-close" id="imageLightboxClose" title="Đóng (Esc)" aria-label="Đóng">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="img-lightbox-controls">
+      <button type="button" class="img-lightbox-btn" id="imageLightboxZoomOut" title="Thu nhỏ" aria-label="Thu nhỏ">
+        <i class="fa-solid fa-minus"></i>
+      </button>
+      <button type="button" class="img-lightbox-btn" id="imageLightboxReset" title="Vừa màn hình" aria-label="Vừa màn hình">
+        <i class="fa-solid fa-expand"></i>
+      </button>
+      <button type="button" class="img-lightbox-btn" id="imageLightboxZoomIn" title="Phóng to" aria-label="Phóng to">
+        <i class="fa-solid fa-plus"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Episode links editor popup (in show edit form: left = episode, right = link) -->
+  <div class="modal-overlay modal-stack" id="episodeEditorModal" role="dialog" aria-modal="true" aria-labelledby="episodeEditorTitle">
+    <div class="modal-content" style="max-width: 560px;">
+      <button type="button" class="btn-modal-close" id="btnEpisodeEditorClose" title="Đóng">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="modal-body">
+        <h3 class="modal-title" id="episodeEditorTitle" style="font-size: 17px; margin-bottom: 4px;">Gắn link theo tập</h3>
+        <p id="episodeEditorLinkName" style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;"></p>
+        <div id="episodeEditorList" class="episode-editor-list"></div>
+        <div class="episode-editor-addrow">
+          <input type="text" id="episodeEpInput" class="settings-input" placeholder="Số tập (VD: 1)" inputmode="numeric">
+          <input type="text" id="episodeUrlInput" class="settings-input" placeholder="Link tập phim https://...">
+          <button type="button" class="btn-primary" id="btnEpisodeAdd" style="white-space: nowrap;">
+            <i class="fa-solid fa-plus"></i> Thêm
+          </button>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
+          <button type="button" class="btn-secondary" id="btnEpisodeEditorCancel">Hủy</button>
+          <button type="button" class="btn-primary" id="btnEpisodeEditorSave">
+            <i class="fa-solid fa-check"></i> Lưu
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Episode picker popup (in show detail: choose episode, open its link) -->
+  <div class="modal-overlay modal-stack" id="episodePickerModal" role="dialog" aria-modal="true" aria-labelledby="episodePickerTitle">
+    <div class="modal-content" style="max-width: 520px;">
+      <button type="button" class="btn-modal-close" id="btnEpisodePickerClose" title="Đóng">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="modal-body">
+        <h3 class="modal-title" style="font-size: 17px; margin-bottom: 4px;" id="episodePickerTitle">Chọn tập phim</h3>
+        <p id="episodePickerSub" style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;"></p>
+        <div id="episodePickerGrid" class="episode-picker-grid"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Main Application Script -->
-  <script src="app.js"></script>
+  <script src="app.js?v=20260927f"></script>
 </body>
 
 </html>
