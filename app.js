@@ -1622,7 +1622,26 @@ function openShowDetailAnimated(show, defaultTab = 'tab-watch', sourceEl = null)
   state.detailSourceEl = (card && card.isConnected) ? card : null;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const content = modalContentEl();
-  if (reduceMotion || !state.detailSourceEl || !content) {
+  if (!content) {
+    openShowDetail(show, defaultTab);
+    return;
+  }
+
+  // Mobile bottom-sheet: pure translateY slide-up. The desktop FLIP scale
+  // morph repaints the whole rich modal on phone GPUs (border flash, dropped
+  // frames); a composited vertical slide stays smooth at any content weight.
+  if (window.matchMedia('(max-width: 768px)').matches) {
+    openShowDetail(show, defaultTab);
+    if (!reduceMotion) {
+      content.animate(
+        [{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }],
+        { duration: 380, easing: 'cubic-bezier(.4, 0, .2, 1)' }
+      );
+    }
+    return;
+  }
+
+  if (reduceMotion || !state.detailSourceEl) {
     openShowDetail(show, defaultTab);
     return;
   }
@@ -1725,6 +1744,12 @@ function openShowDetail(show, defaultTab = 'tab-watch', opts = {}) {
   cancelPendingModalMotion();
   const content = modalContentEl();
   if (content) {
+    // Kill any in-flight slide/morph (e.g. reopening mid-close): the cleared
+    // inline styles below must own the transform, not a leftover animation.
+    content.getAnimations().forEach(a => a.cancel());
+    // Also kill stale tab-switch height/pane tweens - otherwise the box can
+    // open at the previous tab's height and animate down (CLS jump on mobile).
+    content.querySelectorAll('.modal-body, .tab-pane').forEach(el => el.getAnimations().forEach(a => a.cancel()));
     content.classList.remove('no-anim');
     content.style.transition = '';
     content.style.transform = '';
@@ -1831,7 +1856,7 @@ function renderShowDetail(show, defaultTab = 'tab-watch') {
   if (descEl) descEl.textContent = show.description || 'Chưa có thông tin giới thiệu cho show này.';
 
   updateModalFavoriteButton(show);
-  switchModalTab(defaultTab);
+  switchModalTab(defaultTab, { instant: true });
 
   freezeModalHeight(modal);
   modal.classList.add('active');
@@ -1857,6 +1882,37 @@ function closeShowDetail(updateHistory = true) {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const src = state.detailSourceEl;
   const content = modal.querySelector('.modal-content');
+
+  // Mobile bottom-sheet: slide straight down (continues from any drag offset).
+  // Same reason as the open path - no scale morph on phone GPUs.
+  if (window.matchMedia('(max-width: 768px)').matches) {
+    if (reduceMotion || !content) {
+      doCloseShowDetail(updateHistory);
+      return;
+    }
+    content.getAnimations().forEach(a => a.cancel());
+    modal.classList.remove('active');
+    content.style.transition = 'transform 380ms cubic-bezier(.4, 0, .2, 1)';
+    content.style.transform = 'translateY(100%)';
+    let done = false;
+    const onEnd = (e) => { if (e.propertyName === 'transform') finish(); };
+    const finish = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      if (state.pendingFlipClose === cancel) state.pendingFlipClose = null;
+      content.removeEventListener('transitionend', onEnd);
+      if (seq !== state.modalSeq) return;
+      flipCleanup(content, onEnd);
+      doCloseShowDetail(updateHistory);
+    };
+    const cancel = () => { done = true; clearTimeout(timer); content.removeEventListener('transitionend', onEnd); };
+    state.pendingFlipClose = cancel;
+    content.addEventListener('transitionend', onEnd);
+    const timer = setTimeout(finish, 560);
+    return;
+  }
+
   const flipping = !reduceMotion && src && src.isConnected;
   if (!flipping) {
     doCloseShowDetail(updateHistory);
@@ -2098,19 +2154,125 @@ function initPosterLightbox() {
   });
 }
 
-// Shared tab switcher (detail modal: data-tab, settings modal: data-stab)
-function switchTabsIn(rootSelector, attrName, tabId) {
-  document.querySelectorAll(`${rootSelector} .modal-tab-btn`).forEach(btn => {
-    btn.classList.toggle('active', btn.dataset[attrName] === tabId);
-    btn.setAttribute('aria-selected', btn.dataset[attrName] === tabId ? 'true' : 'false');
-  });
-  document.querySelectorAll(`${rootSelector} .tab-pane`).forEach(pane => {
-    pane.classList.toggle('active', pane.id === tabId);
-  });
+// Shared tab switcher (detail modal: data-tab, settings modal: data-stab).
+// Transition: the incoming pane slides+fades in (direction follows tab order),
+// .modal-body height tweens to the new pane height, and the scrollable eases
+// back to the top — so the switch stays fluid even when the modal box is
+// height-clamped (mobile bottom-sheet at 88dvh, where the box cannot change).
+// Height/scroll use a symmetric ease-in-out: with a front-loaded ease-out the
+// box finished most of its visible travel in the first ~120ms (and immediately
+// hit the clamp on tall tabs), which read as a snap.
+const easeInOutCubic = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+function tweenScrollTop(el, to, dur, ease) {
+  if (el._stTween) cancelAnimationFrame(el._stTween);
+  const from = el.scrollTop;
+  if (Math.abs(from - to) < 1) return;
+  const start = performance.now();
+  const step = now => {
+    const t = Math.min(1, (now - start) / dur);
+    el.scrollTop = from + (to - from) * ease(t);
+    el._stTween = t < 1 ? requestAnimationFrame(step) : 0;
+  };
+  el._stTween = requestAnimationFrame(step);
+}
+// Mobile bottom-sheet height transition. The box only travels while its
+// natural height (header + body) crosses the clamp ceiling; the rest of the
+// body tween happens invisibly behind the ceiling. Skip that invisible part so
+// the box starts moving immediately and takes ~460ms of visible slide in both
+// directions (shrink: jump straight to the crossing height; grow: slide to the
+// ceiling, then the hidden remainder finishes behind it). Desktop keeps the
+// plain 460ms tween.
+function animateBodyHeight(content, body, box0, h0, h1, mobile, easeHeight) {
+  const T = 460;
+  const plain = () => body.animate(
+    [{ height: h0 + 'px' }, { height: h1 + 'px' }],
+    { duration: T, easing: easeHeight });
+  if (!mobile || !content) { plain(); return; }
+  const box1 = content.getBoundingClientRect().height;
+  const ceil = (parseFloat(content.style.maxHeight) || 0) || window.innerHeight * 0.9;
+  if (Math.abs(box1 - box0) <= 1) { plain(); return; }
+  const free0 = box0 < ceil - 1, free1 = box1 < ceil - 1;
+  let C;
+  if (free0 && !free1) C = box0 - h0;        // grows into the ceiling
+  else if (!free0 && free1) C = box1 - h1;    // shrinks out of the ceiling
+  else { plain(); return; }                   // never crosses: one 460ms leg
+  const hStar = ceil - C;
+  if (!(hStar > Math.min(h0, h1) && hStar < Math.max(h0, h1))) { plain(); return; }
+  const start = h1 < h0 ? hStar : h0;         // shrink: start past the invisible leg
+  const end = h1 < h0 ? h1 : hStar;           // grow: end at the ceiling crossing
+  body.animate(
+    [{ height: start + 'px' }, { height: end + 'px' }],
+    { duration: T, easing: easeHeight });
 }
 
-function switchModalTab(tabId) {
-  switchTabsIn('#detailModal', 'tab', tabId);
+function switchTabsIn(rootSelector, attrName, tabId, opts = {}) {
+  const root = document.querySelector(rootSelector);
+  if (!root) return;
+  const btns = Array.from(root.querySelectorAll('.modal-tab-btn'));
+  const prevBtn = btns.find(b => b.classList.contains('active'));
+  const prevTabId = prevBtn ? prevBtn.dataset[attrName] : '';
+  btns.forEach(btn => {
+    const on = btn.dataset[attrName] === tabId;
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+
+  const panes = Array.from(root.querySelectorAll('.tab-pane'));
+  const next = panes.find(p => p.id === tabId);
+  const cur = panes.find(p => p.classList.contains('active'));
+  if (!next || cur === next) return;
+
+  const scroller = root.querySelector('.modal-scrollable');
+  const isMobileSheet = window.matchMedia('(max-width: 768px)').matches;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (opts.instant || reduceMotion || !cur) {
+    // On open the box must already have the target tab's height on its first
+    // visible frame: a leftover height tween from a previous session shows as
+    // "opens at the ceiling, then slides down" (CLS jump on mobile).
+    const staleBody = root.querySelector('.modal-body');
+    if (staleBody) staleBody.getAnimations().forEach(a => a.cancel());
+    panes.forEach(p => p.getAnimations().forEach(a => a.cancel()));
+    panes.forEach(p => p.classList.toggle('active', p === next));
+    if (scroller && scroller.scrollTop > 1) scroller.scrollTop = 0;
+    return;
+  }
+
+  const body = root.querySelector('.modal-body');
+  const h0 = body ? body.getBoundingClientRect().height : 0;
+  if (body) body.getAnimations().forEach(a => a.cancel());
+  next.getAnimations().forEach(a => a.cancel());
+
+  const content = root.querySelector('.modal-content');
+  const box0 = content ? content.getBoundingClientRect().height : 0;
+
+  cur.classList.remove('active');
+  next.classList.add('active');
+
+  const ease = 'cubic-bezier(.4, 0, .2, 1)';
+  const dur = 380;
+  const easeHeight = 'cubic-bezier(.45, 0, .55, 1)';
+  if (body && h0 > 0) {
+    const h1 = body.getBoundingClientRect().height;
+    if (Math.abs(h1 - h0) > 1) {
+      animateBodyHeight(content, body, box0, h0, h1, isMobileSheet, easeHeight);
+    }
+  }
+
+  const oldIdx = btns.findIndex(b => b.dataset[attrName] === prevTabId);
+  const newIdx = btns.findIndex(b => b.dataset[attrName] === tabId);
+  const dir = oldIdx < 0 || newIdx >= oldIdx ? 1 : -1;
+  next.animate([
+    { opacity: 0, transform: `translateX(${dir * 28}px)` },
+    { opacity: 1, transform: 'translateX(0)' }
+  ], { duration: dur, easing: ease });
+
+  if (scroller && scroller.scrollTop > 1) {
+    tweenScrollTop(scroller, 0, 460, easeInOutCubic);
+  }
+}
+
+function switchModalTab(tabId, opts) {
+  switchTabsIn('#detailModal', 'tab', tabId, opts);
 }
 
 // Renders one link group (detail modal). Returns how many SAFE buttons were
@@ -2314,6 +2476,61 @@ function initWatchLinkTips() {
   }, true);
 }
 
+// One cast line -> structured fields. Handles the 3 formats found in
+// showsData: "Nữ 1 - Tên | 30t | vai trò", "Nữ 1 - Tên (中文), 2004, vai trò"
+// and separator-free "Nữ 5 - Tên (alias)  vai trò".
+function parseCastLine(line) {
+  const res = { gender: '', no: '', name: '', zh: '', age: '', role: '' };
+  let rest = String(line).trim();
+
+  const prefix = rest.match(/^(Nữ|Nam)\s*(\d+)\s*[-–—.]?\s*/);
+  if (prefix) {
+    res.gender = prefix[1] === 'Nữ' ? 'female' : 'male';
+    res.no = prefix[2];
+    rest = rest.slice(prefix[0].length);
+  }
+
+  // Parenthesized part: CJK -> Chinese name chip, digits -> age, else keep in name
+  rest = rest.replace(/\(([^()]{1,40})\)/g, (m, inner) => {
+    const t = inner.trim();
+    if (/[一-鿿]/.test(t)) { res.zh = t; return ' '; }
+    if (/^\d{2,4}\s*(?:t|tuổi)$/i.test(t) || /^\d{4}$/.test(t)) { res.age = t; return ' '; }
+    return m;
+  });
+
+  // "Tên , 2004" -> "Tên, 2004" after paren removal so comma-split stays clean
+  rest = rest.replace(/\s*,\s*/g, ', ');
+
+  let parts;
+  if (rest.includes('|')) {
+    parts = rest.split('|');
+  } else {
+    // "Name<2+ spaces>role, with commas inside" beats plain comma-split,
+    // but only when the head segment is comma-free.
+    const spaced = rest.split(/\s{2,}/).map(s => s.trim()).filter(Boolean);
+    if (spaced.length >= 2 && !spaced[0].includes(',')) parts = spaced;
+    else parts = rest.split(',');
+  }
+  parts = parts.map(s => s.trim()).filter(Boolean);
+
+  res.name = parts.shift() || '';
+  for (const p of parts) {
+    // Age/birth parts (also dedupe "(24 tuổi)" + "| 24t"): never become role
+    const m = p.match(/^(sinh ngày|tháng)\s+/i);
+    const core = m ? p.slice(m[0].length) : p;
+    if (/^(\d{1,3}\s*(?:t|tuổi)|\d{4}|\d{1,2}\s*\/\s*\d{1,2}\s*\/\s*\d{4}|\d{1,2}\s*\/\s*\d{4})$/i.test(core)) {
+      if (!res.age) res.age = core.replace(/\s*\/\s*/g, '/');
+      continue;
+    }
+    res.role = res.role ? res.role + ', ' + p : p;
+  }
+  res.name = res.name.replace(/\s+/g, ' ').trim();
+  res.role = (res.role || '').replace(/\s+/g, ' ')
+    .replace(/^[\s:;,·-]+/, '').replace(/[.\s]+$/, '').trim();
+  if (!res.name) { res.name = String(line).trim(); res.role = ''; }
+  return res;
+}
+
 function populateCastMembers(detailNotes) {
   const container = document.getElementById('modalCastGrid');
   if (!container) return;
@@ -2325,21 +2542,42 @@ function populateCastMembers(detailNotes) {
   }
 
   const lines = detailNotes.split('\n').map(l => l.trim()).filter(Boolean);
+  let groupGender = '';
+  let seq = 0;
   lines.forEach(line => {
+    const c = parseCastLine(line);
+
+    // Group separator lines like "Nữ:" / "Nam:" render as a full-width heading
+    if (/^(nữ|nam)\s*:?$/i.test(c.name)) {
+      groupGender = /^nữ/i.test(c.name) ? 'female' : 'male';
+      seq = 0;
+      const sec = document.createElement('div');
+      sec.className = 'cast-section';
+      sec.innerHTML = `<span class="cast-section-label">${escapeHtml(c.name.replace(/\s*:+\s*$/, ''))}</span>`;
+      container.appendChild(sec);
+      return;
+    }
+
+    seq += 1;
+    const gender = c.gender || groupGender;
+    const no = String(c.no || seq).padStart(2, '0');
     const card = document.createElement('div');
-    const isFemale = line.toLowerCase().startsWith('nữ');
-    const isMale = line.toLowerCase().startsWith('nam');
-
-    card.className = `cast-card ${isFemale ? 'cast-gender-female' : isMale ? 'cast-gender-male' : ''}`;
-
-    const titlePart = line.split('|')[0].trim();
-    const infoPart = line.includes('|') ? line.substring(line.indexOf('|') + 1).trim() : '';
-
+    card.className = 'cast-card' + (gender ? ` cast-gender-${gender}` : '');
+    const body = (c.zh || c.role) ? `
+      <div class="cast-body">
+        ${c.zh ? `<div class="cast-zh">${escapeHtml(c.zh)}</div>` : ''}
+        ${c.role ? `<div class="cast-role">${escapeHtml(c.role)}</div>` : ''}
+      </div>` : '';
     card.innerHTML = `
-      <div class="cast-name">${escapeHtml(titlePart)}</div>
-      ${infoPart ? `<div class="cast-info">${escapeHtml(infoPart)}</div>` : ''}
+      <div class="cast-top">
+        <span class="cast-no">${no}</span>
+        <span class="cast-bar" aria-hidden="true"></span>
+      </div>
+      <div class="cast-head">
+        <span class="cast-name">${escapeHtml(c.name)}</span>
+        ${c.age ? `<span class="cast-age">${escapeHtml(c.age)}</span>` : ''}
+      </div>${body}
     `;
-
     container.appendChild(card);
   });
 }
@@ -2378,7 +2616,7 @@ function pickRandomShow() {
   setTimeout(() => {
     btn.classList.remove('dice-rolling');
     openShowDetail(show);
-  }, 450);
+  }, 400);
 }
 
 // ============================================================
@@ -3546,8 +3784,16 @@ function initSheetSwipe() {
   content.addEventListener('touchend', () => {
     if (!dragging) return;
     const dy = curY - startY;
-    resetDrag();
-    if (dy > 120) closeShowDetail();
+    dragging = false;
+    if (dy > 120) {
+      // Keep the dragged offset: the close slide continues from it
+      // (resetDrag would snap the sheet back before the exit animation).
+      closeShowDetail();
+    } else {
+      // Spring back from the offset instead of snapping to 0.
+      content.style.transition = 'transform 300ms cubic-bezier(.4, 0, .2, 1)';
+      content.style.transform = '';
+    }
   });
   content.addEventListener('touchcancel', resetDrag);
 }
