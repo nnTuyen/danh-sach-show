@@ -437,7 +437,11 @@ function applyTheme(theme, mode) {
 function initFavorites() {
   try {
     const saved = localStorage.getItem('datinghub_favorites');
-    state.favorites = saved ? JSON.parse(saved) : [];
+    const parsed = saved ? JSON.parse(saved) : [];
+    // Any non-array shape (legacy "null", a bare string/number) must never
+    // break boot: a throw here aborts the whole DOMContentLoaded chain and
+    // leaves a blank page with no data.
+    state.favorites = Array.isArray(parsed) ? parsed : [];
   } catch (e) {
     state.favorites = [];
   }
@@ -524,7 +528,7 @@ function toggleFavorite(show, e) {
 function updateFavoritesBadge() {
   const badge = document.getElementById('favCountBadge');
   if (!badge) return;
-  const count = state.favorites.length;
+  const count = Array.isArray(state.favorites) ? state.favorites.length : 0;
   badge.textContent = count;
   badge.style.display = count > 0 ? 'flex' : 'none';
 }
@@ -4163,7 +4167,7 @@ function initSheetSwipe() {
 
 // App Entry Point
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('dating-hub app.js?v=20260928f');
+  console.log('dating-hub app.js?v=20260929a');
   initTheme();
   initFavorites();
   initEventListeners();
