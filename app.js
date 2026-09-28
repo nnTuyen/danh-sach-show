@@ -28,6 +28,7 @@ const state = {
   pendingFlipClose: null, // cancel handle for an in-flight close morph
   openedAt: 0,          // performance.now() of last open (grace for backdrop clicks)
   ownBackAt: 0,         // performance.now() of our own history.back() (self-detect popstate)
+  modalHealTried: false, // self-heal re-render runs at most once per open (no loops)
   activeShow: null,
   activeEditorTargetId: null,
   editFormIdx: null,      // index of the show currently loaded in the edit form
@@ -1738,9 +1739,14 @@ function unlockPageScroll() {
 // opts.suppressMotion: render with the built-in open animation off (FLIP path
 // owns the motion and reveals the content itself).
 function openShowDetail(show, defaultTab = 'tab-watch', opts = {}) {
+  if (!show || typeof show !== 'object') {
+    console.error('openShowDetail: called with an invalid show, aborting open');
+    return;
+  }
   // New open intent: invalidate stale decode/timeout callbacks from the
   // previous open or an in-flight close, and start from clean motion styles.
   state.modalSeq += 1;
+  state.modalHealTried = false;
   cancelPendingModalMotion();
   const content = modalContentEl();
   if (content) {
@@ -1764,9 +1770,49 @@ function openShowDetail(show, defaultTab = 'tab-watch', opts = {}) {
   }
   try {
     renderShowDetail(show, defaultTab);
+    healModalContent(show, defaultTab);
     state.openedAt = performance.now();
   } catch (err) {
     console.error('Lỗi khi mở chi tiết show:', err);
+    try { doCloseShowDetail(false); } catch (_) { /* best effort */ }
+  }
+}
+
+// Post-render consistency check. The modal render is fully synchronous, so
+// right after renderShowDetail the DOM must already show: exactly one active
+// pane, the title matching the show, and a populated cast grid whenever the
+// show actually has cast notes. If any of these is wrong the user gets an
+// "empty frame" that previously needed a manual close + reopen.
+function verifyModalContent(show) {
+  const failures = [];
+  const modal = document.getElementById('detailModal');
+  if (!modal || !modal.classList.contains('active')) return ['modal-not-active'];
+  if (modal.querySelectorAll('.tab-pane.active').length !== 1) {
+    failures.push('pane-count=' + modal.querySelectorAll('.tab-pane.active').length);
+  }
+  const title = document.getElementById('modalTitle');
+  if (!title || title.textContent !== show.vietnamese) failures.push('title-mismatch');
+  if (show.detailNotes && show.detailNotes.trim()) {
+    const grid = document.getElementById('modalCastGrid');
+    if (!grid || grid.childElementCount === 0) failures.push('cast-empty');
+  }
+  return failures;
+}
+
+// Self-heal: re-render once synchronously when verification fails. A second
+// identical render has always succeeded in testing; if it still fails the
+// modal is closed instead of leaving a dead empty frame on screen, and the
+// diagnostic stays in the console for debugging.
+function healModalContent(show, defaultTab) {
+  if (state.modalHealTried) return;
+  const failures = verifyModalContent(show);
+  if (failures.length === 0) return;
+  state.modalHealTried = true;
+  console.warn(`Modal content check failed (${failures.join(', ')}) for "${show && show.vietnamese}" - re-rendering once`);
+  renderShowDetail(show, defaultTab);
+  const retry = verifyModalContent(show);
+  if (retry.length > 0) {
+    console.error(`Modal re-render still bad (${retry.join(', ')}) - closing instead of an empty frame`);
     try { doCloseShowDetail(false); } catch (_) { /* best effort */ }
   }
 }
@@ -2208,6 +2254,17 @@ function animateBodyHeight(content, body, box0, h0, h1, mobile, easeHeight) {
 function switchTabsIn(rootSelector, attrName, tabId, opts = {}) {
   const root = document.querySelector(rootSelector);
   if (!root) return;
+  const panes = Array.from(root.querySelectorAll('.tab-pane'));
+  let next = panes.find(p => p.id === tabId);
+  if (!next && panes.length > 0) {
+    // Unknown tab id from a stale caller: fall back to the first pane
+    // instead of leaving buttons and panes desynced with nothing to show.
+    console.warn(`switchTabsIn: unknown tab "${tabId}", falling back to "${panes[0].id}"`);
+    next = panes[0];
+    tabId = next.id;
+  }
+  const cur = panes.find(p => p.classList.contains('active'));
+
   const btns = Array.from(root.querySelectorAll('.modal-tab-btn'));
   const prevBtn = btns.find(b => b.classList.contains('active'));
   const prevTabId = prevBtn ? prevBtn.dataset[attrName] : '';
@@ -2216,10 +2273,6 @@ function switchTabsIn(rootSelector, attrName, tabId, opts = {}) {
     btn.classList.toggle('active', on);
     btn.setAttribute('aria-selected', on ? 'true' : 'false');
   });
-
-  const panes = Array.from(root.querySelectorAll('.tab-pane'));
-  const next = panes.find(p => p.id === tabId);
-  const cur = panes.find(p => p.classList.contains('active'));
   if (!next || cur === next) return;
 
   const scroller = root.querySelector('.modal-scrollable');

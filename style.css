@@ -930,7 +930,12 @@ div.spotlight-poster {
   min-height: 400px;
   width: 100%;
   max-width: 100%;
-  overflow: hidden;
+  /* overflow-x: clip, NOT hidden: `hidden` clips BOTH axes, so the hover lift
+     (translateY(-6px) + scale 1.02 ≈ 12.5px up) of the first card row was
+     sliced flat by the container's top edge — square corners + lost poster
+     top. `clip` + default `visible` y is a legal pair: horizontal zero
+     overflow (requirement 2) still holds, vertical stays free. */
+  overflow-x: clip;
 }
 
 .shows-grid {
