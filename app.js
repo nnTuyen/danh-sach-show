@@ -1841,6 +1841,10 @@ function diagnoseModalPaint(stage) {
     const tabsRect = tabsEl ? tabsEl.getBoundingClientRect() : null;
     const bodyRect = body ? body.getBoundingClientRect() : null;
     const mp = document.getElementById('modalPoster');
+    const activePane = modal.querySelector('.tab-pane.active');
+    const paneRect = activePane ? activePane.getBoundingClientRect() : null;
+    const footer = modal.querySelector('.modal-footer-actions');
+    const footerRect = footer ? footer.getBoundingClientRect() : null;
     const snap = {
       stage, show: show.vietnamese, t: Math.round(performance.now()),
       theme: document.documentElement.dataset.theme,
@@ -1858,6 +1862,10 @@ function diagnoseModalPaint(stage) {
       contentTf: content ? (content.style.transform || 'none') : '?',
       anims: content ? (content.getAnimations().length + '/' + (body ? body.getAnimations().length : 0)) : '?',
       panes: [...modal.querySelectorAll('.tab-pane')].map(p => p.id + (p.classList.contains('active') ? '*' : '')),
+      paneId: activePane ? activePane.id : '?',
+      paneH: paneRect ? Math.round(paneRect.height) : -1,
+      paneKids: activePane ? activePane.childElementCount : -1,
+      footerInView: footerRect ? (footerRect.bottom > 0 && footerRect.top < window.innerHeight) : false,
       poster: mp ? `${mp.complete}/${mp.naturalWidth}` : '?'
     };
     if (tabsRect && tabsRect.width > 0 && tabsRect.height > 0) {
@@ -1869,11 +1877,15 @@ function diagnoseModalPaint(stage) {
     if (modalDiagLog.length > 30) modalDiagLog.shift();
     const tabsGone = !!tabsEl && tabsEl.getClientRects().length === 0;
     const bodyGone = !!body && body.getClientRects().length === 0;
+    // Active pane has content but zero height: layout collapse (blank tab).
+    // A pane with real children is never legitimately 0px tall.
+    const paneCollapsed = !!activePane && activePane.childElementCount > 0 &&
+      paneRect && paneRect.height === 0 && activePane.getClientRects().length === 0;
     let tabsOut = false;
     if (scr && tabsRect && tabsRect.height > 0 && scroller) {
       tabsOut = (tabsRect.bottom < scr.top || tabsRect.top > scr.bottom) && scroller.scrollTop <= 1;
     }
-    if (tabsGone || bodyGone || tabsOut) {
+    if (tabsGone || bodyGone || tabsOut || paneCollapsed) {
       console.error('EMPTY-MODAL-DIAG[' + stage + ']:', JSON.stringify(snap));
       console.error('EMPTY-MODAL-HISTORY:', JSON.stringify(modalDiagLog));
       showToast('Phát hiện modal trống - chi tiết trong Console (F12)', 'fa-triangle-exclamation');
@@ -2379,10 +2391,32 @@ function switchTabsIn(rootSelector, attrName, tabId, opts = {}) {
   const oldIdx = btns.findIndex(b => b.dataset[attrName] === prevTabId);
   const newIdx = btns.findIndex(b => b.dataset[attrName] === tabId);
   const dir = oldIdx < 0 || newIdx >= oldIdx ? 1 : -1;
-  next.animate([
+  const slideAnim = next.animate([
     { opacity: 0, transform: `translateX(${dir * 28}px)` },
     { opacity: 1, transform: 'translateX(0)' }
   ], { duration: dur, easing: ease });
+
+  // Paint settle (stuck-layer guard): on some Chromium/Edge GPUs the pane's
+  // compositor layer can go stale after the slide, leaving the new tab as a
+  // blank area even though the DOM is complete (needs manual close+reopen).
+  // Committing the final frame then cancelling drops the animation layer and
+  // the forced reflow repaints synchronously. The fallback timer covers a
+  // missed finish event; a newer switch bumps the token so a late settle
+  // never touches another tab's pane. Cancelling never triggers onfinish,
+  // so only the newest switch settles.
+  const settleToken = (root._paintSettleToken = (root._paintSettleToken || 0) + 1);
+  const settle = () => {
+    if (root._paintSettleToken !== settleToken) return;
+    clearTimeout(settleTimer);
+    try { slideAnim.commitStyles(); } catch (_) {}
+    try { slideAnim.cancel(); } catch (_) {}
+    next.style.opacity = '';
+    next.style.transform = '';
+    void next.offsetHeight;
+    if (body) void body.offsetHeight;
+  };
+  slideAnim.onfinish = settle;
+  const settleTimer = setTimeout(settle, dur + 150);
 
   if (scroller && scroller.scrollTop > 1) {
     tweenScrollTop(scroller, 0, 460, easeInOutCubic);
