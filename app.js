@@ -1847,7 +1847,7 @@ function diagnoseModalPaint(stage) {
     const footerRect = footer ? footer.getBoundingClientRect() : null;
     const snap = {
       stage, show: show.vietnamese, t: Math.round(performance.now()),
-      theme: document.documentElement.dataset.theme,
+      ver: '20260928d', theme: document.documentElement.dataset.theme,
       tabsBoxes: tabsEl ? tabsEl.getClientRects().length : -1,
       tabsRect: tabsRect ? [Math.round(tabsRect.top), Math.round(tabsRect.bottom), Math.round(tabsRect.height)] : null,
       bodyH: bodyRect ? Math.round(bodyRect.height) : -1,
@@ -2400,23 +2400,27 @@ function switchTabsIn(rootSelector, attrName, tabId, opts = {}) {
   // compositor layer can go stale after the slide, leaving the new tab as a
   // blank area even though the DOM is complete (needs manual close+reopen).
   // Committing the final frame then cancelling drops the animation layer and
-  // the forced reflow repaints synchronously. The fallback timer covers a
-  // missed finish event; a newer switch bumps the token so a late settle
-  // never touches another tab's pane. Cancelling never triggers onfinish,
-  // so only the newest switch settles.
+  // the forced reflow repaints synchronously — pane, body and the scroll/
+  // content ancestors in case the stale layer sits above the pane. A second
+  // settle ~1.2s later covers a layer going stale again from a late image
+  // decode. Guarded by a per-root token so a late settle never touches a
+  // newer switch; cancelling never triggers onfinish, so only the newest
+  // switch settles.
   const settleToken = (root._paintSettleToken = (root._paintSettleToken || 0) + 1);
   const settle = () => {
     if (root._paintSettleToken !== settleToken) return;
-    clearTimeout(settleTimer);
     try { slideAnim.commitStyles(); } catch (_) {}
     try { slideAnim.cancel(); } catch (_) {}
     next.style.opacity = '';
     next.style.transform = '';
     void next.offsetHeight;
     if (body) void body.offsetHeight;
+    if (scroller) void scroller.offsetHeight;
+    if (content) void content.offsetHeight;
   };
-  slideAnim.onfinish = settle;
+  slideAnim.onfinish = () => { settle(); clearTimeout(settleTimer2); };
   const settleTimer = setTimeout(settle, dur + 150);
+  const settleTimer2 = setTimeout(settle, dur + 1200);
 
   if (scroller && scroller.scrollTop > 1) {
     tweenScrollTop(scroller, 0, 460, easeInOutCubic);
@@ -3958,6 +3962,7 @@ function initSheetSwipe() {
 
 // App Entry Point
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('dating-hub app.js?v=20260928d');
   initTheme();
   initFavorites();
   initEventListeners();
