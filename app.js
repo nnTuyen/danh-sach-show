@@ -1772,6 +1772,10 @@ function openShowDetail(show, defaultTab = 'tab-watch', opts = {}) {
     renderShowDetail(show, defaultTab);
     healModalContent(show, defaultTab);
     state.openedAt = performance.now();
+    // Paint diagnostic (temporary): a snapshot 500ms after open, skipped if
+    // a newer open/close took over in the meantime.
+    const diagSeq = state.modalSeq;
+    setTimeout(() => { if (diagSeq === state.modalSeq) diagnoseModalPaint('open+500'); }, 500);
   } catch (err) {
     console.error('Lỗi khi mở chi tiết show:', err);
     try { doCloseShowDetail(false); } catch (_) { /* best effort */ }
@@ -1816,6 +1820,67 @@ function healModalContent(show, defaultTab) {
     try { doCloseShowDetail(false); } catch (_) { /* best effort */ }
   }
 }
+
+// TEMPORARY DIAGNOSTIC for the intermittent empty modal (frame+poster paint,
+// tabs+body below show blank white). The DOM is always complete in this state
+// (verifyModalContent passes), so this snapshots LAYOUT/PAINT facts: element
+// boxes, scroll geometry, computed visibility, running animations, and which
+// element is actually on top at the tabs position. Fires after every open and
+// tab switch; on anomaly it logs the snapshot + history and toasts.
+const modalDiagLog = [];
+function diagnoseModalPaint(stage) {
+  try {
+    const modal = document.getElementById('detailModal');
+    if (!modal || !modal.classList.contains('active') || !state.activeShow) return;
+    const show = state.activeShow;
+    const scroller = modal.querySelector('.modal-scrollable');
+    const content = modal.querySelector('.modal-content');
+    const tabsEl = modal.querySelector('.modal-tabs');
+    const body = modal.querySelector('.modal-body');
+    const scr = scroller ? scroller.getBoundingClientRect() : null;
+    const tabsRect = tabsEl ? tabsEl.getBoundingClientRect() : null;
+    const bodyRect = body ? body.getBoundingClientRect() : null;
+    const mp = document.getElementById('modalPoster');
+    const snap = {
+      stage, show: show.vietnamese, t: Math.round(performance.now()),
+      theme: document.documentElement.dataset.theme,
+      tabsBoxes: tabsEl ? tabsEl.getClientRects().length : -1,
+      tabsRect: tabsRect ? [Math.round(tabsRect.top), Math.round(tabsRect.bottom), Math.round(tabsRect.height)] : null,
+      bodyH: bodyRect ? Math.round(bodyRect.height) : -1,
+      bodyBoxes: body ? body.getClientRects().length : -1,
+      scrollTop: scroller ? Math.round(scroller.scrollTop) : -1,
+      scrollH: scroller ? Math.round(scroller.scrollHeight) : -1,
+      clientH: scroller ? Math.round(scroller.clientHeight) : -1,
+      scrTop: scr ? Math.round(scr.top) : -1,
+      scrBottom: scr ? Math.round(scr.bottom) : -1,
+      contentVis: content ? getComputedStyle(content).visibility : '?',
+      contentOp: content ? getComputedStyle(content).opacity : '?',
+      contentTf: content ? (content.style.transform || 'none') : '?',
+      anims: content ? (content.getAnimations().length + '/' + (body ? body.getAnimations().length : 0)) : '?',
+      panes: [...modal.querySelectorAll('.tab-pane')].map(p => p.id + (p.classList.contains('active') ? '*' : '')),
+      poster: mp ? `${mp.complete}/${mp.naturalWidth}` : '?'
+    };
+    if (tabsRect && tabsRect.width > 0 && tabsRect.height > 0) {
+      const y = Math.min(Math.max(tabsRect.top + 4, 0), window.innerHeight - 1);
+      const el = document.elementFromPoint(tabsRect.left + tabsRect.width / 2, y);
+      snap.topEl = el ? ((el.id && '#' + el.id) || (el.className && '.' + String(el.className).split(' ')[0]) || el.tagName) : 'none';
+    }
+    modalDiagLog.push(snap);
+    if (modalDiagLog.length > 30) modalDiagLog.shift();
+    const tabsGone = !!tabsEl && tabsEl.getClientRects().length === 0;
+    const bodyGone = !!body && body.getClientRects().length === 0;
+    let tabsOut = false;
+    if (scr && tabsRect && tabsRect.height > 0 && scroller) {
+      tabsOut = (tabsRect.bottom < scr.top || tabsRect.top > scr.bottom) && scroller.scrollTop <= 1;
+    }
+    if (tabsGone || bodyGone || tabsOut) {
+      console.error('EMPTY-MODAL-DIAG[' + stage + ']:', JSON.stringify(snap));
+      console.error('EMPTY-MODAL-HISTORY:', JSON.stringify(modalDiagLog));
+      showToast('Phát hiện modal trống - chi tiết trong Console (F12)', 'fa-triangle-exclamation');
+    }
+  } catch (e) { console.error('modal diag failed:', e); }
+}
+window.dumpModalDiag = () => { console.log(JSON.stringify(modalDiagLog, null, 1)); return modalDiagLog.length; };
 
 function renderShowDetail(show, defaultTab = 'tab-watch') {
   state.activeShow = show;
@@ -2322,6 +2387,12 @@ function switchTabsIn(rootSelector, attrName, tabId, opts = {}) {
   if (scroller && scroller.scrollTop > 1) {
     tweenScrollTop(scroller, 0, 460, easeInOutCubic);
   }
+
+  // Paint diagnostic (temporary): snapshot after the switch settles.
+  // switchTabsIn is shared with the settings modal; diagnoseModalPaint
+  // no-ops unless the detail modal is open with a show.
+  const diagTab = tabId;
+  setTimeout(() => diagnoseModalPaint('tab:' + diagTab), 550);
 }
 
 function switchModalTab(tabId, opts) {
