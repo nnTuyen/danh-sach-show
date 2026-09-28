@@ -44,7 +44,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Main Stylesheet (v= date bump to force fresh load, avoid stale cache) -->
-  <link rel="stylesheet" href="style.css?v=20260928f">
+  <link rel="stylesheet" href="style.css?v=20260929a">
 
   <!-- PWA manifest (service worker removed; manifest kept for future use) -->
   <link rel="manifest" href="manifest.json">
@@ -733,6 +733,39 @@
                 <i class="fa-solid fa-arrow-rotate-left"></i> Khôi phục dữ liệu ban đầu
               </button>
             </div>
+
+            <hr style="border: none; border-top: 1px solid var(--border-subtle); margin: 20px 0;">
+            <h4 style="font-size: 15px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">
+              <i class="fa-solid fa-bookmark" style="color: var(--primary-pink);"></i>
+              Sao lưu show Yêu thích (<span id="favBackupCount">0</span>)
+            </h4>
+            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px;">
+              Danh sách yêu thích chỉ lưu trên trình duyệt này. Hãy sao lưu để chuyển sang máy hoặc trình duyệt khác, rồi dùng mã/file đó để khôi phục lại.
+            </p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
+              <button type="button" class="btn-secondary" id="btnCopyFavBackup">
+                <i class="fa-regular fa-clipboard"></i> Sao chép mã sao lưu
+              </button>
+              <button type="button" class="btn-secondary" id="btnDownloadFavBackup">
+                <i class="fa-solid fa-file-arrow-down"></i> Tải file .txt
+              </button>
+              <button type="button" class="btn-secondary" id="btnToggleFavRestore">
+                <i class="fa-solid fa-rotate-left"></i> Khôi phục...
+              </button>
+            </div>
+            <div id="favRestoreBox" style="display: none;">
+              <label class="settings-label" for="favRestoreText">Dán mã sao lưu vào đây, hoặc chọn file .txt đã lưu:</label>
+              <textarea id="favRestoreText" rows="4" placeholder="DATING-SHOW-HUB-FAVORITES-v1&#10;ten-show-1&#10;ten-show-2..." style="width: 100%; min-height: 90px; padding: 10px 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); background: var(--bg-surface-elevated); color: var(--text-main); font-size: 12px; font-family: ui-monospace, Consolas, monospace; resize: vertical; margin: 8px 0;"></textarea>
+              <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                <input type="file" id="favRestoreFile" accept=".txt,.text,.json,text/plain" style="font-size: 12px; color: var(--text-secondary); max-width: 100%;">
+                <button type="button" class="btn-primary" id="btnDoFavRestore">
+                  <i class="fa-solid fa-check"></i> Khôi phục ngay
+                </button>
+              </div>
+              <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.6;">
+                Khôi phục sẽ <strong>giữ nguyên</strong> các show đã lưu hiện tại và thêm vào những show còn thiếu.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -851,7 +884,7 @@
   </div>
 
   <!-- Main Application Script -->
-  <script src="app.js?v=20260928f"></script>
+  <script src="app.js?v=20260929a"></script>
 </body>
 
 </html>

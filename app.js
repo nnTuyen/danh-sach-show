@@ -538,6 +538,130 @@ function updateModalFavoriteButton(show) {
     : '<i class="fa-regular fa-heart"></i> Lưu vào Yêu thích';
 }
 
+// ============================================================
+// FAVORITES BACKUP (export / import across browsers & machines)
+// ============================================================
+// Plain-text format, one show id per line (a " # Title" comment suffix is
+// allowed for humans and stripped on import). Understands ids as well as
+// legacy title/slug keys, so old backups keep working after renames.
+const FAV_BACKUP_HEADER = 'DATING-SHOW-HUB-FAVORITES-v1';
+
+function buildFavoritesBackup() {
+  const keys = (Array.isArray(state.favorites) ? state.favorites : [])
+    .filter(k => typeof k === 'string' && k.trim());
+  if (keys.length === 0) return null;
+  const lines = keys.map(k => {
+    const show = state.shows.find(s => s.id === k);
+    const title = show && show.vietnamese ? ` # ${show.vietnamese}` : '';
+    return `${k}${title}`;
+  });
+  return `${FAV_BACKUP_HEADER}\n${lines.join('\n')}\n`;
+}
+
+function copyFavoritesBackup() {
+  const code = buildFavoritesBackup();
+  if (!code) {
+    showToast('Chưa có show yêu thích nào để sao lưu', 'fa-bookmark');
+    return;
+  }
+  const done = () => showToast(`Đã sao chép mã sao lưu (${state.favorites.length} show)`, 'fa-clipboard-check');
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(code).then(done).catch(() => fallbackCopy(code, done));
+  } else {
+    fallbackCopy(code, done);
+  }
+}
+
+function downloadFavoritesBackup() {
+  const code = buildFavoritesBackup();
+  if (!code) {
+    showToast('Chưa có show yêu thích nào để sao lưu', 'fa-bookmark');
+    return;
+  }
+  const d = new Date();
+  const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+  const blob = new Blob([code], { type: 'text/plain;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `show-yeu-thich-${stamp}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(`Đã tải file sao lưu (${state.favorites.length} show)`, 'fa-download');
+}
+
+// A backup key can be a stable id, a legacy title, or a slug: resolve it to
+// a current show id, or null when this device simply doesn't have that show.
+function resolveFavoriteKey(key) {
+  if (!key || typeof key !== 'string') return null;
+  key = key.trim();
+  if (!key) return null;
+  const byId = state.shows.find(s => s.id === key);
+  if (byId && byId.id) return byId.id;
+  const legacy = state.shows.find(s =>
+    s.vietnamese === key || s.english === key || s.chinese === key ||
+    slugify(s.vietnamese) === key);
+  return legacy && legacy.id ? legacy.id : null;
+}
+
+// Merge (never wipe): adds missing shows, keeps what is already saved.
+function importFavoritesBackup(text) {
+  const raw = (text || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean)
+    .filter(l => l !== FAV_BACKUP_HEADER)
+    .map(l => {
+      const hashIdx = l.indexOf(' # ');
+      return (hashIdx > 0 ? l.slice(0, hashIdx) : l).trim();
+    })
+    .filter(Boolean);
+  if (raw.length === 0) {
+    showToast('Mã sao lưu trống, không có gì để khôi phục', 'fa-triangle-exclamation');
+    return { added: 0, skipped: 0 };
+  }
+  if (!Array.isArray(state.favorites)) state.favorites = [];
+  let added = 0, skipped = 0;
+  raw.forEach(key => {
+    const id = resolveFavoriteKey(key);
+    if (!id) { skipped += 1; return; }
+    if (!state.favorites.includes(id)) {
+      state.favorites.push(id);
+      added += 1;
+    }
+  });
+  try {
+    localStorage.setItem('datinghub_favorites', JSON.stringify(state.favorites));
+  } catch (e) { /* storage unavailable */ }
+  updateFavoritesBadge();
+  applyFilters(); // the Yêu thích view (if active) picks the restored shows up
+  if (state.activeShow) updateModalFavoriteButton(state.activeShow);
+  if (added > 0 && skipped === 0) {
+    showToast(`Đã khôi phục ${added} show yêu thích! 💕`, 'fa-heart');
+  } else if (added > 0) {
+    showToast(`Đã khôi phục ${added} show, bỏ qua ${skipped} mã lạ`, 'fa-heart');
+  } else if (skipped > 0) {
+    showToast(`Không khôi phục được show nào (${skipped} mã lạ)`, 'fa-triangle-exclamation');
+  } else {
+    showToast('Các show này đều đã có trong Yêu thích', 'fa-bookmark');
+  }
+  return { added, skipped };
+}
+
+function refreshFavBackupUI() {
+  const count = Array.isArray(state.favorites) ? state.favorites.length : 0;
+  const countEl = document.getElementById('favBackupCount');
+  if (countEl) countEl.textContent = count;
+  const empty = count === 0;
+  ['btnCopyFavBackup', 'btnDownloadFavBackup'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) {
+      btn.disabled = empty;
+      btn.style.opacity = empty ? '0.5' : '';
+      btn.title = empty ? 'Chưa có show yêu thích nào' : '';
+    }
+  });
+}
+
 // Fix titles broken by ASCII-only uppercasing (upper ASCII + lower diacritics,
 // e.g. "KHI TìNH YêU" instead of "KHI TÌNH YÊU"). Such titles can linger in
 // old localStorage copies ('datinghub_local_shows') and render wrong on cards.
@@ -2842,6 +2966,13 @@ function openSettingsModal() {
   stagedSpotlightSlugs = [...state.spotlightSlugs];
   populateSettingsSelects();
   renderStagedPins();
+  refreshFavBackupUI();
+  const restoreBox = document.getElementById('favRestoreBox');
+  if (restoreBox) restoreBox.style.display = 'none';
+  const restoreText = document.getElementById('favRestoreText');
+  if (restoreText) restoreText.value = '';
+  const restoreFile = document.getElementById('favRestoreFile');
+  if (restoreFile) restoreFile.value = '';
   freezeModalHeight(modal);
   modal.classList.add('active');
   lockPageScroll();
@@ -3871,6 +4002,29 @@ function initEventListeners() {
   document.getElementById('btnSubmitAddShow')?.addEventListener('click', addNewShow);
   document.getElementById('btnDownloadJson')?.addEventListener('click', downloadUpdatedJson);
   document.getElementById('btnResetData')?.addEventListener('click', resetDataToDefault);
+  document.getElementById('btnCopyFavBackup')?.addEventListener('click', copyFavoritesBackup);
+  document.getElementById('btnDownloadFavBackup')?.addEventListener('click', downloadFavoritesBackup);
+  document.getElementById('btnToggleFavRestore')?.addEventListener('click', () => {
+    const box = document.getElementById('favRestoreBox');
+    if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  });
+  document.getElementById('favRestoreFile')?.addEventListener('change', (e) => {
+    const file = e.target && e.target.files ? e.target.files[0] : null;
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const area = document.getElementById('favRestoreText');
+      if (area) area.value = typeof reader.result === 'string' ? reader.result : '';
+      showToast(`Đã nạp file "${file.name}", bấm "Khôi phục ngay"`, 'fa-file-import');
+    };
+    reader.onerror = () => showToast('Không đọc được file, hãy thử lại', 'fa-triangle-exclamation');
+    reader.readAsText(file);
+  });
+  document.getElementById('btnDoFavRestore')?.addEventListener('click', () => {
+    const area = document.getElementById('favRestoreText');
+    importFavoritesBackup(area ? area.value : '');
+    refreshFavBackupUI();
+  });
 
   // Keyboard Shortcuts
   window.addEventListener('keydown', (e) => {
