@@ -1710,6 +1710,8 @@ function startFlipOpen(content, seq) {
     // that now belong to another animation.
     if (seq !== state.modalSeq) return;
     flipCleanup(content, null);
+    const m = content.closest('.modal-overlay');
+    assertPaneVisible(m || document, m ? m.querySelector('.tab-pane.active') : null);
   };
   const cancel = () => { done = true; clearTimeout(timer); content.removeEventListener('transitionend', onEnd); };
   const timer = setTimeout(finishOpen, 600);
@@ -1776,6 +1778,13 @@ function openShowDetail(show, defaultTab = 'tab-watch', opts = {}) {
     // a newer open/close took over in the meantime.
     const diagSeq = state.modalSeq;
     setTimeout(() => { if (diagSeq === state.modalSeq) diagnoseModalPaint('open+500'); }, 500);
+    // Late phantom-visibility sweep: the phantom can strike after the sync
+    // open assert (e.g. mid-FLIP on throttled frames). Same guard.
+    setTimeout(() => {
+      if (diagSeq !== state.modalSeq) return;
+      const m = document.getElementById('detailModal');
+      if (m && m.classList.contains('active')) assertPaneVisible(m, m.querySelector('.tab-pane.active'));
+    }, 800);
   } catch (err) {
     console.error('Lỗi khi mở chi tiết show:', err);
     try { doCloseShowDetail(false); } catch (_) { /* best effort */ }
@@ -1847,7 +1856,7 @@ function diagnoseModalPaint(stage) {
     const footerRect = footer ? footer.getBoundingClientRect() : null;
     const snap = {
       stage, show: show.vietnamese, t: Math.round(performance.now()),
-      ver: '20260928d', theme: document.documentElement.dataset.theme,
+      ver: '20260928e', theme: document.documentElement.dataset.theme,
       tabsBoxes: tabsEl ? tabsEl.getClientRects().length : -1,
       tabsRect: tabsRect ? [Math.round(tabsRect.top), Math.round(tabsRect.bottom), Math.round(tabsRect.height)] : null,
       bodyH: bodyRect ? Math.round(bodyRect.height) : -1,
@@ -1865,6 +1874,8 @@ function diagnoseModalPaint(stage) {
       paneId: activePane ? activePane.id : '?',
       paneH: paneRect ? Math.round(paneRect.height) : -1,
       paneKids: activePane ? activePane.childElementCount : -1,
+      bodyVis: body ? getComputedStyle(body).visibility : '?',
+      paneVis: activePane ? getComputedStyle(activePane).visibility : '?',
       footerInView: footerRect ? (footerRect.bottom > 0 && footerRect.top < window.innerHeight) : false,
       poster: mp ? `${mp.complete}/${mp.naturalWidth}` : '?'
     };
@@ -1881,11 +1892,16 @@ function diagnoseModalPaint(stage) {
     // A pane with real children is never legitimately 0px tall.
     const paneCollapsed = !!activePane && activePane.childElementCount > 0 &&
       paneRect && paneRect.height === 0 && activePane.getClientRects().length === 0;
+    // Phantom hidden (no cascade source): the blank-modal signature. The
+    // assert calls should already have forced visible; reaching here means
+    // something deeper - log it loudly.
+    const phantomHidden = (body && getComputedStyle(body).visibility === 'hidden') ||
+      (!!activePane && getComputedStyle(activePane).visibility === 'hidden');
     let tabsOut = false;
     if (scr && tabsRect && tabsRect.height > 0 && scroller) {
       tabsOut = (tabsRect.bottom < scr.top || tabsRect.top > scr.bottom) && scroller.scrollTop <= 1;
     }
-    if (tabsGone || bodyGone || tabsOut || paneCollapsed) {
+    if (tabsGone || bodyGone || tabsOut || paneCollapsed || phantomHidden) {
       console.error('EMPTY-MODAL-DIAG[' + stage + ']:', JSON.stringify(snap));
       console.error('EMPTY-MODAL-HISTORY:', JSON.stringify(modalDiagLog));
       showToast('Phát hiện modal trống - chi tiết trong Console (F12)', 'fa-triangle-exclamation');
@@ -2364,6 +2380,7 @@ function switchTabsIn(rootSelector, attrName, tabId, opts = {}) {
     panes.forEach(p => p.getAnimations().forEach(a => a.cancel()));
     panes.forEach(p => p.classList.toggle('active', p === next));
     if (scroller && scroller.scrollTop > 1) scroller.scrollTop = 0;
+    assertPaneVisible(root, next);
     return;
   }
 
@@ -2417,6 +2434,7 @@ function switchTabsIn(rootSelector, attrName, tabId, opts = {}) {
     if (body) void body.offsetHeight;
     if (scroller) void scroller.offsetHeight;
     if (content) void content.offsetHeight;
+    assertPaneVisible(root, next);
   };
   slideAnim.onfinish = () => { settle(); clearTimeout(settleTimer2); };
   const settleTimer = setTimeout(settle, dur + 150);
@@ -2431,6 +2449,28 @@ function switchTabsIn(rootSelector, attrName, tabId, opts = {}) {
   // no-ops unless the detail modal is open with a show.
   const diagTab = tabId;
   setTimeout(() => diagnoseModalPaint('tab:' + diagTab), 550);
+}
+
+// Phantom-visibility guard. Under throttled compositing (occluded window,
+// some Edge/GPU drivers) .modal-body or the incoming pane can end up with a
+// computed visibility:hidden that has NO cascade source (no matching rule,
+// no inline style) right after a tab switch - the DOM and layout are intact
+// but the whole tab paints blank until a manual close+reopen. Nothing ever
+// legitimately hides these elements (the FLIP open hides .modal-content, an
+// ancestor, which still wins), so forcing inline visible here is a no-op
+// when healthy and an instant repaint when the phantom strikes.
+function assertPaneVisible(root, next) {
+  try {
+    const body = root.querySelector('.modal-body');
+    if (body && !body.style.visibility && getComputedStyle(body).visibility === 'hidden') {
+      console.warn('assertPaneVisible: phantom hidden on .modal-body - forcing visible');
+      body.style.visibility = 'visible';
+    }
+    if (next && !next.style.visibility && getComputedStyle(next).visibility === 'hidden') {
+      console.warn('assertPaneVisible: phantom hidden on pane - forcing visible');
+      next.style.visibility = 'visible';
+    }
+  } catch (_) {}
 }
 
 function switchModalTab(tabId, opts) {
@@ -3962,7 +4002,7 @@ function initSheetSwipe() {
 
 // App Entry Point
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('dating-hub app.js?v=20260928d');
+  console.log('dating-hub app.js?v=20260928e');
   initTheme();
   initFavorites();
   initEventListeners();
