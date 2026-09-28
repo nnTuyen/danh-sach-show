@@ -1523,10 +1523,12 @@ function focusModalEntry(modal) {
 
 function restoreFocusAfterModal() {
   if (document.querySelector('.modal-overlay.active')) return; // another modal still open
-  // Only touch scroll/focus when a modal was actually open (lastFocused is
-  // set on open). Otherwise Esc on the homepage would yank the page to top.
+  // Only restore focus when a modal was actually open (lastFocused is set on
+  // open). Never touch window scroll here: the page scroll is already
+  // preserved by the overflow:clip lock, and a redundant scrollTo() forces a
+  // full-page repaint that reads as a homepage "blink" on close.
+  // Otherwise Esc on the homepage would yank the page to top.
   if (lastFocusedBeforeModal && document.contains(lastFocusedBeforeModal)) {
-    window.scrollTo(0, savedPageScrollY);
     lastFocusedBeforeModal.focus?.({ preventScroll: true });
   }
   lastFocusedBeforeModal = null;
@@ -1632,12 +1634,19 @@ function openShowDetailAnimated(show, defaultTab = 'tab-watch', sourceEl = null)
   // morph repaints the whole rich modal on phone GPUs (border flash, dropped
   // frames); a composited vertical slide stays smooth at any content weight.
   if (window.matchMedia('(max-width: 768px)').matches) {
-    openShowDetail(show, defaultTab);
+    // suppressMotion keeps the built-in CSS transition off so it can't fight
+    // the WAAPI slide (double transform = first-frame jump / blink).
+    openShowDetail(show, defaultTab, { suppressMotion: true });
     if (!reduceMotion) {
-      content.animate(
+      const anim = content.animate(
         [{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }],
         { duration: 380, easing: 'cubic-bezier(.4, 0, .2, 1)' }
       );
+      const reveal = () => content.classList.remove('no-anim');
+      try { anim.onfinish = reveal; } catch (_) {}
+      setTimeout(reveal, 450);
+    } else {
+      content.classList.remove('no-anim');
     }
     return;
   }
@@ -1651,28 +1660,14 @@ function openShowDetailAnimated(show, defaultTab = 'tab-watch', sourceEl = null)
   // openShowDetail also cancels any in-flight morph and clears leftover
   // inline transforms, so reopening during a close starts from a clean slate.
   openShowDetail(show, defaultTab, { suppressMotion: true });
-  const seq = state.modalSeq;
-  const modal = document.getElementById('detailModal');
 
-  // 2. Let the modal poster finish decoding first (capped 80ms): morphing
-  // while the photo still decodes is the main source of mid-flight stutter.
-  // The cap stays low because a long silent wait reads as a "hang" on the
-  // very first open of a show whose poster was never pre-warmed.
-  const mp = document.getElementById('modalPoster');
-  const waitDecode = (mp && !mp.complete && mp.decode)
-    ? Promise.race([mp.decode(), new Promise(res => setTimeout(res, 80))]).catch(() => {})
-    : Promise.resolve();
-  waitDecode.then(() => {
-    // Superseded by a newer open/close while decoding: never touch the DOM
-    // that newer operation owns. Only unhide if we are still the latest open.
-    if (seq !== state.modalSeq) return;
-    if (!modal || !modal.classList.contains('active')) {
-      content.classList.remove('no-anim');
-      content.style.visibility = '';
-      return;
-    }
-    startFlipOpen(content, seq);
-  });
+  // 2. Morph synchronously in the same frame (no poster-decode wait, no
+  // visibility:hidden). The old code hid the content for up to 80ms while
+  // waiting for mp.decode(): the overlay was already .active, so users saw
+  // one empty dimmed-backdrop frame = the intermittent "homepage blink".
+  // Decoding mid-morph is fine: the poster fades in via its own opacity
+  // transition and hover-prewarming already covers most cases.
+  startFlipOpen(content, state.modalSeq);
 }
 
 function startFlipOpen(content, seq) {
@@ -1735,6 +1730,25 @@ function unlockPageScroll() {
   document.documentElement.style.overflow = '';
 }
 
+// Stacked modals share one page-scroll lock. Unlocking while any overlay or
+// the poster lightbox is still open lets the background scroll under the
+// open modal (reads as a homepage flash). Callers closing one layer must use
+// unlockPageScrollIfFree() instead of unlockPageScroll().
+function isAnyModalActive(exceptId) {
+  const ids = ['detailModal', 'settingsModal', 'episodeEditorModal', 'episodePickerModal', 'largeEditorModal'];
+  for (const id of ids) {
+    if (id === exceptId) continue;
+    const el = document.getElementById(id);
+    if (el && el.classList.contains('active')) return true;
+  }
+  const lb = document.getElementById('imageLightbox');
+  return !!(lb && lb.classList.contains('open'));
+}
+
+function unlockPageScrollIfFree(exceptId) {
+  if (!isAnyModalActive(exceptId)) unlockPageScroll();
+}
+
 // Public entry: any throw inside the (long) body must not leave a half-open
 // modal behind - stopped carousel, rewritten document.title and a pushed
 // history entry with no modal on screen.
@@ -1764,10 +1778,11 @@ function openShowDetail(show, defaultTab = 'tab-watch', opts = {}) {
     content.style.borderRadius = '';
     content.style.visibility = '';
     if (opts.suppressMotion) {
-      // Hide while the poster decodes: async waiting would otherwise flash
-      // the full modal statically before the morph starts (blink bug).
+      // Suppress only the built-in CSS open motion (the FLIP / bottom-sheet
+      // path owns the motion and reveals the content itself). Never hide with
+      // visibility:hidden here: the overlay is already .active, so a hidden
+      // content means one blank-backdrop frame that reads as a blink.
       content.classList.add('no-anim');
-      content.style.visibility = 'hidden';
     }
   }
   try {
@@ -1856,7 +1871,7 @@ function diagnoseModalPaint(stage) {
     const footerRect = footer ? footer.getBoundingClientRect() : null;
     const snap = {
       stage, show: show.vietnamese, t: Math.round(performance.now()),
-      ver: '20260928e', theme: document.documentElement.dataset.theme,
+      ver: '20260928f', theme: document.documentElement.dataset.theme,
       tabsBoxes: tabsEl ? tabsEl.getClientRects().length : -1,
       tabsRect: tabsRect ? [Math.round(tabsRect.top), Math.round(tabsRect.bottom), Math.round(tabsRect.height)] : null,
       bodyH: bodyRect ? Math.round(bodyRect.height) : -1,
@@ -2101,7 +2116,7 @@ function doCloseShowDetail(updateHistory = true) {
   if (!modal) return;
   unfreezeModalHeight(modal);
   modal.classList.remove('active');
-  unlockPageScroll();
+  unlockPageScrollIfFree('detailModal');
   state.activeShow = null;
   restoreFocusAfterModal();
   restartSpotlightTimer();
@@ -2197,10 +2212,7 @@ function closePosterLightbox() {
   box.setAttribute('aria-hidden', 'true');
   if (lightboxPrevFocus && lightboxPrevFocus.isConnected) lightboxPrevFocus.focus();
   lightboxPrevFocus = null;
-  const detailModal = document.getElementById('detailModal');
-  if (!detailModal || !detailModal.classList.contains('active')) {
-    unlockPageScroll();
-  }
+  unlockPageScrollIfFree();
 }
 
 const lbPointers = new Map();
@@ -2841,7 +2853,7 @@ function closeSettingsModal() {
   if (!modal) return;
   unfreezeModalHeight(modal);
   modal.classList.remove('active');
-  unlockPageScroll();
+  unlockPageScrollIfFree('settingsModal');
   restoreFocusAfterModal();
 }
 
@@ -3127,12 +3139,7 @@ function closeEpisodeEditor(save) {
   episodeDraft = [];
   const modal = document.getElementById('episodeEditorModal');
   if (modal) modal.classList.remove('active');
-  const detailModal = document.getElementById('detailModal');
-  const settingsModal = document.getElementById('settingsModal');
-  if ((!detailModal || !detailModal.classList.contains('active')) &&
-      (!settingsModal || !settingsModal.classList.contains('active'))) {
-    unlockPageScroll();
-  }
+  unlockPageScrollIfFree('episodeEditorModal');
 }
 
 function renderEpisodeDraft() {
@@ -4002,7 +4009,7 @@ function initSheetSwipe() {
 
 // App Entry Point
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('dating-hub app.js?v=20260928e');
+  console.log('dating-hub app.js?v=20260928f');
   initTheme();
   initFavorites();
   initEventListeners();
