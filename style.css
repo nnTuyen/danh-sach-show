@@ -560,26 +560,47 @@ div.spotlight-poster {
   display: flex;
 }
 .spotlight-nav {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  color: #fff;
+  /* Liquid glass: translucent gradient + backdrop blur/saturate, light edge,
+     inset top highlight and soft shadow. Icon uses --text-main so contrast
+     holds on both dark and light themes. */
+  background: rgba(255, 255, 255, 0.16);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.08));
+  -webkit-backdrop-filter: blur(14px) saturate(170%);
+  backdrop-filter: blur(14px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 8px 22px rgba(15, 18, 30, 0.18),
+    inset 0 1px 1px rgba(255, 255, 255, 0.6),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.12);
+  color: var(--text-main);
   font-size: 13px;
   cursor: pointer;
   display: none;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-fast);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast),
+    background-color var(--transition-fast), color var(--transition-fast);
 }
 .hero-spotlight.has-multiple + .spotlight-footer .spotlight-nav {
   display: inline-flex;
 }
 .spotlight-nav:hover {
-  background: var(--primary-pink);
-  border-color: var(--primary-pink);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.14));
+  color: var(--primary-pink);
+  border-color: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 10px 26px rgba(255, 46, 126, 0.35),
+    inset 0 1px 1px rgba(255, 255, 255, 0.7),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
+}
+.spotlight-nav:active {
+  transform: translateY(0) scale(0.94);
+}
+.spotlight-nav:focus-visible {
+  outline: 2px solid var(--primary-pink);
+  outline-offset: 2px;
 }
 .spotlight-footer .spotlight-dots {
   margin-top: 0;
@@ -1216,7 +1237,7 @@ div.spotlight-poster {
   .show-list-item:hover,
   .btn-primary:hover, .btn-secondary:hover, .btn-icon:hover,
   .btn-back-to-top:hover, .btn-modal-close:hover,
-  .brand-logo:hover .brand-icon, .spotlight-nav:hover,
+  .brand-logo:hover .brand-icon, .spotlight-nav:hover, .spotlight-nav:active,
   .watch-link-btn:hover { transform: none; }
   .shows-grid > .card-enter, .shows-list > .card-enter { animation: none; }
 }
