@@ -44,7 +44,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Main Stylesheet (v= date bump to force fresh load, avoid stale cache) -->
-  <link rel="stylesheet" href="style.css?v=20260929a">
+  <link rel="stylesheet" href="style.css?v=20260929b">
 
   <!-- PWA manifest (service worker removed; manifest kept for future use) -->
   <link rel="manifest" href="manifest.json">
@@ -137,14 +137,16 @@
           <div class="spotlight-track" id="spotlightTrack">
             <!-- Slides built by JS (one per pinned show) -->
           </div>
+        </div>
+        <div class="spotlight-footer">
           <button type="button" class="spotlight-nav spotlight-prev" id="spotlightPrev" aria-label="Show hot trước">
             <i class="fa-solid fa-chevron-left"></i>
           </button>
+          <div class="spotlight-dots" id="spotlightDots" style="display: none;"></div>
           <button type="button" class="spotlight-nav spotlight-next" id="spotlightNext" aria-label="Show hot tiếp">
             <i class="fa-solid fa-chevron-right"></i>
           </button>
         </div>
-        <div class="spotlight-dots" id="spotlightDots" style="display: none;"></div>
       </div>
     </div>
   </section>

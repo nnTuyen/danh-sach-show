@@ -546,11 +546,20 @@ div.spotlight-poster {
   width: fit-content;
 }
 
-/* Show hot carousel nav + dots */
-.hero-spotlight .spotlight-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+/* Spotlight nav: prev/dots/next sit in a row BELOW the hero (they used to
+   overlay the hero and cover the poster - worse on 88px accordion strips).
+   The whole row only renders with 2+ slides. */
+.spotlight-footer {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 10px;
+}
+.hero-spotlight.has-multiple + .spotlight-footer {
+  display: flex;
+}
+.spotlight-nav {
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -562,18 +571,18 @@ div.spotlight-poster {
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 3;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  transition: all var(--transition-fast);
 }
-.hero-spotlight.has-multiple .spotlight-nav {
-  display: flex;
+.hero-spotlight.has-multiple + .spotlight-footer .spotlight-nav {
+  display: inline-flex;
 }
-.spotlight-prev {
-  left: 10px;
+.spotlight-nav:hover {
+  background: var(--primary-pink);
+  border-color: var(--primary-pink);
+  transform: translateY(-2px);
 }
-.spotlight-next {
-  right: 10px;
+.spotlight-footer .spotlight-dots {
+  margin-top: 0;
 }
 .spotlight-dots {
   display: none;
@@ -1207,7 +1216,7 @@ div.spotlight-poster {
   .show-list-item:hover,
   .btn-primary:hover, .btn-secondary:hover, .btn-icon:hover,
   .btn-back-to-top:hover, .btn-modal-close:hover,
-  .brand-logo:hover .brand-icon,
+  .brand-logo:hover .brand-icon, .spotlight-nav:hover,
   .watch-link-btn:hover { transform: none; }
   .shows-grid > .card-enter, .shows-list > .card-enter { animation: none; }
 }
