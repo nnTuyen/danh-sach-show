@@ -226,6 +226,12 @@ textarea:focus-visible,
   transition: transform var(--transition-bounce);
 }
 
+.brand-icon svg {
+  width: 19px;
+  height: auto;
+  display: block;
+}
+
 .brand-logo:hover .brand-icon {
   transform: scale(1.08) rotate(5deg);
 }
@@ -1068,7 +1074,8 @@ div.spotlight-poster {
 }
 
 .fallback-icon {
-  font-size: 32px;
+  width: 48px;
+  height: 32px;
   margin-bottom: 10px;
   color: var(--primary-pink);
   filter: drop-shadow(0 4px 10px rgba(255, 46, 126, 0.5));
@@ -2538,8 +2545,8 @@ div.spotlight-poster {
 .footer-inner {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  align-items: flex-start;
+  text-align: left;
   gap: 14px;
 }
 

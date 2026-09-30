@@ -112,6 +112,10 @@ function debounce(func, delay = 250) {
   };
 }
 
+// Logo C ("Lên Sóng") - brand mark for poster placeholders (no-image state).
+// fill/stroke = currentColor so CSS controls colour per context.
+const LOGO_C_MARK = `<g transform="translate(-10.2,-24.3) scale(1.14)"><path transform="translate(-3.4,20.8) scale(0.78)" fill="currentColor" d="M128 218 C96 194 62 162 48 136 C34 110 40 78 68 66 C92 56 116 66 128 88 C140 66 164 56 188 66 C216 78 222 110 208 136 C194 162 160 194 128 218 Z"/><path fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" d="M182.9 108.7 A20 20 0 0 1 182.9 139.3"/><path fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" d="M198.3 90.3 A44 44 0 0 1 198.3 157.7"/></g>`;
+
 // Skeleton placeholders: same footprint as real cards so CLS stays 0
 function renderShowsSkeleton(count = 8) {
   const container = document.getElementById('showsGrid');
@@ -1108,7 +1112,7 @@ function buildSpotlightSlide(candidate, i) {
   const title = escapeHtml(candidate.vietnamese || candidate.english || '');
   const posterHtml = candidate.image
     ? `<img src="${escapeHtml(getProxiedImageUrl(candidate.image, 360))}" data-original-src="${escapeHtml(candidate.image)}" alt="${title}" class="spotlight-poster" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async" onload="this.classList.add('loaded')" onerror="handlePosterImgError(this, 'https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg')">`
-    : `<div class="spotlight-poster" style="display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-heart" style="font-size:28px;color:var(--primary-pink);"></i></div>`;
+    : `<div class="spotlight-poster" style="display:flex;align-items:center;justify-content:center;"><svg viewBox="19 51 218 145" fill="none" style="height:28px;width:auto;color:var(--primary-pink);" aria-hidden="true">${LOGO_C_MARK}</svg></div>`;
   slide.innerHTML = `
     ${posterHtml}
     <div class="spotlight-info">
@@ -1508,7 +1512,7 @@ function createGridCard(show) {
     const posterWidth = window.matchMedia('(max-width: 480px)').matches ? 300 : 400;
     posterHtml = `<img src="${escapeHtml(getProxiedImageUrl(show.image, posterWidth))}" data-original-src="${escapeHtml(show.image)}" alt="${vnTitleEscaped}" class="card-poster-img" width="300" height="400" loading="lazy" decoding="async" onload="this.classList.add('loaded')">`;
   } else {
-    posterHtml = `<div class="card-poster-fallback"><i class="fa-solid fa-heart fallback-icon"></i><div class="fallback-title">${vnTitleEscaped}</div></div>`;
+    posterHtml = `<div class="card-poster-fallback"><svg class="fallback-icon" viewBox="19 51 218 145" fill="none" aria-hidden="true">${LOGO_C_MARK}</svg><div class="fallback-title">${vnTitleEscaped}</div></div>`;
   }
 
   card.innerHTML = `
@@ -1564,7 +1568,7 @@ function createGridCard(show) {
         imgEl.remove();
         const fallback = document.createElement('div');
         fallback.className = 'card-poster-fallback';
-        fallback.innerHTML = `<i class="fa-solid fa-heart fallback-icon"></i><div class="fallback-title">${vnTitleEscaped}</div>`;
+        fallback.innerHTML = `<svg class="fallback-icon" viewBox="19 51 218 145" fill="none" aria-hidden="true">${LOGO_C_MARK}</svg><div class="fallback-title">${vnTitleEscaped}</div>`;
         wrapper.prepend(fallback);
       }
     });
