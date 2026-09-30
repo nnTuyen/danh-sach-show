@@ -553,56 +553,41 @@ div.spotlight-poster {
   display: none;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   margin-top: 4px;
 }
 .hero-spotlight.has-multiple + .spotlight-footer {
   display: flex;
 }
 .spotlight-nav {
-  position: relative;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  /* Frosted glass pill like the reference: near-clear fill, luminous thin
-     rim (brighter on top), soft outer glow. ::before adds the top light
-     catcher. Icon stays pure white. */
-  background: rgba(255, 255, 255, 0.06);
-  -webkit-backdrop-filter: blur(16px) saturate(150%);
-  backdrop-filter: blur(16px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  box-shadow: none;
   color: #fff;
-  font-size: 13px;
+  font-size: 15px;
   cursor: pointer;
   display: none;
   align-items: center;
   justify-content: center;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast),
-    background-color var(--transition-fast), border-color var(--transition-fast);
+  padding: 0;
+  transition: color var(--transition-fast), transform var(--transition-fast);
 }
-.spotlight-nav::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: radial-gradient(115% 85% at 50% 0%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 55%);
+/* Dark is the default (no data-theme="light"): white glyphs */
+[data-theme="dark"] .spotlight-nav,
+:root:not([data-theme="light"]) .spotlight-nav {
+  color: #fff;
 }
-.spotlight-nav i {
-  position: relative;
-  z-index: 1;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+/* Light theme: black glyphs */
+[data-theme="light"] .spotlight-nav {
+  color: #111;
 }
 .spotlight-nav:hover {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.6);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.1);
-  transform: translateY(-2px);
+  color: var(--primary-pink);
+}
+.spotlight-nav:active {
+  transform: scale(0.9);
 }
 .hero-spotlight.has-multiple + .spotlight-footer .spotlight-nav {
   display: inline-flex;
