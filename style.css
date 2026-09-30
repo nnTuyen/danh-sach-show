@@ -589,7 +589,12 @@ div.spotlight-poster {
 [data-theme="light"] .spotlight-nav {
   color: #111;
 }
-.spotlight-nav:hover {
+/* Hover must outrank the theme rules above (the :root:not() dark selector
+   has higher specificity than a bare :hover), or dark theme never changes
+   color on hover like light theme does. */
+.spotlight-nav:hover,
+[data-theme="dark"] .spotlight-nav:hover,
+:root:not([data-theme="light"]) .spotlight-nav:hover {
   color: var(--primary-pink);
 }
 .hero-spotlight.has-multiple + .spotlight-footer .spotlight-nav {
