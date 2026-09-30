@@ -226,6 +226,13 @@ textarea:focus-visible,
   height: auto;
 }
 
+/* Footer mark matches the height of the two-line brand text block
+   (19px*1.1 + 6px gap + 10px*1.1 = 37.9px). */
+.site-footer .brand-icon svg {
+  width: auto;
+  height: 37.9px;
+}
+
 .brand-logo:hover .brand-icon {
   transform: scale(1.08) rotate(5deg);
 }
