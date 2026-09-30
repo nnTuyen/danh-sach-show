@@ -44,7 +44,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Main Stylesheet (v= date bump to force fresh load, avoid stale cache) -->
-  <link rel="stylesheet" href="style.css?v=20260930e">
+  <link rel="stylesheet" href="style.css?v=20260930f">
 
   <!-- PWA manifest (service worker removed; manifest kept for future use) -->
   <link rel="manifest" href="manifest.json">
@@ -140,11 +140,11 @@
         </div>
         <div class="spotlight-footer">
           <button type="button" class="spotlight-nav spotlight-prev" id="spotlightPrev" aria-label="Show hot trước">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><defs><mask id="spotHollowPrev"><path d="M15 5.5 8.5 12 15 18.5" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 5.5 8.5 12 15 18.5" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></mask></defs><rect width="24" height="24" fill="currentColor" mask="url(#spotHollowPrev)"/></svg>
           </button>
           <div class="spotlight-dots" id="spotlightDots" style="display: none;"></div>
           <button type="button" class="spotlight-nav spotlight-next" id="spotlightNext" aria-label="Show hot tiếp">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><defs><mask id="spotHollowNext"><path d="M9 5.5 15.5 12 9 18.5" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 5.5 15.5 12 9 18.5" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></mask></defs><rect width="24" height="24" fill="currentColor" mask="url(#spotHollowNext)"/></svg>
           </button>
         </div>
       </div>

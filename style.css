@@ -562,8 +562,8 @@ div.spotlight-poster {
 .spotlight-nav {
   width: 34px;
   height: 34px;
-  /* Bare hollow chevron: no fills, no rims, no shadows - the SVG stroke
-     (currentColor) is the whole design */
+  /* Bare hollow chevron: SVG mask = outline of a thick chevron (outer white
+     stroke minus inner black stroke) - transparent center, no fills/rims. */
   background: none;
   border: none;
   box-shadow: none;
@@ -576,8 +576,8 @@ div.spotlight-poster {
   transition: color var(--transition-fast), transform var(--transition-fast);
 }
 .spotlight-nav svg {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: block;
 }
 /* Dark is the default (no data-theme="light"): white chevron */
