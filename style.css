@@ -561,30 +561,27 @@ div.spotlight-poster {
 }
 .spotlight-nav {
   position: relative;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  overflow: hidden;
-  /* Liquid glass: translucent gradient body, strong backdrop blur/saturate,
-     bright rim, inset top light. ::before catches light on the top curve,
-     ::after is the diagonal specular streak - the two cues that read as
-     "glass" even over a flat background where blur alone shows nothing. */
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.12) 45%, rgba(255, 255, 255, 0.04) 100%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%) brightness(1.06);
-  backdrop-filter: blur(18px) saturate(180%) brightness(1.06);
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  box-shadow: 0 8px 24px rgba(15, 18, 30, 0.22),
-    inset 0 1px 1px rgba(255, 255, 255, 0.85),
-    inset 0 -2px 4px rgba(255, 255, 255, 0.12),
-    inset 2px 0 4px rgba(255, 255, 255, 0.08);
-  color: var(--text-main);
+  /* Frosted glass pill like the reference: near-clear fill, luminous thin
+     rim (brighter on top), soft outer glow. ::before adds the top light
+     catcher. Icon stays pure white. */
+  background: rgba(255, 255, 255, 0.06);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+  color: #fff;
   font-size: 13px;
   cursor: pointer;
   display: none;
   align-items: center;
   justify-content: center;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast),
-    background-color var(--transition-fast), color var(--transition-fast);
+    background-color var(--transition-fast), border-color var(--transition-fast);
 }
 .spotlight-nav::before {
   content: "";
@@ -592,37 +589,23 @@ div.spotlight-poster {
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  background: radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 55%);
-}
-.spotlight-nav::after {
-  content: "";
-  position: absolute;
-  top: -20%;
-  bottom: -20%;
-  left: 14%;
-  width: 32%;
-  transform: rotate(18deg);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.06));
-  filter: blur(1px);
-  pointer-events: none;
-  transition: opacity var(--transition-fast);
+  background: radial-gradient(115% 85% at 50% 0%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 55%);
 }
 .spotlight-nav i {
   position: relative;
   z-index: 1;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+.spotlight-nav:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
 }
 .hero-spotlight.has-multiple + .spotlight-footer .spotlight-nav {
   display: inline-flex;
-}
-.spotlight-nav:hover {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.14));
-  color: var(--primary-pink);
-  border-color: rgba(255, 255, 255, 0.65);
-  box-shadow: 0 10px 26px rgba(255, 46, 126, 0.35),
-    inset 0 1px 1px rgba(255, 255, 255, 0.7),
-    inset 0 -1px 1px rgba(255, 255, 255, 0.15);
-  transform: translateY(-2px);
 }
 .spotlight-nav:active {
   transform: translateY(0) scale(0.94);
