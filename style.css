@@ -562,38 +562,35 @@ div.spotlight-poster {
 .spotlight-nav {
   width: 34px;
   height: 34px;
-  border-radius: 50%;
-  /* Outline circle: transparent fill (page shows through), thin theme rim */
-  background: transparent;
-  border: 1.5px solid #fff;
+  /* Bare hollow chevron: no fills, no rims, no shadows - the SVG stroke
+     (currentColor) is the whole design */
+  background: none;
+  border: none;
   box-shadow: none;
   color: #fff;
-  font-size: 13px;
   cursor: pointer;
   display: none;
   align-items: center;
   justify-content: center;
   padding: 0;
-  transition: color var(--transition-fast), border-color var(--transition-fast),
-    transform var(--transition-fast);
+  transition: color var(--transition-fast), transform var(--transition-fast);
 }
-/* Dark is the default (no data-theme="light"): white rim */
+.spotlight-nav svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+/* Dark is the default (no data-theme="light"): white chevron */
 [data-theme="dark"] .spotlight-nav,
 :root:not([data-theme="light"]) .spotlight-nav {
   color: #fff;
-  border-color: rgba(255, 255, 255, 0.85);
 }
-/* Light theme: black rim */
+/* Light theme: black chevron */
 [data-theme="light"] .spotlight-nav {
   color: #111;
-  border-color: #111;
 }
 .spotlight-nav:hover {
   color: var(--primary-pink);
-  border-color: var(--primary-pink);
-}
-.spotlight-nav:active {
-  transform: scale(0.9);
 }
 .hero-spotlight.has-multiple + .spotlight-footer .spotlight-nav {
   display: inline-flex;
