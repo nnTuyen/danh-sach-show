@@ -135,7 +135,8 @@
     "tags": [
       "normal"
     ],
-    "id": "giua-chung-ta-co-bi-mat-3"
+    "id": "giua-chung-ta-co-bi-mat-3",
+    "country": "china"
   },
   {
     "chinese": "好友好有爱4",
@@ -147,7 +148,8 @@
     "tags": [
       "normal"
     ],
-    "id": "ban-than-yeu-thuong-4"
+    "id": "ban-than-yeu-thuong-4",
+    "country": "china"
   },
   {
     "chinese": "偏爱之恋2",
@@ -255,7 +257,7 @@
       "normal"
     ],
     "country": "china",
-    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-10-v2.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-10-v2.png",
     "description": "là chương trình truyền hình thực tế hẹn hò liên thế hệ đầu tiên, nơi tám người trẻ độc thân bắt đầu hành trình tìm kiếm tình yêu kéo dài 13 ngày cùng với những người lớn tuổi hơn. \nTập trung vào sự thu hút ban đầu của những người trẻ, được bổ sung bởi sự đồng hành của những người lớn tuổi, chương trình ghi lại một cách chân thực các buổi hẹn hò và tương tác của họ, pha trộn bầu không khí lãng mạn, sự ấm áp của gia đình và một góc nhìn thực tế về hôn nhân và các mối quan hệ để tạo nên một câu chuyện tình yêu vừa lãng mạn vừa gần gũi.",
     "rating": 2,
     "year": "29-07-2026",
@@ -278,7 +280,8 @@
     "tags": [
       "normal"
     ],
-    "id": "khi-tinh-yeu-lai-den"
+    "id": "khi-tinh-yeu-lai-den",
+    "country": "china"
   },
   {
     "chinese": "亲爱的，可爱的",
@@ -290,7 +293,8 @@
     "tags": [
       "normal"
     ],
-    "id": "than-yeu-dang-yeu"
+    "id": "than-yeu-dang-yeu",
+    "country": "china"
   },
   {
     "chinese": "好友认证的恋爱",
@@ -302,7 +306,8 @@
     "tags": [
       "normal"
     ],
-    "id": "tinh-yeu-duoc-ban-than-chung-nhan"
+    "id": "tinh-yeu-duoc-ban-than-chung-nhan",
+    "country": "china"
   },
   {
     "chinese": "老板看我谈恋爱",
@@ -314,7 +319,8 @@
     "tags": [
       "normal"
     ],
-    "id": "sep-xem-toi-yeu-duong"
+    "id": "sep-xem-toi-yeu-duong",
+    "country": "china"
   },
   {
     "chinese": "有你的恋歌3",
@@ -395,7 +401,8 @@
     "tags": [
       "normal"
     ],
-    "id": "quan-ca-phe-tinh-yeu"
+    "id": "quan-ca-phe-tinh-yeu",
+    "country": "china"
   },
   {
     "chinese": "再见吧！前任",
@@ -407,7 +414,8 @@
     "tags": [
       "normal"
     ],
-    "id": "tam-biet-nhe-nguoi-yeu-cu"
+    "id": "tam-biet-nhe-nguoi-yeu-cu",
+    "country": "china"
   },
   {
     "chinese": "为爱闪耀的她",
@@ -2650,7 +2658,7 @@
     "status": "completed",
     "platform": "Wave",
     "time": "12h Thứ 6",
-    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-102.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-110.jpg",
     "tags": [
       "bisexual"
     ],
@@ -2714,7 +2722,7 @@
     "english": "Love Against Time",
     "vietnamese": "Tình yêu vượt thời gian",
     "status": "completed",
-    "platform": "kocowa",
+    "platform": "Kocowa",
     "time": "T4",
     "tags": [
       "normal"
