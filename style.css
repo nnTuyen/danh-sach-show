@@ -1713,6 +1713,22 @@ div.spotlight-poster {
   box-shadow: var(--shadow-md);
 }
 
+/* No-image poster: heart placeholder reusing the .modal-poster footprint.
+   The div carries BOTH classes, so width/height/radius/shadow (and the
+   mobile 130x180 override) come from .modal-poster untouched. */
+.modal-poster-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #1e1b4b 0%, #311042 50%, #171026 100%);
+}
+
+.modal-poster-fallback .fallback-icon {
+  width: 64px;
+  height: 42px;
+  margin-bottom: 0;
+}
+
 .modal-info-col {
   display: flex;
   flex-direction: column;

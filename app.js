@@ -2057,6 +2057,24 @@ function diagnoseModalPaint(stage) {
 }
 window.dumpModalDiag = () => { console.log(JSON.stringify(modalDiagLog, null, 1)); return modalDiagLog.length; };
 
+// Modal poster placeholder: the heart mark on the card gradient. The <img> is
+// hidden so this div takes over its grid cell (column 1 of .modal-header-hero),
+// keeping .modal-info-col in column 2. Used for no-image shows AND posters
+// whose URL fails to load - never another show's photo.
+function showModalPosterFallback() {
+  const poster = document.getElementById('modalPoster');
+  if (!poster || !poster.parentElement) return;
+  poster.style.display = 'none';
+  if (poster.parentElement.querySelector('.modal-poster-fallback')) return;
+  poster.insertAdjacentHTML('afterend', `<div class="modal-poster modal-poster-fallback" role="img" aria-label="Show chưa có ảnh bìa"><svg class="fallback-icon" viewBox="17 47 230 150" fill="none" aria-hidden="true">${LOGO_C_MARK}</svg></div>`);
+}
+
+function clearModalPosterFallback() {
+  const poster = document.getElementById('modalPoster');
+  if (!poster || !poster.parentElement) return;
+  poster.parentElement.querySelectorAll('.modal-poster-fallback').forEach(el => el.remove());
+}
+
 function renderShowDetail(show, defaultTab = 'tab-watch') {
   state.activeShow = show;
   const modal = document.getElementById('detailModal');
@@ -2079,14 +2097,21 @@ function renderShowDetail(show, defaultTab = 'tab-watch') {
   const poster = document.getElementById('modalPoster');
   if (poster) {
     delete poster.dataset.origTried;
+    // Drop the heart placeholder left behind by a previously opened no-image show.
+    clearModalPosterFallback();
     if (show.image) {
+      poster.style.display = '';
       poster.setAttribute('data-original-src', show.image);
       poster.src = getProxiedImageUrl(show.image, 600);
+      poster.onerror = () => handlePosterImgError(poster, null, () => showModalPosterFallback());
     } else {
+      // No poster in the data: keep the heart placeholder instead of borrowing
+      // another show's image (the old show-0.jpg stand-in).
       poster.removeAttribute('data-original-src');
-      poster.src = 'https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg';
+      poster.removeAttribute('src');
+      poster.onerror = null;
+      showModalPosterFallback();
     }
-    poster.onerror = () => handlePosterImgError(poster, 'https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-0.jpg');
   }
 
   const title = document.getElementById('modalTitle');
