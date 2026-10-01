@@ -714,20 +714,24 @@ async function loadShowsData() {
   try {
     const local = readLocalShows();
     let data = null;
+    let fileVer = null;
 
     if (local) {
       // Fresh local edits win over an old file; a newer file
       // (fresh download copied in / redeployed) wins over old local data.
-      const fileTime = await getBundledFileTime();
-      if (fileTime === null || local.savedAt >= fileTime) {
-        data = local.shows;
-      }
+      fileVer = await getBundledFileVersion();
+      if (shouldUseLocalShows(local, fileVer)) data = local.shows;
     }
 
     if (!data || !Array.isArray(data)) {
       const res = await fetch(`./showsData.json?v=${Date.now()}`);
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       data = await res.json();
+      state.fileTag = (res.headers.get('ETag') || '').trim() || (fileVer && fileVer.tag) || null;
+    } else {
+      // Local copy is being displayed: remember which file version it sits on
+      // top of, so a later save stamps it and redeploy comparisons stay exact.
+      state.fileTag = fileVer ? fileVer.tag : null;
     }
 
     // Type-normalise first: one hand-edited entry (numeric platform, string
@@ -792,6 +796,7 @@ function saveShowsToLocalStorage() {
   try {
     localStorage.setItem('datinghub_local_shows', JSON.stringify({
       savedAt: Date.now(),
+      fileTag: state.fileTag || null,
       shows: state.shows
     }));
   } catch (e) {
@@ -813,17 +818,38 @@ function readLocalShows() {
   }
 }
 
-// Last-Modified of the bundled file: lets a NEWER copied/redeployed
-// showsData.json win over an older local copy (the old code always
-// preferred localStorage, so updating the file had no visible effect).
-async function getBundledFileTime() {
+// Version of the bundled file: Last-Modified (when the server sends it) plus
+// the ETag as a content tag. Lets a NEWER copied/redeployed showsData.json win
+// over an older local copy (the old code always preferred localStorage, so
+// updating the file had no visible effect).
+// Cloudflare Pages sends NO Last-Modified (only ETag), so the tag alone has to
+// be able to answer "did the file change since this local copy was saved?".
+async function getBundledFileVersion() {
   try {
     const res = await fetch('./showsData.json', { method: 'HEAD' });
     const t = Date.parse(res.headers.get('Last-Modified') || '');
-    return Number.isNaN(t) ? null : t;
+    return {
+      time: Number.isNaN(t) ? null : t,
+      tag: (res.headers.get('ETag') || '').trim() || null
+    };
   } catch (e) {
-    return null;
+    return { time: null, tag: null };
   }
+}
+
+// Decide whether the localStorage copy may override the deployed file.
+// - Copy stamped with fileTag + server tag available: local edits made ON TOP
+//   of this exact file version win; a redeployed file (new tag) wins over them.
+// - Legacy copy without fileTag: fall back to savedAt vs Last-Modified.
+// - Legacy copy and no Last-Modified (Cloudflare Pages): prefer the deployed
+//   file - the old "fileTime null -> local wins" rule made every visitor with
+//   an old saved copy render deleted image URLs forever, no matter how often
+//   they refreshed.
+function shouldUseLocalShows(local, ver) {
+  if (!local || !Array.isArray(local.shows)) return false;
+  if (local.fileTag && ver.tag) return local.fileTag === ver.tag;
+  if (ver.time != null) return local.savedAt >= ver.time;
+  return false;
 }
 
 function updateHeroStats() {
