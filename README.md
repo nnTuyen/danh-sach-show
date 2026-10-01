@@ -11,4 +11,3 @@ Website tổng hợp link xem Vietsub, thông tin dàn cast, lịch phát sóng 
 - ❤️ **Đánh dấu Yêu thích**: Lưu danh sách show muốn xem vào Bookmark (sử dụng LocalStorage).
 - 🎲 **Nút khám phá ngẫu nhiên**: Giúp chọn nhanh 1 show hay để xem khi chưa biết chọn gì.
 - 🔗 **Deep Linking & Chia sẻ link trực tiếp**: Mỗi show có link riêng dạng `#show=ten-show`, chỉ cần bấm nút Chia sẻ là sao chép link gửi cho bạn bè, người nhận mở ra sẽ xem được ngay chi tiết và nguồn Vietsub.
-- 🚀 **Tối ưu Vercel**: Có sẵn `vercel.json` hỗ trợ Clean URLs, chống cache sai và UTF-8 cho `showsData.json`.
