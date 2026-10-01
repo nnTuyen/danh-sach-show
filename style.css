@@ -1373,8 +1373,10 @@ div.spotlight-poster {
   color: var(--text-secondary);
   margin-top: 2px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* No overflow:hidden here: the icon sits flush against the row's left edge,
+     so any glyph antialias bleed (fractional DPR on phones/125% desktop)
+     was sliced off by the clip - the clock looked cut on its left side.
+     Long time strings stay contained by .card-content's own overflow. */
 }
 
 .card-schedule i {

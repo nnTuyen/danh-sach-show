@@ -361,6 +361,20 @@ function getProxiedImageUrl(url, width) {
   return IMAGE_PROXY_BASE + params.toString();
 }
 
+// Modal-size (600px) poster variants already fetched AND decoded in this
+// session. renderShowDetail uses it to paint the modal poster from cache on
+// the very first frame instead of waiting for an uncached proxy request.
+const decodedModalPosters = new Set();
+function warmModalPoster(url) {
+  if (!url || decodedModalPosters.has(url)) return;
+  const img = new Image();
+  img.decoding = 'async';
+  img.src = url;
+  const mark = () => decodedModalPosters.add(url);
+  if (img.decode) { img.decode().then(mark).catch(() => {}); }
+  else { img.onload = mark; }
+}
+
 // Poster <img> error handler: retry the original URL once, then fall back to
 // `fallbackUrl` (or the custom `onFinal` replacement used by grid cards).
 function handlePosterImgError(img, fallbackUrl, onFinal) {
@@ -2128,7 +2142,25 @@ function renderShowDetail(show, defaultTab = 'tab-watch') {
     if (show.image) {
       poster.style.display = '';
       poster.setAttribute('data-original-src', show.image);
-      poster.src = getProxiedImageUrl(show.image, 600);
+      // First-open flash of NEW shows: the 600px proxy variant of a freshly
+      // added photo is not cached yet (wsrv must fetch+convert it first), so
+      // the poster area painted empty for a few hundred ms on the first click
+      // and then popped in - once cached, never again. Prefer the 600px URL
+      // only when it was already decoded this session (pointerdown/hover warm
+      // or a previous open); otherwise paint the card's already decoded
+      // variant as the SECOND src write in the SAME task - the browser paints
+      // only after the task, so no blank frame is ever shown. The 600px
+      // variant keeps warming in the background for the next open.
+      const modalUrl = getProxiedImageUrl(show.image, 600);
+      const srcEl = state.detailSourceEl && state.detailSourceEl.querySelector
+        ? state.detailSourceEl.querySelector('.card-poster-img, .list-item-poster, .spotlight-poster')
+        : null;
+      const fastUrl = (srcEl && srcEl.complete && srcEl.naturalWidth > 0 &&
+          srcEl.getAttribute('data-original-src') === show.image)
+        ? (srcEl.currentSrc || srcEl.src)
+        : null;
+      poster.src = decodedModalPosters.has(modalUrl) ? modalUrl : (fastUrl || modalUrl);
+      warmModalPoster(modalUrl);
       poster.onerror = () => handlePosterImgError(poster, null, () => showModalPosterFallback());
     } else {
       // No poster in the data: keep the heart placeholder instead of borrowing
@@ -3846,8 +3878,7 @@ function initEventListeners() {
     const orig = img.getAttribute('data-original-src');
     if (!orig || warmedPosters.has(orig)) return;
     warmedPosters.add(orig);
-    const pre = new Image();
-    pre.src = getProxiedImageUrl(orig, 600);
+    warmModalPoster(getProxiedImageUrl(orig, 600));
   };
   document.addEventListener('mouseover', e => warmPosterFrom(e.target), { passive: true });
   document.addEventListener('pointerdown', e => warmPosterFrom(e.target), { passive: true });
