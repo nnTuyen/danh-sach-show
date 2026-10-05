@@ -2327,18 +2327,66 @@ function zoomLightboxAt(cx, cy, factor) {
 // Element focused before the lightbox opened (focus returns there on close)
 let lightboxPrevFocus = null;
 
+// Guards late lightbox loads: a slow original from an earlier open must not
+// reveal into (or toast over) a newer one. Bumped on every open AND close.
+let lightboxSeq = 0;
+let lightboxSpinnerTimer = 0;
+
 function openPosterLightbox(src, alt) {
   const box = document.getElementById('imageLightbox');
   const img = document.getElementById('imageLightboxImg');
+  const ghost = document.getElementById('imageLightboxGhost');
+  const spinner = document.getElementById('imageLightboxSpinner');
   if (!box || !img || !src) return;
   lightboxPrevFocus = document.activeElement;
+  lightboxSeq += 1;
+  const seq = lightboxSeq;
   lbPointers.clear();
   img.classList.remove('dragging');
-  img.onload = fitLightboxImage;
+  img.classList.remove('ready'); // start invisible: fade in only when decoded
+  if (spinner) spinner.classList.remove('show');
+  clearTimeout(lightboxSpinnerTimer);
+
+  // Instant placeholder: the already-decoded modal poster, blurred.
+  if (ghost) {
+    const thumb = document.getElementById('modalPoster');
+    const thumbSrc = (thumb && (thumb.currentSrc || thumb.src)) || '';
+    if (thumbSrc) {
+      ghost.src = thumbSrc;
+      ghost.classList.add('show');
+    } else {
+      ghost.classList.remove('show');
+    }
+  }
+
+  const reveal = () => {
+    if (seq !== lightboxSeq) return;
+    fitLightboxImage();
+    clearTimeout(lightboxSpinnerTimer);
+    if (spinner) spinner.classList.remove('show');
+    img.classList.add('ready'); // compositor fade-in, no snap
+    if (ghost) ghost.classList.remove('show'); // full-res covers it now
+  };
+  img.onload = reveal;
+  img.onerror = () => {
+    if (seq !== lightboxSeq) return;
+    clearTimeout(lightboxSpinnerTimer);
+    if (spinner) spinner.classList.remove('show');
+    closePosterLightbox();
+    showToast('Không tải được ảnh gốc', 'fa-triangle-exclamation');
+  };
   const sameSrc = img.getAttribute('src') === src;
   img.src = src;
   if (alt) img.alt = alt;
-  if (sameSrc && img.complete && img.naturalWidth) fitLightboxImage();
+  if (sameSrc && img.complete && img.naturalWidth) {
+    reveal(); // cached: instant, no spinner possible
+  } else {
+    // Slow network only: show the ring after 300ms, never before.
+    lightboxSpinnerTimer = setTimeout(() => {
+      if (seq !== lightboxSeq || img.classList.contains('ready')) return;
+      if (spinner) spinner.classList.add('show');
+    }, 300);
+  }
   box.classList.add('open');
   box.setAttribute('aria-hidden', 'false');
   lockPageScroll();
@@ -2349,6 +2397,12 @@ function openPosterLightbox(src, alt) {
 function closePosterLightbox() {
   const box = document.getElementById('imageLightbox');
   if (!box) return;
+  lightboxSeq += 1; // invalidate any in-flight load/spinner of this open
+  clearTimeout(lightboxSpinnerTimer);
+  const spinner = document.getElementById('imageLightboxSpinner');
+  if (spinner) spinner.classList.remove('show');
+  const ghost = document.getElementById('imageLightboxGhost');
+  if (ghost) ghost.classList.remove('show');
   lbPointers.clear();
   box.classList.remove('open');
   box.setAttribute('aria-hidden', 'true');

@@ -1236,6 +1236,7 @@ div.spotlight-poster {
   .brand-logo:hover .brand-icon, .spotlight-nav:hover, .spotlight-nav:active,
   .watch-link-btn:hover { transform: none; }
   .shows-grid > .card-enter, .shows-list > .card-enter { animation: none; }
+  .img-lightbox-img { transition: none; }
 }
 
 /* Card entrance: subtle stagger on filter/render (GPU-only, fill backwards
@@ -1609,6 +1610,54 @@ div.spotlight-poster {
 }
 .img-lightbox-img.dragging {
   cursor: grabbing;
+}
+/* Smooth open: the full-res image fades in (opacity is compositor-only, the
+   transform stays owned by pan/zoom). Before it is ready the blurred ghost
+   below + the spinner cover the wait, so there is never a black snap. */
+.img-lightbox-img {
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+.img-lightbox-img.ready {
+  opacity: 1;
+}
+/* Blurred stand-in: the already-decoded modal poster, shown instantly while
+   the original downloads. Hidden the moment the full image fades in. */
+.img-lightbox-ghost {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: blur(24px) brightness(0.65);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+.img-lightbox.open .img-lightbox-ghost.show {
+  opacity: 1;
+}
+/* Loading ring (transform-only spin). Shown only if the load takes >300ms,
+   so fast (cached) opens never flash it. */
+.img-lightbox-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--primary-pink);
+  display: none;
+  pointer-events: none;
+}
+.img-lightbox.open .img-lightbox-spinner.show {
+  display: block;
+  animation: lb-spin 0.8s linear infinite;
+}
+@keyframes lb-spin {
+  to { transform: rotate(360deg); }
 }
 .img-lightbox-btn {
   position: absolute;

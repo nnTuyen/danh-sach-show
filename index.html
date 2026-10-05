@@ -58,7 +58,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Main Stylesheet (v= date bump to force fresh load, avoid stale cache) -->
-  <link rel="stylesheet" href="style.css?v=20261005a">
+  <link rel="stylesheet" href="style.css?v=20261005b">
 
   <!-- PWA manifest (service worker removed; manifest kept for future use) -->
   <link rel="manifest" href="manifest.json">
@@ -849,7 +849,9 @@
   <!-- Fullscreen poster lightbox (original quality + zoom) -->
   <div class="img-lightbox" id="imageLightbox" role="dialog" aria-modal="true" aria-label="Xem ảnh chất lượng gốc" aria-hidden="true">
     <div class="img-lightbox-backdrop" id="imageLightboxBackdrop"></div>
+    <img class="img-lightbox-ghost" id="imageLightboxGhost" alt="" aria-hidden="true">
     <img class="img-lightbox-img" id="imageLightboxImg" alt="Ảnh chất lượng gốc">
+    <div class="img-lightbox-spinner" id="imageLightboxSpinner" aria-hidden="true"></div>
     <button type="button" class="img-lightbox-btn img-lightbox-close" id="imageLightboxClose" title="Đóng (Esc)" aria-label="Đóng">
       <i class="fa-solid fa-xmark"></i>
     </button>
@@ -908,7 +910,7 @@
   </div>
 
   <!-- Main Application Script -->
-  <script src="app.js?v=20261005a"></script>
+  <script src="app.js?v=20261005b"></script>
 </body>
 
 </html>
