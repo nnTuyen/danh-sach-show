@@ -80,6 +80,7 @@ function removeVietnameseAccents(str) {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/đ/g, 'd')
     .replace(/Đ/g, 'D')
+    .replace(/[\u2018\u2019\u201B\u2032\u2035]/g, "'") // curly quotes -> straight: a "Single's" search must match "Single’s Inferno"
     .toLowerCase()
     .trim();
 }
@@ -536,7 +537,11 @@ function toggleFavorite(show, e) {
     localStorage.setItem('datinghub_favorites', JSON.stringify(state.favorites));
   } catch (e) { /* storage unavailable */ }
   updateFavoritesBadge();
-  applyFilters(); // re-filter: the Yêu thích view must drop the card immediately
+  // Re-filter only when the grid actually depends on favorites: the Yêu thích
+  // view must drop the card immediately, but anywhere else a full re-render
+  // would reset infinite scroll and destroy the modal's source card (breaks
+  // the close animation) for no visible change.
+  if (state.filters.onlyFavorites) applyFilters();
 
   if (state.activeShow === show) {
     updateModalFavoriteButton(show);
@@ -798,7 +803,7 @@ async function loadShowsData() {
     const emptyState = document.getElementById('emptyState');
     if (grid) { grid.innerHTML = ''; grid.style.display = 'none'; }
     if (emptyState) {
-      emptyState.style.display = 'block';
+      emptyState.style.display = 'flex'; // .empty-state is a flex column: 'block' breaks the centering
       const title = emptyState.querySelector('.empty-title, h3, p');
       if (title) title.textContent = 'Không tải được dữ liệu show. Vui lòng tải lại trang.';
     }
@@ -1088,8 +1093,7 @@ function renderStagedPins() {
 }
 
 function getDefaultSpotlightCandidates() {
-  const fallback = state.shows.find(s => (s.vietnamese || '').toLowerCase().includes('tín hiệu con tim s9'))
-    || state.shows.find(s => s.status === 'airing' && s.image)
+  const fallback = state.shows.find(s => s.status === 'airing' && s.image)
     || state.shows[0];
   return fallback ? [fallback] : [];
 }
@@ -1116,6 +1120,10 @@ function setupSpotlightShow() {
 function restartSpotlightTimer() {
   clearInterval(spotlightTimer);
   spotlightTimer = null;
+  // A modal owns the screen: covering the hero fires mouseleave, which must
+  // not restart rotation behind the modal. doCloseShowDetail calls this again
+  // after clearing activeShow, so rotation resumes on close.
+  if (state.activeShow) return;
   if (spotlightQueue.length > 1) {
     spotlightTimer = setInterval(() => {
       spotlightIndex = (spotlightIndex + 1) % spotlightQueue.length;
@@ -1178,8 +1186,6 @@ function buildSpotlightSlide(candidate, i) {
   // but leave inner controls (buttons, copy) and text selection alone.
   slide.addEventListener('click', (e) => {
     if (e.defaultPrevented) return;
-    const anchorEl = slide.closest('.spotlight-slide, .show-card, .show-list-item') || slide;
-    if (!anchorEl.contains(e.target)) return;
     if (e.target.closest('button, a, input, select, textarea')) return;
     const sel = window.getSelection && window.getSelection();
     if (sel && sel.toString().trim()) return;
@@ -1961,14 +1967,12 @@ function openShowDetail(show, defaultTab = 'tab-watch', opts = {}) {
     renderShowDetail(show, defaultTab);
     healModalContent(show, defaultTab);
     state.openedAt = performance.now();
-    // Paint diagnostic (temporary): a snapshot 500ms after open, skipped if
-    // a newer open/close took over in the meantime.
-    const diagSeq = state.modalSeq;
-    setTimeout(() => { if (diagSeq === state.modalSeq) diagnoseModalPaint('open+500'); }, 500);
-    // Late phantom-visibility sweep: the phantom can strike after the sync
-    // open assert (e.g. mid-FLIP on throttled frames). Same guard.
+    // Late phantom-visibility sweep: under throttled compositing the phantom
+    // can strike after the sync open assert (e.g. mid-FLIP on a slow frame).
+    // Skip when a newer open/close took over in the meantime.
+    const openSeq = state.modalSeq;
     setTimeout(() => {
-      if (diagSeq !== state.modalSeq) return;
+      if (openSeq !== state.modalSeq) return;
       const m = document.getElementById('detailModal');
       if (m && m.classList.contains('active')) assertPaneVisible(m, m.querySelector('.tab-pane.active'));
     }, 800);
@@ -2016,86 +2020,6 @@ function healModalContent(show, defaultTab) {
     try { doCloseShowDetail(false); } catch (_) { /* best effort */ }
   }
 }
-
-// TEMPORARY DIAGNOSTIC for the intermittent empty modal (frame+poster paint,
-// tabs+body below show blank white). The DOM is always complete in this state
-// (verifyModalContent passes), so this snapshots LAYOUT/PAINT facts: element
-// boxes, scroll geometry, computed visibility, running animations, and which
-// element is actually on top at the tabs position. Fires after every open and
-// tab switch; on anomaly it logs the snapshot + history and toasts.
-const modalDiagLog = [];
-function diagnoseModalPaint(stage) {
-  try {
-    const modal = document.getElementById('detailModal');
-    if (!modal || !modal.classList.contains('active') || !state.activeShow) return;
-    const show = state.activeShow;
-    const scroller = modal.querySelector('.modal-scrollable');
-    const content = modal.querySelector('.modal-content');
-    const tabsEl = modal.querySelector('.modal-tabs');
-    const body = modal.querySelector('.modal-body');
-    const scr = scroller ? scroller.getBoundingClientRect() : null;
-    const tabsRect = tabsEl ? tabsEl.getBoundingClientRect() : null;
-    const bodyRect = body ? body.getBoundingClientRect() : null;
-    const mp = document.getElementById('modalPoster');
-    const activePane = modal.querySelector('.tab-pane.active');
-    const paneRect = activePane ? activePane.getBoundingClientRect() : null;
-    const footer = modal.querySelector('.modal-footer-actions');
-    const footerRect = footer ? footer.getBoundingClientRect() : null;
-    const snap = {
-      stage, show: show.vietnamese, t: Math.round(performance.now()),
-      ver: '20260928f', theme: document.documentElement.dataset.theme,
-      tabsBoxes: tabsEl ? tabsEl.getClientRects().length : -1,
-      tabsRect: tabsRect ? [Math.round(tabsRect.top), Math.round(tabsRect.bottom), Math.round(tabsRect.height)] : null,
-      bodyH: bodyRect ? Math.round(bodyRect.height) : -1,
-      bodyBoxes: body ? body.getClientRects().length : -1,
-      scrollTop: scroller ? Math.round(scroller.scrollTop) : -1,
-      scrollH: scroller ? Math.round(scroller.scrollHeight) : -1,
-      clientH: scroller ? Math.round(scroller.clientHeight) : -1,
-      scrTop: scr ? Math.round(scr.top) : -1,
-      scrBottom: scr ? Math.round(scr.bottom) : -1,
-      contentVis: content ? getComputedStyle(content).visibility : '?',
-      contentOp: content ? getComputedStyle(content).opacity : '?',
-      contentTf: content ? (content.style.transform || 'none') : '?',
-      anims: content ? (content.getAnimations().length + '/' + (body ? body.getAnimations().length : 0)) : '?',
-      panes: [...modal.querySelectorAll('.tab-pane')].map(p => p.id + (p.classList.contains('active') ? '*' : '')),
-      paneId: activePane ? activePane.id : '?',
-      paneH: paneRect ? Math.round(paneRect.height) : -1,
-      paneKids: activePane ? activePane.childElementCount : -1,
-      bodyVis: body ? getComputedStyle(body).visibility : '?',
-      paneVis: activePane ? getComputedStyle(activePane).visibility : '?',
-      footerInView: footerRect ? (footerRect.bottom > 0 && footerRect.top < window.innerHeight) : false,
-      poster: mp ? `${mp.complete}/${mp.naturalWidth}` : '?'
-    };
-    if (tabsRect && tabsRect.width > 0 && tabsRect.height > 0) {
-      const y = Math.min(Math.max(tabsRect.top + 4, 0), window.innerHeight - 1);
-      const el = document.elementFromPoint(tabsRect.left + tabsRect.width / 2, y);
-      snap.topEl = el ? ((el.id && '#' + el.id) || (el.className && '.' + String(el.className).split(' ')[0]) || el.tagName) : 'none';
-    }
-    modalDiagLog.push(snap);
-    if (modalDiagLog.length > 30) modalDiagLog.shift();
-    const tabsGone = !!tabsEl && tabsEl.getClientRects().length === 0;
-    const bodyGone = !!body && body.getClientRects().length === 0;
-    // Active pane has content but zero height: layout collapse (blank tab).
-    // A pane with real children is never legitimately 0px tall.
-    const paneCollapsed = !!activePane && activePane.childElementCount > 0 &&
-      paneRect && paneRect.height === 0 && activePane.getClientRects().length === 0;
-    // Phantom hidden (no cascade source): the blank-modal signature. The
-    // assert calls should already have forced visible; reaching here means
-    // something deeper - log it loudly.
-    const phantomHidden = (body && getComputedStyle(body).visibility === 'hidden') ||
-      (!!activePane && getComputedStyle(activePane).visibility === 'hidden');
-    let tabsOut = false;
-    if (scr && tabsRect && tabsRect.height > 0 && scroller) {
-      tabsOut = (tabsRect.bottom < scr.top || tabsRect.top > scr.bottom) && scroller.scrollTop <= 1;
-    }
-    if (tabsGone || bodyGone || tabsOut || paneCollapsed || phantomHidden) {
-      console.error('EMPTY-MODAL-DIAG[' + stage + ']:', JSON.stringify(snap));
-      console.error('EMPTY-MODAL-HISTORY:', JSON.stringify(modalDiagLog));
-      showToast('Phát hiện modal trống - chi tiết trong Console (F12)', 'fa-triangle-exclamation');
-    }
-  } catch (e) { console.error('modal diag failed:', e); }
-}
-window.dumpModalDiag = () => { console.log(JSON.stringify(modalDiagLog, null, 1)); return modalDiagLog.length; };
 
 // Modal poster placeholder: the heart mark on the card gradient. The <img> is
 // hidden so this div takes over its grid cell (column 1 of .modal-header-hero),
@@ -2216,7 +2140,10 @@ function renderShowDetail(show, defaultTab = 'tab-watch') {
   if (scheduleEl) scheduleEl.textContent = show.time || 'Đang cập nhật';
 
   const yearEl = document.getElementById('modalYear');
-  if (yearEl) yearEl.textContent = show.year || '2024-2026';
+  // Same formatting as the cards (raw values can be full dates like
+  // "23-06-2026") and no invented fallback year - blank shows the same '–'
+  // the rating column uses.
+  if (yearEl) yearEl.textContent = formatYear(show.year) || '–';
 
   populateWatchLinks(show);
   populateCastMembers(show.detailNotes);
@@ -2671,11 +2598,8 @@ function switchTabsIn(rootSelector, attrName, tabId, opts = {}) {
     tweenScrollTop(scroller, 0, 460, easeInOutCubic);
   }
 
-  // Paint diagnostic (temporary): snapshot after the switch settles.
-  // switchTabsIn is shared with the settings modal; diagnoseModalPaint
-  // no-ops unless the detail modal is open with a show.
-  const diagTab = tabId;
-  setTimeout(() => diagnoseModalPaint('tab:' + diagTab), 550);
+  // switchTabsIn is shared with the settings modal, so no detail-modal-only
+  // work here; the phantom sweep above handles the blank-tab case.
 }
 
 // Phantom-visibility guard. Under throttled compositing (occluded window,
@@ -4253,7 +4177,7 @@ function initSheetSwipe() {
 
 // App Entry Point
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('dating-hub app.js?v=20260929a');
+  console.log('dating-hub app.js?v=20261005a');
   initTheme();
   initFavorites();
   initEventListeners();

@@ -13,8 +13,6 @@
   --pink-strong: #d10d55;
   --primary-purple: #7928ca;
   --primary-gradient: linear-gradient(135deg, #d10d55 0%, #9333ea 50%, #4f46e5 100%);
-  --secondary-gradient: linear-gradient(135deg, #f43f5e 0%, #ec4899 50%, #d946ef 100%);
-  --gold-gradient: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   
   /* Status Colors */
   --status-airing: #10b981;
@@ -40,7 +38,6 @@
   --bg-surface-elevated: #1a2035;
   --bg-surface-hover: #222a45;
   --bg-glass: rgba(18, 22, 36, 0.9);
-  --bg-glass-card: rgba(22, 28, 48, 0.65);
   --bg-input: #151a2b;
   
   --border-subtle: rgba(255, 255, 255, 0.08);
@@ -55,7 +52,6 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 25px rgba(255, 46, 126, 0.25);
   
   --hero-mesh: radial-gradient(circle at 10% 20%, rgba(255, 46, 126, 0.15) 0%, transparent 40%),
                radial-gradient(circle at 90% 80%, rgba(121, 40, 202, 0.15) 0%, transparent 40%),
@@ -72,7 +68,6 @@
   --bg-surface-elevated: #f1f5f9;
   --bg-surface-hover: #e2e8f0;
   --bg-glass: rgba(255, 255, 255, 0.92);
-  --bg-glass-card: rgba(255, 255, 255, 0.8);
   --bg-input: #ffffff;
   
   --border-subtle: rgba(0, 0, 0, 0.08);
@@ -89,7 +84,6 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 8px 24px rgba(149, 157, 165, 0.15);
   --shadow-lg: 0 16px 40px rgba(100, 116, 139, 0.18);
-  --shadow-glow: 0 0 25px rgba(255, 46, 126, 0.18);
   
   --hero-mesh: radial-gradient(circle at 10% 20%, rgba(255, 46, 126, 0.08) 0%, transparent 40%),
                radial-gradient(circle at 90% 80%, rgba(121, 40, 202, 0.08) 0%, transparent 40%),
@@ -737,7 +731,7 @@ div.spotlight-poster {
   border-bottom: 1px solid var(--border-subtle);
   padding: 10px 0;
   margin-bottom: 18px;
-  transition: transform var(--transition-normal), background-color var(--transition-normal), border-color var(--transition-normal);
+  transition: background-color var(--transition-normal), border-color var(--transition-normal);
   width: 100%;
 }
 
@@ -763,19 +757,6 @@ div.spotlight-poster {
   white-space: nowrap;
   transition: all var(--transition-fast);
   user-select: none;
-}
-
-.pill-country:hover {
-  background: var(--bg-surface-hover);
-  color: var(--text-main);
-  border-color: var(--border-focus);
-}
-
-.pill-country.active {
-  background: var(--primary-gradient);
-  color: #fff;
-  border-color: transparent;
-  box-shadow: 0 4px 12px rgba(255, 46, 126, 0.35);
 }
 
 /* Dedicated Mobile Search Box (Requirement 1: Replaces country row on mobile) */
@@ -1316,6 +1297,19 @@ div.spotlight-poster {
   background: rgba(100, 116, 139, 0.2);
   color: #94a3b8;
   border-color: rgba(100, 116, 139, 0.3);
+}
+
+/* Light theme: the dark-tinted text above sits at ~2.3:1 on white - deepen
+   the text (keeping the tint light) so the badges stay readable. */
+[data-theme="light"] .badge-genre {
+  background: rgba(139, 92, 246, 0.12);
+  color: #6d28d9;
+  border-color: rgba(139, 92, 246, 0.4);
+}
+[data-theme="light"] .badge-genre-other {
+  background: rgba(100, 116, 139, 0.12);
+  color: #475569;
+  border-color: rgba(100, 116, 139, 0.4);
 }
 
 /* Requirement 7: Release Year Badge */
@@ -1891,7 +1885,10 @@ div.spotlight-poster {
   overflow: hidden;
 }
 
-.watch-link-label span {
+/* Only the text span (JS uses the same `> span:last-child` selector for its
+   truncation check). A bare `span` would also match the favicon span and
+   stretch it, shifting the row until the icon swaps in. */
+.watch-link-label > span:last-child {
   flex: 1 1 auto;
   min-width: 0; /* REQUIRED: flex item must shrink, otherwise ellipsis never renders and JS truncation check always fails */
   white-space: nowrap;

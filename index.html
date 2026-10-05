@@ -4,6 +4,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <!-- Apply the saved theme before first paint: initTheme() in app.js only runs
+       on DOMContentLoaded, so without this a light-mode user first sees the dark
+       default flash. Mirrors initTheme: stored light/dark wins, anything else
+       (auto/absent/corrupt) follows the OS. -->
+  <script>
+    (function () {
+      try {
+        var m = localStorage.getItem('datinghub_theme');
+        document.documentElement.setAttribute('data-theme',
+          (m === 'dark' || m === 'light') ? m
+            : ((window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light'));
+      } catch (e) { /* storage blocked: keep the dark default */ }
+    })();
+  </script>
   <meta name="theme-color" content="#0a0c14">
   <meta name="description"
     content="Kho tổng hợp show hẹn hò Trung, Hàn, Nhật, Thái hàng đầu. Tra cứu link xem Vietsub Bilibili, YouTube, Odysee, WeTV, thông tin dàn cast và lịch phát sóng.">
@@ -44,7 +58,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Main Stylesheet (v= date bump to force fresh load, avoid stale cache) -->
-  <link rel="stylesheet" href="style.css?v=20261001c">
+  <link rel="stylesheet" href="style.css?v=20261005a">
 
   <!-- PWA manifest (service worker removed; manifest kept for future use) -->
   <link rel="manifest" href="manifest.json">
@@ -88,23 +102,23 @@
       <!-- Header Quick Actions -->
       <div class="header-actions">
         <!-- Random Show Button -->
-        <button type="button" class="btn-icon" id="btnRandomShow" title="Khám phá show ngẫu nhiên 🎲">
+        <button type="button" class="btn-icon" id="btnRandomShow" title="Khám phá show ngẫu nhiên 🎲" aria-label="Khám phá show ngẫu nhiên 🎲">
           <i class="fa-solid fa-dice"></i>
         </button>
 
         <!-- Favorites Button -->
-        <button type="button" class="btn-icon" id="btnOpenFavorites" title="Show yêu thích đã lưu">
+        <button type="button" class="btn-icon" id="btnOpenFavorites" title="Show yêu thích đã lưu" aria-label="Show yêu thích đã lưu">
           <i class="fa-solid fa-bookmark"></i>
           <span class="badge-count" id="favCountBadge" style="display: none;">0</span>
         </button>
 
         <!-- Settings Button -->
-        <button type="button" class="btn-icon" id="btnOpenSettings" title="Cài đặt & Quản lý Show ⚙️">
+        <button type="button" class="btn-icon" id="btnOpenSettings" title="Cài đặt & Quản lý Show ⚙️" aria-label="Cài đặt & Quản lý Show">
           <i class="fa-solid fa-gear"></i>
         </button>
 
         <!-- Dark / Light Theme Toggle -->
-        <button type="button" class="btn-icon" id="themeToggleBtn" title="Chuyển chế độ Sáng / Tối">
+        <button type="button" class="btn-icon" id="themeToggleBtn" title="Chuyển chế độ Sáng / Tối" aria-label="Chuyển chế độ Sáng / Tối">
           <i class="fa-solid fa-moon" id="themeIcon"></i>
         </button>
       </div>
@@ -127,7 +141,7 @@
           <div class="hero-stats">
             <div class="stat-chip">
               <i class="fa-solid fa-tv"></i>
-              <span id="statTotalShows">113</span> Show
+              <span id="statTotalShows">--</span> Show
             </div>
             <div class="stat-chip">
               <span class="stat-pulse-dot"></span>
@@ -894,7 +908,7 @@
   </div>
 
   <!-- Main Application Script -->
-  <script src="app.js?v=20261001c"></script>
+  <script src="app.js?v=20261005a"></script>
 </body>
 
 </html>
