@@ -38,6 +38,53 @@ const state = {
 // Original tab title (restored when the detail modal closes)
 const ORIGINAL_DOC_TITLE = document.title;
 
+// Admin gate: the add/edit/pin/data tabs are only for the owner, unlocked by
+// opening the site with ?admin=1 (bookmark it). Everyone else only sees the
+// favorites-backup tab. Client-side hiding only: it keeps casual viewers out,
+// it is not access control (a static site has no backend to enforce it).
+const IS_ADMIN = (() => {
+  try {
+    return new URLSearchParams(window.location.search).get('admin') === '1';
+  } catch (e) {
+    return false;
+  }
+})();
+
+function applyAdminGate() {
+  if (IS_ADMIN) return;
+  const adminTabs = ['stab-spotlight', 'stab-edit', 'stab-add', 'stab-data'];
+  const tabBtns = Array.from(document.querySelectorAll('#settingsModal .modal-tab-btn'));
+  tabBtns.forEach(btn => {
+    const id = btn.getAttribute('data-stab');
+    if (adminTabs.includes(id)) {
+      btn.style.display = 'none';
+      const pane = document.getElementById(id);
+      if (pane) pane.style.display = 'none';
+      if (btn.classList.contains('active')) {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+      }
+      if (pane && pane.classList.contains('active')) pane.classList.remove('active');
+    }
+  });
+  // Favorites backup becomes the only (and default) tab for viewers.
+  const favBtn = document.querySelector('#settingsModal .modal-tab-btn[data-stab="stab-fav"]');
+  const favPane = document.getElementById('stab-fav');
+  if (favBtn) {
+    favBtn.classList.add('active');
+    favBtn.setAttribute('aria-selected', 'true');
+  }
+  if (favPane) {
+    favPane.classList.add('active');
+    favPane.style.display = '';
+  }
+  const gear = document.getElementById('btnOpenSettings');
+  if (gear) {
+    gear.title = 'Sao lưu Yêu thích';
+    gear.setAttribute('aria-label', 'Sao lưu Yêu thích');
+  }
+}
+
 // ============================================================
 // UTILITIES & SAFE ESCAPING
 // ============================================================
@@ -3036,6 +3083,8 @@ function openSettingsModal() {
   populateSettingsSelects();
   renderStagedPins();
   refreshFavBackupUI();
+  // Viewers must never land on an admin tab (e.g. a stale active state).
+  if (!IS_ADMIN) switchSettingsTab('stab-fav');
   const restoreBox = document.getElementById('favRestoreBox');
   if (restoreBox) restoreBox.style.display = 'none';
   const restoreText = document.getElementById('favRestoreText');
@@ -4231,8 +4280,9 @@ function initSheetSwipe() {
 
 // App Entry Point
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('dating-hub app.js?v=20261005a');
+  console.log('dating-hub app.js?v=20261005c');
   initTheme();
+  applyAdminGate();
   initFavorites();
   initEventListeners();
   renderShowsSkeleton(8);

@@ -58,7 +58,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Main Stylesheet (v= date bump to force fresh load, avoid stale cache) -->
-  <link rel="stylesheet" href="style.css?v=20261005b">
+  <link rel="stylesheet" href="style.css?v=20261005c">
 
   <!-- PWA manifest (service worker removed; manifest kept for future use) -->
   <link rel="manifest" href="manifest.json">
@@ -449,7 +449,10 @@
             <i class="fa-solid fa-plus"></i> Thêm Show Mới
           </button>
           <button type="button" class="modal-tab-btn" data-stab="stab-data" role="tab" aria-selected="false" aria-controls="stab-data">
-            <i class="fa-solid fa-download"></i> Tải showsData.json
+            <i class="fa-solid fa-download"></i> Dữ liệu
+          </button>
+          <button type="button" class="modal-tab-btn" data-stab="stab-fav" role="tab" aria-selected="false" aria-controls="stab-fav">
+            <i class="fa-regular fa-heart"></i> Sao lưu Yêu thích
           </button>
         </div>
 
@@ -757,8 +760,9 @@
                 <i class="fa-solid fa-arrow-rotate-left"></i> Khôi phục dữ liệu ban đầu
               </button>
             </div>
+          </div>
 
-            <hr style="border: none; border-top: 1px solid var(--border-subtle); margin: 20px 0;">
+          <div class="tab-pane" id="stab-fav" role="tabpanel">
             <h4 style="font-size: 15px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">
               <i class="fa-solid fa-bookmark" style="color: var(--primary-pink);"></i>
               Sao lưu show Yêu thích (<span id="favBackupCount">0</span>)
@@ -910,7 +914,7 @@
   </div>
 
   <!-- Main Application Script -->
-  <script src="app.js?v=20261005b"></script>
+  <script src="app.js?v=20261005c"></script>
 </body>
 
 </html>
