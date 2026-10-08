@@ -1858,6 +1858,17 @@ div.spotlight-poster {
   white-space: nowrap; /* never break "Năm: 08-10-2026" mid-value */
 }
 
+/* One flex item that never splits from the outside: below roughly 520px the
+   meta row runs out of room, and without this the year rolled over alone while
+   the rating stayed behind (or vice versa), which read as a dangling orphan.
+   nowrap keeps Năm + Đánh giá on the same line; the inner column-gap matches
+   the grid's so the spacing looks identical whether it wrapped or not. */
+.modal-meta-grid .meta-pair {
+  display: flex;
+  flex-wrap: nowrap;
+  column-gap: 16px;
+}
+
 .modal-tabs {
   display: flex;
   align-items: center;
@@ -2779,7 +2790,7 @@ div.spotlight-poster {
     width: 130px;
     height: 180px;
   }
-  .modal-badges-row, .modal-subtitles {
+  .modal-badges-row, .modal-subtitles, .modal-meta-grid {
     justify-content: center;
   }
 }
