@@ -260,6 +260,21 @@ function formatYear(yearStr) {
   return match ? match[1] : escapeHtml(yearStr);
 }
 
+// Modal-only variant: keep the FULL premiere date ("1-6-2026" -> "01-06-2026",
+// zero-padded so the column lines up). Ranges and plain years fall back to the
+// same rules as formatYear. Returns plain text - callers assign via textContent,
+// so nothing here is HTML-escaped (escapeHtml would show literal &amp; in the UI).
+function formatReleaseDate(yearStr) {
+  if (!yearStr) return '';
+  const s = yearStr.toString().trim();
+  const full = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/);
+  if (full) return `${full[1].padStart(2, '0')}-${full[2].padStart(2, '0')}-${full[3]}`;
+  const range = s.match(/\b(20\d\d)\s*[–—-]\s*(20\d\d)\b/);
+  if (range) return `${range[1]}–${range[2]}`;
+  const match = s.match(/\b(20\d\d)\b/);
+  return match ? match[1] : s;
+}
+
 // Toast notification
 function showToast(message, icon = 'fa-check') {
   const container = document.getElementById('toastContainer');
@@ -2187,10 +2202,9 @@ function renderShowDetail(show, defaultTab = 'tab-watch') {
   if (scheduleEl) scheduleEl.textContent = show.time || 'Đang cập nhật';
 
   const yearEl = document.getElementById('modalYear');
-  // Same formatting as the cards (raw values can be full dates like
-  // "23-06-2026") and no invented fallback year - blank shows the same '–'
-  // the rating column uses.
-  if (yearEl) yearEl.textContent = formatYear(show.year) || '–';
+  // Full premiere date here (cards stay year-only to keep the badge small);
+  // no invented fallback year - blank shows the same '–' the rating column uses.
+  if (yearEl) yearEl.textContent = formatReleaseDate(show.year) || '–';
 
   populateWatchLinks(show);
   populateCastMembers(show.detailNotes);
@@ -4280,7 +4294,7 @@ function initSheetSwipe() {
 
 // App Entry Point
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('dating-hub app.js?v=20261005c');
+  console.log('dating-hub app.js?v=20261005d');
   initTheme();
   applyAdminGate();
   initFavorites();
