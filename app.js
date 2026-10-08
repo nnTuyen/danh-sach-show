@@ -286,19 +286,23 @@ function formatYear(yearStr) {
   return match ? match[1] : escapeHtml(yearStr);
 }
 
-// Modal-only variant: keep the FULL premiere date ("1-6-2026" -> "01-06-2026",
-// zero-padded so the column lines up). Ranges and plain years fall back to the
-// same rules as formatYear. Returns plain text - callers assign via textContent,
-// so nothing here is HTML-escaped (escapeHtml would show literal &amp; in the UI).
+// Modal-only variant: show EVERYTHING the user typed into the year field.
+// Cards stay year-only to keep their badge small (formatYear), but the modal
+// has the room, so wording like "Quý 4 2026" has to arrive intact instead of
+// being collapsed to "2026". Only cosmetic normalisation runs: a bare full date
+// is zero-padded ("1-6-2026" -> "01-06-2026") and a bare range gets an en dash
+// ("2021-2026" -> "2021–2026"). Both regexes are anchored to the whole string,
+// so a range embedded in longer text is passed through untouched.
+// Returns plain text - callers assign via textContent, so nothing here is
+// HTML-escaped (escapeHtml would show literal &amp; in the UI).
 function formatReleaseDate(yearStr) {
   if (!yearStr) return '';
   const s = yearStr.toString().trim();
   const full = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/);
   if (full) return `${full[1].padStart(2, '0')}-${full[2].padStart(2, '0')}-${full[3]}`;
-  const range = s.match(/\b(20\d\d)\s*[–—-]\s*(20\d\d)\b/);
+  const range = s.match(/^(20\d\d)\s*[–—-]\s*(20\d\d)$/);
   if (range) return `${range[1]}–${range[2]}`;
-  const match = s.match(/\b(20\d\d)\b/);
-  return match ? match[1] : s;
+  return s; // never strip the wording down to the bare year
 }
 
 // Toast notification
@@ -4480,7 +4484,7 @@ function initSheetSwipe() {
 
 // App Entry Point
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('dating-hub app.js?v=20261005g');
+  console.log('dating-hub app.js?v=20261005i');
   initTheme();
   applyAdminGate();
   initFavorites();
