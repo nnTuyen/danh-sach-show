@@ -2635,6 +2635,9 @@ function switchTabsIn(rootSelector, attrName, tabId, opts = {}) {
     btn.classList.toggle('active', on);
     btn.setAttribute('aria-selected', on ? 'true' : 'false');
   });
+  // The cast grid is populated before this call, while a different pane may
+  // still own the frame; measure it only once the cast pane has a real box.
+  if (next && next.id === 'tab-cast') requestAnimationFrame(refreshCastExpanders);
   if (!next || cur === next) return;
 
   const scroller = root.querySelector('.modal-scrollable');
@@ -2999,24 +3002,81 @@ function parseCastLine(line) {
   return res;
 }
 
+// ---- Unified cast format -------------------------------------------------
+// Input rule (settings form labels point here): a line break in the textarea
+// stays a line break inside the card, and only a line ENDING in "#####" closes
+// a block - the next line then starts the next cast card. Records written the
+// old way (one person per line, no "#####") fall back to one-line-per-card, so
+// the existing shows keep rendering exactly as they did.
+function splitCastBlocks(detailNotes) {
+  const raw = String(detailNotes).split('\n');
+  const rich = raw.some(l => /#####\s*$/.test(l.trim()));
+  if (!rich) {
+    return { rich: false, blocks: raw.map(l => l.trim()).filter(Boolean).map(l => [l]) };
+  }
+
+  const blocks = [];
+  let cur = [];
+  const flush = () => {
+    while (cur.length && !cur[0].trim()) cur.shift();
+    while (cur.length && !cur[cur.length - 1].trim()) cur.pop();
+    if (cur.length) blocks.push(cur.slice());
+    cur = [];
+  };
+  for (const rawLine of raw) {
+    const line = rawLine.replace(/\s+$/, '');
+    if (/#####\s*$/.test(line)) {
+      // Marker closes the block; any text before it stays in this block.
+      const content = line.replace(/\s*#####\s*$/, '').trim();
+      if (content) cur.push(content);
+      flush();
+      continue;
+    }
+    cur.push(line);
+  }
+  flush();
+  return { rich: true, blocks };
+}
+
+// One line of a rich block -> markup. Bullets and "Label: value" lines get a
+// little structure; everything else stays verbatim (line breaks included).
+function castLineHtml(line) {
+  const t = line.trim();
+  if (!t) return `<div class="cast-line cast-line--blank" aria-hidden="true"></div>`;
+  const bullet = t.match(/^[+\-•*]\s*(.+)$/);
+  if (bullet) return `<div class="cast-line cast-line--bullet">${escapeHtml(bullet[1])}</div>`;
+  const kv = t.match(/^([^:：]{1,60}):\s*(.+)$/);
+  if (kv) return `<div class="cast-line cast-line--kv"><b>${escapeHtml(kv[1])}:</b> ${escapeHtml(kv[2])}</div>`;
+  const label = t.match(/^([^:：]{1,60}):\s*$/);
+  if (label) return `<div class="cast-line cast-line--label">${escapeHtml(label[1])}</div>`;
+  return `<div class="cast-line">${escapeHtml(t)}</div>`;
+}
+
+// Folded height of a rich card body. Keep in sync with
+// .cast-card.is-expandable:not(.is-open) .cast-body-clip in style.css.
+const CAST_PEEK_PX = 72;
+
 function populateCastMembers(detailNotes) {
   const container = document.getElementById('modalCastGrid');
   if (!container) return;
   container.innerHTML = '';
+  container.classList.remove('cast-grid--rich');
 
   if (!detailNotes || !detailNotes.trim()) {
     container.innerHTML = `<div style="color: var(--text-muted); font-size: 13px;">Chưa có thông tin dàn cast cho chương trình này.</div>`;
     return;
   }
 
-  const lines = detailNotes.split('\n').map(l => l.trim()).filter(Boolean);
+  const { rich, blocks } = splitCastBlocks(detailNotes);
+  if (rich) container.classList.add('cast-grid--rich');
+
   let groupGender = '';
   let seq = 0;
-  lines.forEach(line => {
-    const c = parseCastLine(line);
+  blocks.forEach(lines => {
+    const c = parseCastLine(lines[0]);
 
     // Group separator lines like "Nữ:" / "Nam:" render as a full-width heading
-    if (/^(nữ|nam)\s*:?$/i.test(c.name)) {
+    if (lines.length === 1 && /^(nữ|nam)\s*:?$/i.test(c.name)) {
       groupGender = /^nữ/i.test(c.name) ? 'female' : 'male';
       seq = 0;
       const sec = document.createElement('div');
@@ -3027,26 +3087,126 @@ function populateCastMembers(detailNotes) {
     }
 
     seq += 1;
+    let name = c.name;
+    let no = c.no;
+    if (rich) {
+      // "1. Jang Dong Min" -> the number goes to the badge, name stays clean.
+      const m = lines[0].match(/^\s*(\d+)\s*[.)]\s*(\S.*?)\s*$/);
+      if (m) { no = m[1]; name = m[2]; }
+    }
     const gender = c.gender || groupGender;
-    const no = String(c.no || seq).padStart(2, '0');
+    const shown = String(no || seq).padStart(2, '0');
     const card = document.createElement('div');
     card.className = 'cast-card' + (gender ? ` cast-gender-${gender}` : '');
-    const body = (c.zh || c.role) ? `
+    const head = `
+      <div class="cast-top">
+        <span class="cast-no">${shown}</span>
+        <span class="cast-bar" aria-hidden="true"></span>
+      </div>
+      <div class="cast-head">
+        <span class="cast-name">${escapeHtml(name)}</span>
+        ${c.age ? `<span class="cast-age">${escapeHtml(c.age)}</span>` : ''}
+      </div>`;
+    if (lines.length > 1) {
+      // Rich block: every source line stays a line, body folds behind a tap.
+      card.innerHTML = `${head}
+      <div class="cast-body-clip">
+        <div class="cast-body">${lines.slice(1).map(castLineHtml).join('')}</div>
+        <div class="cast-fade" aria-hidden="true"></div>
+      </div>
+      <button type="button" class="cast-toggle" aria-expanded="false"><span class="cast-toggle-text">Xem thêm</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>`;
+    } else {
+      const body = (c.zh || c.role) ? `
       <div class="cast-body">
         ${c.zh ? `<div class="cast-zh">${escapeHtml(c.zh)}</div>` : ''}
         ${c.role ? `<div class="cast-role">${escapeHtml(c.role)}</div>` : ''}
       </div>` : '';
-    card.innerHTML = `
-      <div class="cast-top">
-        <span class="cast-no">${no}</span>
-        <span class="cast-bar" aria-hidden="true"></span>
-      </div>
-      <div class="cast-head">
-        <span class="cast-name">${escapeHtml(c.name)}</span>
-        ${c.age ? `<span class="cast-age">${escapeHtml(c.age)}</span>` : ''}
-      </div>${body}
-    `;
+      card.innerHTML = `${head}${body}`;
+    }
     container.appendChild(card);
+  });
+
+  wireCastCards(container);
+  requestAnimationFrame(refreshCastExpanders);
+}
+
+// One delegated listener for the grid: cards are rebuilt on every render,
+// the container itself lives in index.html.
+function wireCastCards(container) {
+  if (container.dataset.castWired === '1') return;
+  container.dataset.castWired = '1';
+  container.addEventListener('click', e => {
+    const card = e.target.closest('.cast-card');
+    if (!card || !container.contains(card)) return;
+    if (!card.classList.contains('is-expandable')) return;
+    if (!e.target.closest('.cast-toggle')) {
+      // Selecting text in the card is not a request to fold it away.
+      const sel = window.getSelection ? window.getSelection() : null;
+      if (sel && String(sel).length > 0) return;
+    }
+    toggleCastCard(card);
+  });
+}
+
+function toggleCastCard(card) {
+  const clip = card.querySelector('.cast-body-clip');
+  const btn = card.querySelector('.cast-toggle');
+  if (!clip || !card.classList.contains('is-expandable')) return;
+  const opening = !card.classList.contains('is-open');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (opening) {
+    if (reduceMotion) {
+      card.classList.add('is-open');
+    } else {
+      clip.style.maxHeight = clip.scrollHeight + 'px';
+      card.classList.add('is-open');
+      const onEnd = e => {
+        if (e.propertyName !== 'max-height') return;
+        clip.removeEventListener('transitionend', onEnd);
+        // Hand the height back to CSS (max-height: none) so a resize while
+        // open can never clip the content again.
+        if (card.classList.contains('is-open')) clip.style.maxHeight = '';
+      };
+      clip.addEventListener('transitionend', onEnd);
+    }
+  } else {
+    if (!reduceMotion) {
+      clip.style.maxHeight = clip.scrollHeight + 'px'; // pin the open height
+      void clip.offsetHeight;                          // ...and commit it
+    }
+    card.classList.remove('is-open');
+    clip.style.maxHeight = '';                         // -> CSS peek height
+  }
+
+  if (btn) {
+    btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+    const label = btn.querySelector('.cast-toggle-text');
+    if (label) label.textContent = opening ? 'Thu gọn' : 'Xem thêm';
+  }
+}
+
+// "Is this card taller than the peek?" can only be answered once the grid has
+// a real box: it is populated while another tab of the modal may be active.
+function refreshCastExpanders() {
+  const grid = document.getElementById('modalCastGrid');
+  if (!grid) return;
+  grid.querySelectorAll('.cast-card').forEach(card => {
+    const clip = card.querySelector('.cast-body-clip');
+    if (!clip) return;
+    const btn = card.querySelector('.cast-toggle');
+    const tall = clip.scrollHeight > CAST_PEEK_PX + 4;
+    if (!tall) {
+      card.classList.remove('is-expandable', 'is-open');
+      clip.style.maxHeight = '';
+      if (btn) {
+        btn.setAttribute('aria-expanded', 'false');
+        const label = btn.querySelector('.cast-toggle-text');
+        if (label) label.textContent = 'Xem thêm';
+      }
+      return;
+    }
+    card.classList.add('is-expandable');
   });
 }
 
@@ -4294,7 +4454,7 @@ function initSheetSwipe() {
 
 // App Entry Point
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('dating-hub app.js?v=20261005e');
+  console.log('dating-hub app.js?v=20261005f');
   initTheme();
   applyAdminGate();
   initFavorites();

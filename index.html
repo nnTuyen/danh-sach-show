@@ -58,7 +58,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Main Stylesheet (v= date bump to force fresh load, avoid stale cache) -->
-  <link rel="stylesheet" href="style.css?v=20261005e">
+  <link rel="stylesheet" href="style.css?v=20261005f">
 
   <!-- PWA manifest (service worker removed; manifest kept for future use) -->
   <link rel="manifest" href="manifest.json">
@@ -598,12 +598,12 @@
             <!-- Requirement 5: Expand buttons for Cast & Synopsis -->
             <div class="settings-form-group">
               <div class="settings-label-row">
-                <label class="settings-label" for="editCast">Dàn Cast & Diễn viên (mỗi người 1 dòng):</label>
+                <label class="settings-label" for="editCast">Dàn Cast & Diễn viên (mỗi dòng = 1 dòng trong card; chia card mới khi dòng kết thúc bằng #####):</label>
                 <button type="button" class="btn-expand-field" id="btnExpandEditCast">
                   <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Mở rộng
                 </button>
               </div>
-              <textarea id="editCast" class="settings-textarea" placeholder="Nữ 1 - Trần Đan Kỳ | 30t&#10;Nam 1 - Chu Hữu Lăng | 36t"></textarea>
+              <textarea id="editCast" class="settings-textarea" placeholder="1. Trần Đan Kỳ&#10;Nghề nghiệp / Học vấn: Diễn viên&#10;+Thành tích nổi bật&#10;#####&#10;2. Chu Hữu Lăng&#10;Nghề nghiệp / Học vấn: MC"></textarea>
             </div>
 
             <div class="settings-form-group">
@@ -724,12 +724,12 @@
             <!-- Expand buttons for Add -->
             <div class="settings-form-group">
               <div class="settings-label-row">
-                <label class="settings-label" for="addCast">Dàn Cast / Thành viên (mỗi người 1 dòng):</label>
+                <label class="settings-label" for="addCast">Dàn Cast / Thành viên (mỗi dòng = 1 dòng trong card; chia card mới khi dòng kết thúc bằng #####):</label>
                 <button type="button" class="btn-expand-field" id="btnExpandAddCast">
                   <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Mở rộng
                 </button>
               </div>
-              <textarea id="addCast" class="settings-textarea" placeholder="Nữ 1 - Tên | Tuổi | Nghề nghiệp&#10;Nam 1 - Tên | Tuổi | Nghề nghiệp"></textarea>
+              <textarea id="addCast" class="settings-textarea" placeholder="1. Tên diễn viên&#10;Nghề nghiệp / Học vấn: Diễn viên&#10;+Thành tích nổi bật&#10;#####&#10;2. Người tiếp theo&#10;Nghề nghiệp / Học vấn: MC"></textarea>
             </div>
 
             <div class="settings-form-group">
@@ -914,7 +914,7 @@
   </div>
 
   <!-- Main Application Script -->
-  <script src="app.js?v=20261005e"></script>
+  <script src="app.js?v=20261005f"></script>
 </body>
 
 </html>
