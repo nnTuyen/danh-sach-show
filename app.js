@@ -206,6 +206,32 @@ function countryFlagHtml(code) {
   return `<img src="https://flagcdn.com/w40/${info.code}.png" alt="${escapeHtml(info.name)}" class="flag-img" loading="lazy" onerror="this.remove()">`;
 }
 
+// Crossed-swords mark for the "Khác" genre (adversarial/versus shows), replacing
+// the old ellipsis. One sword drawn upright as a single path (point + thick blade
+// + crossbar + grip + pommel), then crossed through a shared pivot by +-45deg.
+// The sword that sits behind is cut with a gap centred on that pivot; because the
+// two axes are 90deg apart the gap maps exactly onto the other blade's width (+10
+// clearance), which leaves the knockout stripe where they meet. viewBox is cropped
+// to the artwork so the mark fills its box instead of floating in empty padding.
+const SWORD_OVER_D = 'M256 48 300 144 300 436 212 436 212 144Z'
+  + ' M161 436h190v50H161Z M226 486h60v38H226Z M206 524h100v42H206Z';
+const SWORD_UNDER_D = 'M256 48 300 144 300 246 212 246 212 144Z'
+  + ' M212 354 300 354 300 436 212 436Z'
+  + ' M161 436h190v50H161Z M226 486h60v38H226Z M206 524h100v42H206Z';
+// Impact burst in the V between the two tips: 8 wide teeth on deep inner vertices,
+// stretched horizontally so it reads as a comic "hit" rather than a spark. Hung low
+// enough that the bottom teeth drop into the V (the mark must read as one gesture,
+// not a star floating over two swords); the two side teeth are pulled in so they
+// clear both blade edges instead of welding themselves onto one of them.
+const SWORDS_BURST_D = 'M256 8 280.9 60 324.9 52.9 316 88.1 371 108 316 127.9 '
+  + '317.9 157.5 280.9 156 256 204 231.1 156 190.6 160.3 196 127.9 141 108 196 88.1 '
+  + '183.5 50 231.1 60Z';
+const SWORDS_ICON = '<svg class="badge-swords" viewBox="16 -8 480 548" aria-hidden="true" focusable="false">'
+  + '<g transform="rotate(45 256 300)"><path d="' + SWORD_OVER_D + '"/></g>'
+  + '<g transform="rotate(-45 256 300)"><path d="' + SWORD_UNDER_D + '"/></g>'
+  + '<path d="' + SWORDS_BURST_D + '"/>'
+  + '</svg>';
+
 // Genre icon badge like the old version (single badge, normal shows show nothing)
 function showGenreBadge(tags) {
   const list = Array.isArray(tags) ? tags : [];
@@ -219,7 +245,7 @@ function showGenreBadge(tags) {
     return `<span class="badge-genre"><i class="fa-solid fa-venus-mars"></i> Song tính</span>`;
   }
   if (list.includes('other')) {
-    return `<span class="badge-genre badge-genre-other"><i class="fa-solid fa-ellipsis"></i> Khác</span>`;
+    return `<span class="badge-genre badge-genre-other">${SWORDS_ICON} Khác</span>`;
   }
   return '';
 }
@@ -4454,7 +4480,7 @@ function initSheetSwipe() {
 
 // App Entry Point
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('dating-hub app.js?v=20261005f');
+  console.log('dating-hub app.js?v=20261005g');
   initTheme();
   applyAdminGate();
   initFavorites();

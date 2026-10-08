@@ -1301,6 +1301,15 @@ div.spotlight-poster {
   color: #94a3b8;
   border-color: rgba(100, 116, 139, 0.3);
 }
+/* Crossed-swords mark for the "Khác" badge. fill: currentColor means it picks up
+   the badge text colour above, so both themes are handled by the rules below. */
+.badge-swords {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  display: block;
+  fill: currentColor;
+}
 
 /* Light theme: the dark-tinted text above sits at ~2.3:1 on white - deepen
    the text (keeping the tint light) so the badges stay readable. */
