@@ -1,5 +1,27 @@
 [
   {
+    "vietnamese": "I am solo S34",
+    "chinese": "나는 SOLO 나는 솔로",
+    "english": "I am solo S34",
+    "country": "korea",
+    "status": "airing",
+    "platform": "SBS",
+    "time": "18h T5",
+    "rating": 4,
+    "year": "2026",
+    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-111.png",
+    "vietnameseWatchUrls": [],
+    "vietnameseWatchUrl": "",
+    "chineseWatchUrls": [],
+    "chineseWatchUrl": "",
+    "detailNotes": "",
+    "description": "Mùa 34 của show I am solo.\nĐiểm nổi bật là mùa dành cho những người có nhiều anh chị em.",
+    "tags": [
+      "normal"
+    ],
+    "id": "i-am-solo-s34"
+  },
+  {
     "vietnamese": "Đuổi bắt sinh tử",
     "chinese": "술래게임",
     "english": "Deadly Tag",
@@ -7,7 +29,7 @@
     "status": "airing",
     "platform": "Disney+",
     "time": "T5",
-    "rating": 4,
+    "rating": 3,
     "year": "2026",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-3.jpg",
     "vietnameseWatchUrls": [
@@ -286,16 +308,19 @@
     "country": "china",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-10-v2.jpg",
     "description": "là chương trình truyền hình thực tế hẹn hò liên thế hệ đầu tiên, nơi tám người trẻ độc thân bắt đầu hành trình tìm kiếm tình yêu kéo dài 13 ngày cùng với những người lớn tuổi hơn. \nTập trung vào sự thu hút ban đầu của những người trẻ, được bổ sung bởi sự đồng hành của những người lớn tuổi, chương trình ghi lại một cách chân thực các buổi hẹn hò và tương tác của họ, pha trộn bầu không khí lãng mạn, sự ấm áp của gia đình và một góc nhìn thực tế về hôn nhân và các mối quan hệ để tạo nên một câu chuyện tình yêu vừa lãng mạn vừa gần gũi.",
-    "rating": 2,
+    "rating": 3,
     "year": "2026",
     "vietnameseWatchUrls": [
       {
-        "url": "https://w.mgtv.com/b/893741/24523013.html",
-        "label": "Multi sub"
+        "label": "Multi sub",
+        "url": "https://w.mgtv.com/b/893741/24523013.html"
       }
     ],
     "vietnameseWatchUrl": "https://w.mgtv.com/b/893741/24523013.html",
-    "id": "ban-song-tau-rung-dong"
+    "id": "ban-song-tau-rung-dong",
+    "chineseWatchUrls": [],
+    "chineseWatchUrl": "",
+    "detailNotes": ""
   },
   {
     "chinese": "当爱情再次降临",
