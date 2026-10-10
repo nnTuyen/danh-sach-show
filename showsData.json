@@ -1,12 +1,34 @@
 [
   {
+    "vietnamese": "Bản Tình Ca Dành Cho Em S3",
+    "chinese": "有你的恋歌3",
+    "english": "Sing For You S3",
+    "country": "china",
+    "status": "upcoming",
+    "platform": "Mango TV",
+    "time": "12h T2",
+    "rating": 4,
+    "year": "12-10-2026",
+    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-113.jpg",
+    "vietnameseWatchUrls": [],
+    "vietnameseWatchUrl": "",
+    "chineseWatchUrls": [],
+    "chineseWatchUrl": "",
+    "detailNotes": "",
+    "description": "Mùa 3 của show Sing For You, nơi dành cho các bạn yêu thích ca hát, có cơ hội thông qua âm nhạc để gắn kết với nhau.",
+    "tags": [
+      "normal"
+    ],
+    "id": "ban-tinh-ca-danh-cho-em-s3"
+  },
+  {
     "vietnamese": "Kế hoạch của quỷ dữ S3",
     "chinese": "데블스 플랜 3",
     "english": "The Devil's Plan S3",
     "country": "korea",
     "status": "upcoming",
     "platform": "Netflix",
-    "time": "",
+    "time": "Quý 4 2026",
     "rating": 5,
     "year": "Quý 4 2026",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-112.jpg",
@@ -37,8 +59,13 @@
     "rating": 4,
     "year": "08-10-2026",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-111.png",
-    "vietnameseWatchUrls": [],
-    "vietnameseWatchUrl": "",
+    "vietnameseWatchUrls": [
+      {
+        "label": "Auto sub",
+        "url": "https://bili.im/BNREpML"
+      }
+    ],
+    "vietnameseWatchUrl": "https://bili.im/BNREpML",
     "chineseWatchUrls": [],
     "chineseWatchUrl": "",
     "detailNotes": "",
@@ -411,7 +438,7 @@
       "normal"
     ],
     "country": "china",
-    "id": "ban-tinh-ca-danh-cho-em-s3"
+    "id": "ban-tinh-ca-danh-cho-em-s3-2"
   },
   {
     "chinese": "恋爱特别邀请2",
