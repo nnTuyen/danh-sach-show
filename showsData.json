@@ -4,14 +4,27 @@
     "chinese": "有你的恋歌3",
     "english": "Sing For You S3",
     "country": "china",
-    "status": "upcoming",
+    "status": "airing",
     "platform": "Mango TV",
     "time": "12h T2",
     "rating": 4,
     "year": "12-10-2026",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-113.jpg",
-    "vietnameseWatchUrls": [],
-    "vietnameseWatchUrl": "",
+    "vietnameseWatchUrls": [
+      {
+        "label": "Auto sub",
+        "url": "https://dailymotion.com/playlist/xdrzj2"
+      },
+      {
+        "label": "Chỉ 720p",
+        "url": "https://bili.im/4CEl9fy"
+      },
+      {
+        "label": "Multi sub",
+        "url": "https://w.mgtv.com/b/912960/24700840.html"
+      }
+    ],
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xdrzj2",
     "chineseWatchUrls": [],
     "chineseWatchUrl": "",
     "detailNotes": "",
@@ -28,9 +41,9 @@
     "country": "korea",
     "status": "upcoming",
     "platform": "Netflix",
-    "time": "Quý 4 2026",
+    "time": "12-11-2026",
     "rating": 5,
-    "year": "Quý 4 2026",
+    "year": "2026",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-112.jpg",
     "vietnameseWatchUrls": [],
     "vietnameseWatchUrl": "",
@@ -353,7 +366,7 @@
     "chinese": "心动双重奏",
     "english": "The Love Duet",
     "vietnamese": "Bản Song Tấu Rung Động",
-    "status": "airing",
+    "status": "completed",
     "platform": "Mango TV",
     "time": "Thứ 5",
     "tags": [
@@ -2975,7 +2988,7 @@
     "chinese": "더 커뮤니티 2- 보이지 않는 손",
     "english": "The Community 2: Invisible Hand",
     "vietnamese": "Cộng đồng 2: Bàn tay vô hình",
-    "status": "airing",
+    "status": "completed",
     "platform": "Kocowa",
     "time": "Thứ 6",
     "tags": [
@@ -2988,38 +3001,41 @@
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-108.jpg",
     "vietnameseWatchUrls": [
       {
-        "url": "https://kisskh.co/Drama/The-Community-2--Invisible-Hand/Episode-2?id=13709&ep=223879&page=0&pageSize=100",
-        "label": "Sub nhanh"
+        "label": "Sub nhanh",
+        "url": "https://kisskh.co/Drama/The-Community-2--Invisible-Hand/Episode-2?id=13709&ep=223879&page=0&pageSize=100"
       },
       {
-        "url": "https://bili.im/qohUzFI",
-        "label": "Auto sub"
+        "label": "Auto sub",
+        "url": "https://bili.im/qohUzFI"
       }
     ],
     "vietnameseWatchUrl": "https://kisskh.co/Drama/The-Community-2--Invisible-Hand/Episode-2?id=13709&ep=223879&page=0&pageSize=100",
     "hotOrder": 3,
-    "id": "cong-dong-2-ban-tay-vo-hinh"
+    "id": "cong-dong-2-ban-tay-vo-hinh",
+    "chineseWatchUrls": [],
+    "chineseWatchUrl": "",
+    "detailNotes": ""
   },
   {
     "chinese": "喜歡請點頭",
     "english": "I lup you",
     "vietnamese": "Thích thì hãy gật đầu",
-    "status": "airing",
+    "status": "completed",
     "platform": "Youtube",
     "time": "T7",
     "vietnameseWatchUrl": "https://dailymotion.com/playlist/xdeaga",
     "vietnameseWatchUrls": [
       {
-        "url": "https://dailymotion.com/playlist/xdeaga",
-        "label": "Auto sub"
+        "label": "Auto sub",
+        "url": "https://dailymotion.com/playlist/xdeaga"
       },
       {
-        "url": "https://t.me/linhtinhshow/168",
-        "label": "Tốc độ nhanh"
+        "label": "Tốc độ nhanh",
+        "url": "https://t.me/linhtinhshow/168"
       },
       {
-        "url": "https://bili.im/2p4smLa",
-        "label": "Chỉ 720p"
+        "label": "Chỉ 720p",
+        "url": "https://bili.im/2p4smLa"
       }
     ],
     "tags": [
@@ -3030,6 +3046,9 @@
     "year": "29-8-2026",
     "rating": 5,
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/Show-109.jpg",
-    "id": "thich-thi-hay-gat-dau"
+    "id": "thich-thi-hay-gat-dau",
+    "chineseWatchUrls": [],
+    "chineseWatchUrl": "",
+    "detailNotes": ""
   }
 ]
