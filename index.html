@@ -45,20 +45,18 @@
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='8 -2 248 248'><g transform='translate(-10.2,-24.3) scale(1.14)'><path transform='translate(-3.4,20.8) scale(0.78)' fill='%23FF2E7E' d='M128 218 C96 194 62 162 48 136 C34 110 40 78 68 66 C92 56 116 66 128 88 C140 66 164 56 188 66 C216 78 222 110 208 136 C194 162 160 194 128 218 Z'/><g fill='none' stroke='%23FF2E7E' stroke-width='16' stroke-linecap='round'><path d='M182.9 108.7 A20 20 0 0 1 182.9 139.3'/><path d='M198.3 90.3 A44 44 0 0 1 198.3 157.7'/></g></g></svg>">
 
-  <!-- Google Fonts: Be Vietnam Pro -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- Image CDNs: connect early for faster poster/flag loading -->
+  <!-- Fonts self-hosted (fonts/*.woff2, declared in style.css): no external font requests -->
+  <!-- Image + icon CDNs: connect early -->
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="preconnect" href="https://wsrv.nl">
   <link rel="preconnect" href="https://flagcdn.com">
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- FontAwesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Main Stylesheet (v= date bump to force fresh load, avoid stale cache) -->
-  <link rel="stylesheet" href="style.css?v=20261005i">
+  <link rel="stylesheet" href="style.css?v=20261015a">
 
   <!-- PWA manifest (service worker removed; manifest kept for future use) -->
   <link rel="manifest" href="manifest.json">
@@ -124,6 +122,10 @@
       </div>
     </div>
   </header>
+
+  <!-- Single <main> wraps hero + filters + grid: screen readers get one "main"
+       landmark to jump to (a11y "region" fix) instead of loose sections. -->
+  <main>
 
   <!-- Hero Section -->
   <section class="hero-section">
@@ -278,8 +280,8 @@
     </div>
   </section>
 
-  <!-- Main Content Area -->
-  <main class="container">
+  <!-- Show Grid -->
+  <div class="container">
     <noscript>
       <div class="empty-state" style="display: flex;">
         <div class="empty-state-icon"><i class="fa-solid fa-code"></i></div>
@@ -317,6 +319,7 @@
         </button>
       </div>
     </div>
+  </div>
   </main>
 
   <!-- Show Detail & Watch Links Modal (With Favicons & Copy Buttons) -->
@@ -919,7 +922,7 @@
   </div>
 
   <!-- Main Application Script -->
-  <script src="app.js?v=20261005i"></script>
+  <script src="app.js?v=20261015b"></script>
 </body>
 
 </html>

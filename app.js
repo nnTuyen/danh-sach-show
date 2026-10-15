@@ -835,7 +835,11 @@ async function loadShowsData() {
     }
 
     if (!data || !Array.isArray(data)) {
-      const res = await fetch(`./showsData.json?v=${Date.now()}`);
+      // No ?v= cache-buster: cache:'no-cache' still guarantees fresh data -
+      // the browser revalidates every load (304 = no 141KB re-download) and
+      // re-downloads only when the file actually changed. The old unique
+      // URL defeated the cache completely, so every visit paid 141KB.
+      const res = await fetch('./showsData.json', { cache: 'no-cache' });
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       data = await res.json();
       state.fileTag = (res.headers.get('ETag') || '').trim() || (fileVer && fileVer.tag) || null;
@@ -937,7 +941,9 @@ function readLocalShows() {
 // be able to answer "did the file change since this local copy was saved?".
 async function getBundledFileVersion() {
   try {
-    const res = await fetch('./showsData.json', { method: 'HEAD' });
+    // cache: 'no-cache' revalidates instead of serving a stale cached HEAD,
+    // so a fresh redeploy is spotted right away (304 stays cheap).
+    const res = await fetch('./showsData.json', { method: 'HEAD', cache: 'no-cache' });
     const t = Date.parse(res.headers.get('Last-Modified') || '');
     return {
       time: Number.isNaN(t) ? null : t,
@@ -1354,6 +1360,19 @@ function initSpotlightCarousel() {
       }
     }, { passive: true });
   }
+
+  // Battery: a hidden tab (backgrounded, phone locked) must not keep the
+  // carousel rotating. Pause on hide and resume on show - restartSpotlightTimer
+  // already refuses while a modal owns the screen, and hover keeps pausing.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clearInterval(spotlightTimer);
+      spotlightTimer = null;
+    } else {
+      if (heroEl && heroEl.matches(':hover')) return;
+      restartSpotlightTimer();
+    }
+  });
 }
 
 
@@ -1636,6 +1655,22 @@ function createGridCard(show) {
   card.className = 'show-card';
   card.onclick = () => openShowDetailAnimated(show, 'tab-watch', cardPosterEl(card));
 
+  // Keyboard parity: the whole card opens the detail view on click, so make it
+  // focusable and Enter/Space-openable too. No role="button" here: nesting the
+  // card's own buttons (Xem ngay / Chi tiết) inside a button role breaks the
+  // a11y tree (axe nested-interactive) and demotes the card's h3 heading.
+  // tabindex=0 also makes a mouse click focus the card, so closing the detail
+  // restores focus to the exact card that was opened.
+  card.tabIndex = 0;
+  card.setAttribute('aria-label', 'Xem chi tiết: ' + (fixBrokenTitleCase(show.vietnamese) || fixBrokenTitleCase(show.english) || 'show'));
+  card.addEventListener('keydown', e => {
+    if (e.target !== card) return; // inner buttons keep their own keys
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault(); // Space must not scroll the page
+      card.click();
+    }
+  });
+
   const countryInfo = getCountryInfo(show.country);
   const statusInfo = getStatusBadge(show.status);
   const ratingValue = show.rating ? Number(show.rating).toFixed(1) : '–';
@@ -1734,6 +1769,18 @@ function createListItem(show) {
   item.className = 'show-list-item';
   item.onclick = () => openShowDetailAnimated(show, 'tab-watch', item.querySelector('.list-item-poster'));
 
+  // Keyboard parity: same as the grid card (see createGridCard): focusable,
+  // Enter/Space opens, no role="button" (inner "Xem" button must stay clean).
+  item.tabIndex = 0;
+  item.setAttribute('aria-label', 'Xem chi tiết: ' + (fixBrokenTitleCase(show.vietnamese) || fixBrokenTitleCase(show.english) || 'show'));
+  item.addEventListener('keydown', e => {
+    if (e.target !== item) return; // inner "Xem" button keeps its own keys
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault(); // Space must not scroll the page
+      item.click();
+    }
+  });
+
   const countryInfo = getCountryInfo(show.country);
   const statusInfo = getStatusBadge(show.status);
   const vnTitleEscaped = escapeHtml(fixBrokenTitleCase(show.vietnamese));
@@ -1791,6 +1838,29 @@ function focusModalEntry(modal) {
   (closeBtn || first || modal).focus?.({ preventScroll: true });
 }
 
+// focusModalEntry above runs while the overlay's visibility/opacity transition
+// has not settled: the browser silently ignores focus() for the first ~70ms
+// (verified in testing), which left keyboard focus on the page behind the
+// dialog and made the Tab trap useless. Retry until the close button really
+// takes focus, unless the user (or another dialog) already owns focus.
+function focusModalEntryWhenReady(modal) {
+  if (!modal) return;
+  let tries = 0;
+  const attempt = () => {
+    if (!modal.classList.contains('active')) return;               // closed meanwhile
+    if (modal.contains(document.activeElement)) return;            // user already tabbed inside
+    const top = document.querySelector('.modal-overlay.active');
+    if (top && top !== modal) return;                              // another dialog stacked on top
+    const target = modal.querySelector('.btn-modal-close');
+    if (target) {
+      target.focus({ preventScroll: true });
+      if (document.activeElement === target) return;
+    }
+    if (++tries < 20) setTimeout(attempt, 50);
+  };
+  setTimeout(attempt, 50);
+}
+
 function restoreFocusAfterModal() {
   if (document.querySelector('.modal-overlay.active')) return; // another modal still open
   // Only restore focus when a modal was actually open (lastFocused is set on
@@ -1820,6 +1890,14 @@ function initModalFocusTrap() {
     const items = [...modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
       .filter(el => !el.disabled && el.getClientRects().length > 0);
     if (items.length === 0) return;
+    // Focus lost to the page behind the dialog (e.g. Tab pressed during the
+    // open transition, when focus() is still a no-op): pull it back inside
+    // instead of letting the browser walk the background page.
+    if (!modal.contains(document.activeElement)) {
+      e.preventDefault();
+      items[0].focus();
+      return;
+    }
     const first = items[0], last = items[items.length - 1];
     if (e.shiftKey && document.activeElement === first) {
       e.preventDefault();
@@ -2249,6 +2327,7 @@ function renderShowDetail(show, defaultTab = 'tab-watch') {
   modal.classList.add('active');
   lockPageScroll();
   focusModalEntry(modal);
+  focusModalEntryWhenReady(modal);
 
   // Favicons hydrate a frame later: the open frame only does layout + morph.
   requestAnimationFrame(() => hydrateFavicons(modal));
@@ -3299,6 +3378,7 @@ function openSettingsModal() {
   modal.classList.add('active');
   lockPageScroll();
   focusModalEntry(modal);
+  focusModalEntryWhenReady(modal);
 }
 
 function closeSettingsModal() {
@@ -4484,7 +4564,7 @@ function initSheetSwipe() {
 
 // App Entry Point
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('dating-hub app.js?v=20261005i');
+  console.log('dating-hub app.js?v=20261015b');
   initTheme();
   applyAdminGate();
   initFavorites();
