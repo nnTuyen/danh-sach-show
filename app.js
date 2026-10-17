@@ -605,7 +605,13 @@ function migrateFavoritesToIds() {
         s.vietnamese === key || s.english === key || s.chinese === key ||
         (typeof s.id === 'string' && slugify(s.vietnamese) === key));
       if (legacy && legacy.id) { resolved = legacy.id; changed = true; }
-      else { next.push(key); return; } // unknown key: keep, never lose data
+      // Key matches no show and no legacy title: the show is gone (deleted
+      // from showsData.json, or removed in another browser). Keeping it made the
+      // Yêu thích badge count something that can never be opened or unfavourited
+      // again - the toggle only exists on a card. This runs right after
+      // state.shows is loaded, so the show list is complete here and a key that
+      // resolves to nothing is stale, not merely unmigrated yet.
+      else { changed = true; return; }
     }
     if (seen.has(resolved)) { changed = true; return; }
     seen.add(resolved);
