@@ -4611,7 +4611,7 @@ function initSheetSwipe() {
 
 // App Entry Point
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('dating-hub app.js?v=20261015b');
+  console.log('dating-hub app.js?v=20261017e');
   initTheme();
   applyAdminGate();
   initFavorites();
