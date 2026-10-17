@@ -474,7 +474,10 @@ textarea:focus-visible,
   position: relative;
   z-index: 2;
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-normal);
+  /* Was `transition: all`: `all` also watched min-height (a LAYOUT property,
+     set per breakpoint below) so every viewport change ran a reflow. Only
+     border/shadow are meant to animate. */
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
   overflow: hidden;
 }
 
@@ -552,15 +555,15 @@ div.spotlight-poster {
 /* Spotlight nav: prev/dots/next sit in a row BELOW the hero (they used to
    overlay the hero and cover the poster - worse on 88px accordion strips).
    The whole row only renders with 2+ slides. */
-.spotlight-footer {
-  display: none;
-  align-items: center;
+/* `display: none` here used to be overridden from the bottom of this file
+     (.spotlight-footer { display: flex }), which made this line dead AND
+     misleading - readers thought the row was hidden. The reserved row at the
+     bottom of the file is what actually applies now. */
+  .spotlight-footer {
+    align-items: center;
   justify-content: center;
   gap: 8px;
   margin-top: 4px;
-}
-.hero-spotlight.has-multiple + .spotlight-footer {
-  display: flex;
 }
 .spotlight-nav {
   width: 34px;
@@ -613,25 +616,30 @@ div.spotlight-poster {
 .spotlight-footer .spotlight-dots {
   margin-top: 0;
 }
-.spotlight-dots {
-  display: none;
-  gap: 6px;
+/* No `display: none` here: JS writes the display inline
+     (#spotlightDots starts hidden in index.html, renderSpotlightDots() shows
+     it when there are 2+ slides), so this declaration never applied. */
+  .spotlight-dots {
+    gap: 6px;
   justify-content: center;
   margin-top: 10px;
 }
-.spotlight-dot {
+/* Was `transition: all` + `.active { width: 22px }`: animating `width` is a
+     LAYOUT property, so every slide change re-laid out the whole dots row.
+     The pill is now drawn with scaleX (8px -> 22px = 2.75x) which the
+     compositor can animate without touching layout. */
+  .spotlight-dot {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: 999px;
   background: var(--border-subtle);
   border: none;
   padding: 0;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
 }
 .spotlight-dot.active {
-  width: 22px;
-  border-radius: 999px;
+  transform: scaleX(2.75);
   background: var(--primary-pink);
 }
 
@@ -846,6 +854,12 @@ div.spotlight-poster {
   padding: 0 10px;
   cursor: pointer;
   transition: all var(--transition-fast);
+  /* A <select> sizes to its widest <option>, so populating the platform/year
+     lists (~24 items) widens them mid-load and wraps the filter row onto two
+     lines - measured CLS 0.187 on the whole page. Lock the closed control to
+     the empty-list width: the popup list still shows every option in full. */
+  width: 119px;
+  box-sizing: content-box;
 }
 
 .select-filter:hover, .select-filter:focus {
@@ -1104,7 +1118,12 @@ div.spotlight-poster {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(0, 0, 0, 0.65);
+  /* 0.78 (was 0.65): this pill sits ON TOP of an arbitrary poster image, so the
+     effective background is whatever the photo shows through. At 0.65 a light
+     poster blended to #545657 and the yellow text measured 4.42:1 - just under
+     the WCAG AA 4.5:1 floor. At 0.78 the worst case is ~7:1, and on dark
+     posters it looks the same as before. */
+  background: rgba(0, 0, 0, 0.78);
   border: 1px solid rgba(251, 191, 36, 0.4);
   color: #fbbf24;
   font-size: 11px;
@@ -1226,7 +1245,12 @@ div.spotlight-poster {
 
 /* Single consolidated reduced-motion block (was split across three places) */
 @media (prefers-reduced-motion: reduce) {
+  /* Was missing: the page-level smooth scroll above kept animating every jump
+     and the back-to-top button for users who asked for reduced motion. */
+  html { scroll-behavior: auto; }
   .spotlight-track { transition: none; }
+  .modal-overlay, .modal-content { transition: none; }
+  .card-zoom, .spotlight-dot { transition: none; }
   #btnRandomShow.dice-rolling { animation: none; }
   .skeleton-poster, .skeleton-line { animation: none; }
   .show-card:hover, .show-card:active,
@@ -1996,6 +2020,12 @@ div.spotlight-poster {
 /* Stacked modals (episode editor / picker) above detail & settings modals */
 .modal-overlay.modal-stack {
   z-index: 1500;
+  /* No backdrop-filter here: it stacks ON TOP of an already-open detail modal,
+     which meant two fullscreen blur(10px) sheets sampled at once on every
+     repaint. This overlay's own 0.75+ alpha background already hides the page,
+     so dropping the blur is invisible but saves a fullscreen GPU pass. */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 /* Episode-links button inside each edit-form link row */
@@ -2867,6 +2897,12 @@ div.spotlight-poster {
 
   .filter-group-left .select-filter,
   .filter-group-right .select-filter {
+    /* The width:119px + content-box pair above fixes CLS on desktop (a <select>
+       sizes to its widest <option> and used to wrap the filter row). At width
+       100% that same content-box leaks padding + border outside the panel, so
+       every mobile/tablet select stuck out ~9px past the panel edge. Reset it
+       HERE only - the desktop CLS fix stays untouched. */
+    box-sizing: border-box;
     width: 100%;
   }
 

@@ -3,20 +3,28 @@
  * Complete Modern Application Logic with Real Site Favicons, Mobile Search, Multi-links & Large Textarea Editor
  */
 
-// Application State
-const state = {
-  shows: [],
-  filteredShows: [],
-  filters: {
+// Single source of truth for the filter defaults. This object used to be
+// written twice - once here and once inside resetAllFilters() - so adding a
+// filter meant remembering both places, and forgetting one silently left the
+// "Reset" button unable to clear it.
+function defaultFilters() {
+  return {
     search: '',
     country: 'all',
     status: 'all',
     platform: 'all',
     tag: 'all',
     year: 'all',
-    sort: 'airing-first', // Default sort is airing-first
+    sort: 'airing-first', // airing -> completed -> upcoming, then A-Z
     onlyFavorites: false
-  },
+  };
+}
+
+// Application State
+const state = {
+  shows: [],
+  filteredShows: [],
+  filters: defaultFilters(),
   viewMode: 'grid', // 'grid' | 'list'
   theme: 'dark',
   favorites: [],
@@ -1497,16 +1505,7 @@ function updateResultsCount() {
 }
 
 function resetAllFilters() {
-  state.filters = {
-    search: '',
-    country: 'all',
-    status: 'all',
-    platform: 'all',
-    tag: 'all',
-    year: 'all',
-    sort: 'airing-first',
-    onlyFavorites: false
-  };
+  state.filters = defaultFilters();
 
   const searchInput = document.getElementById('searchInput');
   if (searchInput) searchInput.value = '';
@@ -2018,6 +2017,32 @@ function openShowDetailAnimated(show, defaultTab = 'tab-watch', sourceEl = null)
   startFlipOpen(content, state.modalSeq);
 }
 
+// One-shot guard shared by every modal morph (FLIP open, mobile close, desktop
+// close). All three used to carry their own copy of the same ~12 lines: a done
+// flag, a timeout fallback for browsers that drop `transitionend`, the
+// transitionend listener, the cancel handle parked in state, and the guard that
+// abandons cleanup when a NEWER modal motion has taken over the element.
+// slot: 'pendingFlipOpen' | 'pendingFlipClose'.
+function guardModalTransition(el, slot, seq, timeoutMs, onFinish) {
+  let done = false;
+  const onEnd = (e) => { if (e.propertyName === 'transform') finish(); };
+  const finish = () => {
+    if (done) return;
+    done = true;
+    clearTimeout(timer);
+    if (state[slot] === cancel) state[slot] = null;
+    el.removeEventListener('transitionend', onEnd);
+    // A close/newer open took over mid-flight: detach only, never reset styles
+    // that now belong to another animation.
+    if (seq !== state.modalSeq) return;
+    onFinish(onEnd);
+  };
+  const cancel = () => { done = true; clearTimeout(timer); el.removeEventListener('transitionend', onEnd); };
+  state[slot] = cancel;
+  el.addEventListener('transitionend', onEnd);
+  const timer = setTimeout(finish, timeoutMs);
+}
+
 function startFlipOpen(content, seq) {
   // Invert: shrink it onto the card rect (FLIP first frame)
   const s = state.detailSourceEl.getBoundingClientRect();
@@ -2041,25 +2066,11 @@ function startFlipOpen(content, seq) {
   content.style.transform = 'none';
   content.style.borderRadius = targetRadius;
 
-  let done = false;
-  const onEnd = (e) => { if (e.propertyName === 'transform') finishOpen(); };
-  const finishOpen = () => {
-    if (done) return;
-    done = true;
-    clearTimeout(timer);
-    if (state.pendingFlipOpen === cancel) state.pendingFlipOpen = null;
-    content.removeEventListener('transitionend', onEnd);
-    // A close/newer open took over mid-flight: detach only, never reset styles
-    // that now belong to another animation.
-    if (seq !== state.modalSeq) return;
+  guardModalTransition(content, 'pendingFlipOpen', seq, 600, () => {
     flipCleanup(content, null);
     const m = content.closest('.modal-overlay');
     assertPaneVisible(m || document, m ? m.querySelector('.tab-pane.active') : null);
-  };
-  const cancel = () => { done = true; clearTimeout(timer); content.removeEventListener('transitionend', onEnd); };
-  const timer = setTimeout(finishOpen, 600);
-  state.pendingFlipOpen = cancel;
-  content.addEventListener('transitionend', onEnd);
+  });
 }
 
 // Lock page scroll WITHOUT breaking position:sticky bars. overflow:hidden
@@ -2360,22 +2371,10 @@ function closeShowDetail(updateHistory = true) {
     modal.classList.remove('active');
     content.style.transition = 'transform 380ms cubic-bezier(.4, 0, .2, 1)';
     content.style.transform = 'translateY(100%)';
-    let done = false;
-    const onEnd = (e) => { if (e.propertyName === 'transform') finish(); };
-    const finish = () => {
-      if (done) return;
-      done = true;
-      clearTimeout(timer);
-      if (state.pendingFlipClose === cancel) state.pendingFlipClose = null;
-      content.removeEventListener('transitionend', onEnd);
-      if (seq !== state.modalSeq) return;
+    guardModalTransition(content, 'pendingFlipClose', seq, 560, (onEnd) => {
       flipCleanup(content, onEnd);
       doCloseShowDetail(updateHistory);
-    };
-    const cancel = () => { done = true; clearTimeout(timer); content.removeEventListener('transitionend', onEnd); };
-    state.pendingFlipClose = cancel;
-    content.addEventListener('transitionend', onEnd);
-    const timer = setTimeout(finish, 560);
+    });
     return;
   }
 
@@ -2397,29 +2396,17 @@ function closeShowDetail(updateHistory = true) {
   // Backdrop fades via overlay class removal; content morphs back to the card
   modal.classList.remove('active');
   content.style.transition = `transform 380ms ${IOS_SPRING}, border-radius 380ms ${IOS_SPRING}`;
-  let done = false;
-  const onEnd = (e) => { if (e.propertyName === 'transform') finish(); };
-  const finish = () => {
-    if (done) return;
-    done = true;
-    clearTimeout(timer);
-    if (state.pendingFlipClose === cancel) state.pendingFlipClose = null;
-    content.removeEventListener('transitionend', onEnd);
-    // A newer open started while we were closing: that open owns the modal
-    // now, so drop our cleanup instead of tearing its modal down.
-    if (seq !== state.modalSeq) return;
+  guardModalTransition(content, 'pendingFlipClose', seq, 520, (onEnd) => {
     flipCleanup(content, onEnd);
     doCloseShowDetail(updateHistory);
-  };
-  const cancel = () => { done = true; clearTimeout(timer); content.removeEventListener('transitionend', onEnd); };
-  state.pendingFlipClose = cancel;
-  content.addEventListener('transitionend', onEnd);
+  });
+  // The FLIP end state goes in on the next frame, AFTER the transition is
+  // armed, so the browser has a start value to animate from.
   requestAnimationFrame(() => {
     if (seq !== state.modalSeq) return;
     content.style.transform = `translate(${dx}px, ${dy}px) scale(${s.width / t.width}, ${s.height / t.height})`;
     content.style.borderRadius = '14px';
   });
-  const timer = setTimeout(finish, 520);
 }
 
 function doCloseShowDetail(updateHistory = true) {
@@ -3940,10 +3927,24 @@ async function resetDataToDefault() {
   }
 }
 
+// The country list lives once in index.html as <template id="tplCountryOptions">
+// and is cloned into both selects. Runs before the change listeners are bound
+// so the two selects always have the same options to sync against.
+function fillCountrySelects() {
+  const tpl = document.getElementById('tplCountryOptions');
+  if (!tpl) return;
+  ['countrySelect', 'mobileCountrySelect'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel || sel.options.length > 0) return; // already populated
+    sel.appendChild(tpl.content.cloneNode(true));
+  });
+}
+
 // ============================================================
 // EVENT LISTENERS INITIALIZATION
 // ============================================================
 function initEventListeners() {
+  fillCountrySelects();
   const brandLogo = document.getElementById('brandLogo');
   if (brandLogo) {
     brandLogo.addEventListener('click', () => {

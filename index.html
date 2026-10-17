@@ -56,7 +56,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Main Stylesheet (v= date bump to force fresh load, avoid stale cache) -->
-  <link rel="stylesheet" href="style.css?v=20261015a">
+  <link rel="stylesheet" href="style.css?v=20261017a">
 
   <!-- PWA manifest (service worker removed; manifest kept for future use) -->
   <link rel="manifest" href="manifest.json">
@@ -210,31 +210,28 @@
             <button type="button" class="btn-filter-pill" data-status="upcoming" aria-pressed="false">⏳ Sắp chiếu</button>
           </div>
 
-          <!-- Country Dropdown (right after status pills) -->
-          <select id="countrySelect" class="select-filter" aria-label="Lọc theo quốc gia">
+<!-- One definition of the country list. It used to be typed out twice
+               (#countrySelect + #mobileCountrySelect = 18 identical <option>
+               tags), so adding a country meant editing both blocks and nothing
+               stopped them from drifting apart. Both selects are filled from
+               here by fillCountrySelects() in app.js. -->
+          <template id="tplCountryOptions">
             <option value="all">Mọi quốc gia</option>
             <option value="china">Trung Quốc</option>
             <option value="korea">Hàn Quốc</option>
-            <option value="japan">Nhật Bản</option>
+            <option value="japan">Nhận Bản</option>
             <option value="thailand">Thái Lan</option>
             <option value="hongkong">Hồng Kông</option>
             <option value="taiwan">Đài Loan</option>
             <option value="malaysia">Malaysia</option>
             <option value="other">Quốc gia khác</option>
-          </select>
+          </template>
+
+          <!-- Country Dropdown (right after status pills) -->
+          <select id="countrySelect" class="select-filter" aria-label="Lọc theo quốc gia"></select>
 
           <!-- Mobile Country Select (Included inside accordion for mobile users) -->
-          <select id="mobileCountrySelect" class="select-filter" aria-label="Lọc theo quốc gia" style="display: none;">
-            <option value="all">Mọi quốc gia</option>
-            <option value="china">Trung Quốc</option>
-            <option value="korea">Hàn Quốc</option>
-            <option value="japan">Nhật Bản</option>
-            <option value="thailand">Thái Lan</option>
-            <option value="hongkong">Hồng Kông</option>
-            <option value="taiwan">Đài Loan</option>
-            <option value="malaysia">Malaysia</option>
-            <option value="other">Quốc gia khác</option>
-          </select>
+          <select id="mobileCountrySelect" class="select-filter" aria-label="Lọc theo quốc gia" style="display: none;"></select>
 
           <!-- Platform Dropdown -->
           <select id="platformSelect" class="select-filter" aria-label="Lọc theo nền tảng">
@@ -333,7 +330,14 @@
       <div class="modal-scrollable">
         <!-- Modal Hero Header -->
         <div class="modal-header-hero">
-          <img src="./images/show-0.jpg" alt="" class="modal-poster" id="modalPoster" title="Bấm để xem ảnh gốc">
+          <!-- Poster cua modal. KHONG dat san src: truoc day la ./images/show-0.jpg
+                 (anh poster cua Love Actually S5) -> bi tai ve 225 KB o MO LANG
+                 TRANG ke modal chua mo. Do JS gan src ngay trong
+                 renderShowDetail truoc khi modal kip hien, anh do khong bao
+                 gio duoc ve ra (do o 12 khung hinh dau: 0 khong hien voi
+                 src cu). Bo src = mat 225 KB o moi lan mo trang; luc nao
+                 mo modal, JS gan anh that cua show do. -->
+            <img alt="" class="modal-poster" id="modalPoster" title="Bấm để xem ảnh gốc" width="300" height="200" decoding="async">
           <div class="modal-info-col">
             <div class="modal-badges-row">
               <span class="badge-status airing" id="modalStatusBadge">Đang chiếu</span>
@@ -922,7 +926,7 @@
   </div>
 
   <!-- Main Application Script -->
-  <script src="app.js?v=20261015b"></script>
+  <script src="app.js?v=20261017a"></script>
 </body>
 
 </html>
