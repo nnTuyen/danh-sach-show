@@ -288,10 +288,14 @@
     "chineseWatchUrls": [
       {
         "label": "Cần Vip để xem sub",
-        "url": "https://v.youku.com/v_show/id_XNjU2Njc5ODEzNg==.html"
+        "url": "https://www.youku.tv/v/v_show/id_XNjU3MDEzNTE5Mg==.html"
+      },
+      {
+        "label": "Cần là Member",
+        "url": "https://youtube.com/playlist?list=PLM0g1nIkc3dQ&si=e-pG14uy_OO9qPve"
       }
     ],
-    "chineseWatchUrl": "https://v.youku.com/v_show/id_XNjU2Njc5ODEzNg==.html",
+    "chineseWatchUrl": "https://www.youku.tv/v/v_show/id_XNjU3MDEzNTE5Mg==.html",
     "detailNotes": ""
   },
   {
