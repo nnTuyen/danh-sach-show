@@ -41,9 +41,9 @@
     "country": "korea",
     "status": "upcoming",
     "platform": "Netflix",
-    "time": "12-11-2026",
+    "time": "T3 10-11",
     "rating": 5,
-    "year": "2026",
+    "year": "10-11-2026",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-112.jpg",
     "vietnameseWatchUrls": [],
     "vietnameseWatchUrl": "",
@@ -81,7 +81,7 @@
     "vietnameseWatchUrl": "https://bili.im/BNREpML",
     "chineseWatchUrls": [],
     "chineseWatchUrl": "",
-    "detailNotes": "",
+    "detailNotes": "Nam:\nYoung Soo, 1989, Giám sát công trường xây dựng.\nYoung Ho, 1991, Nhân viên bộ phận CNTT tại một công ty chứng khoán của Pháp ở Nhật Bản.\nYoung Sik, 1988, Nhân viên bộ phận quản lý chuỗi cung ứng của một thương hiệu thể thao quốc tế.\nYoung Chul, 1990, Công chức nhà nước.\nKwang Soo, 1991, Phụ trách phát triển kinh doanh, chẳng hạn như kinh doanh bán trước nhà ở.\nSang Chul, 1987, Nhân viên sản xuất HBM và bảo trì thiết bị tại SK Hynix.",
     "description": "Mùa 34 của show I am solo.\nĐiểm nổi bật là mùa dành cho những người có nhiều anh chị em.",
     "tags": [
       "normal"
@@ -279,9 +279,20 @@
     ],
     "country": "china",
     "description": "Show tập trung vào khái niệm \"thiên vị\" trong tình yêu: khi một người không chỉ được chọn vì phù hợp, mà còn vì trở thành ngoại lệ đặc biệt trong mắt đối phương. Tên Anh \"Preference of Love\" là bản dịch sát nghĩa, còn tên Việt \"Tình Yêu Thiên Vị\" giữ đúng sắc thái gốc.",
-    "time": "Đang casting",
+    "time": "T3 20-10",
     "rating": 4,
-    "id": "tinh-yeu-thien-vi-s2"
+    "id": "tinh-yeu-thien-vi-s2",
+    "year": "20-10-2026",
+    "vietnameseWatchUrls": [],
+    "vietnameseWatchUrl": "",
+    "chineseWatchUrls": [
+      {
+        "label": "Cần Vip để xem sub",
+        "url": "https://v.youku.com/v_show/id_XNjU2Njc5ODEzNg==.html"
+      }
+    ],
+    "chineseWatchUrl": "https://v.youku.com/v_show/id_XNjU2Njc5ODEzNg==.html",
+    "detailNotes": ""
   },
   {
     "chinese": "妈妈我要恋爱啦",
@@ -846,18 +857,22 @@
     "description": "Bản Tình Ca Dành Cho Em là một chương trình thực tế đầy cảm xúc xoay quanh những chàng trai và cô gái trẻ, những người mang trong mình niềm đam mê âm nhạc mãnh liệt. Tại \"Ngôi nhà luyến ái\", họ bắt đầu hành trình tìm kiếm sự đồng điệu trong tâm hồn, nơi mà mỗi buổi hẹn hò và sáng tác âm nhạc là cầu nối đưa trái tim gần lại với nhau.",
     "vietnameseWatchUrls": [
       {
-        "url": "https://rophim1.vip/phim/ban-tinh-ca-danh-cho-em-phan-2",
-        "label": "Rophim - Sub chuẩn"
+        "label": "Rophim - Sub chuẩn",
+        "url": "https://rophim1.vip/phim/ban-tinh-ca-danh-cho-em-phan-2"
       },
       {
-        "url": "https://phimvietsub.click/ban-tinh-ca-danh-cho-em-phan-2-543",
-        "label": "Yêu phim - Sub chuẩn"
+        "label": "Yêu phim - Sub chuẩn",
+        "url": "https://phimvietsub.click/ban-tinh-ca-danh-cho-em-phan-2-543"
       }
     ],
     "vietnameseWatchUrl": "https://rophim1.vip/phim/ban-tinh-ca-danh-cho-em-phan-2",
-    "rating": 3,
+    "rating": 4,
     "year": "2026",
-    "id": "ban-tinh-ca-danh-cho-em-s2"
+    "id": "ban-tinh-ca-danh-cho-em-s2",
+    "time": "",
+    "chineseWatchUrls": [],
+    "chineseWatchUrl": "",
+    "detailNotes": ""
   },
   {
     "chinese": "逃离朝九晚五的恋爱",
@@ -2910,14 +2925,14 @@
     "chinese": "나는 SOLO 그 후 사랑은 계속된다",
     "english": "I am solo, Love Forever S16",
     "vietnamese": "I am solo, Love Forever S16",
-    "status": "airing",
+    "status": "completed",
     "platform": "SBS",
     "time": "T7",
     "tags": [
       "normal"
     ],
     "country": "korea",
-    "rating": 3,
+    "rating": 3.5,
     "year": "7-08-2026",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-106-v2.jpg",
     "vietnameseWatchUrls": [
