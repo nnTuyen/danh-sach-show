@@ -1,5 +1,32 @@
 [
   {
+    "vietnamese": "Con tôi hẹn hò S3",
+    "chinese": "내 새끼의 연애 3",
+    "english": "When Our Kids Fall In Love S3",
+    "country": "korea",
+    "status": "upcoming",
+    "platform": "TvN",
+    "time": "11-11",
+    "rating": 5,
+    "year": "11-11-2026",
+    "image": "",
+    "vietnameseWatchUrls": [],
+    "vietnameseWatchUrl": "",
+    "chineseWatchUrls": [
+      {
+        "label": "Trailer",
+        "url": "https://www.youtube.com/watch?v=qExypOsvPgM"
+      }
+    ],
+    "chineseWatchUrl": "https://www.youtube.com/watch?v=qExypOsvPgM",
+    "detailNotes": "",
+    "description": "Mùa 3 của show cùng theo dõi những đứa con đáng yêu bắt đầu yêu đương.",
+    "tags": [
+      "normal"
+    ],
+    "id": "con-toi-hen-ho-s3"
+  },
+  {
     "vietnamese": "Bản Tình Ca Dành Cho Em S3",
     "chinese": "有你的恋歌3",
     "english": "Sing For You S3",
@@ -18,6 +45,10 @@
       {
         "label": "Chỉ 720p",
         "url": "https://bili.im/4CEl9fy"
+      },
+      {
+        "label": "Sub + Thuyết minh",
+        "url": "https://www.bilibili.tv/vi/video/4801283860470784"
       },
       {
         "label": "Multi sub",
@@ -271,7 +302,7 @@
     "chinese": "偏爱之恋2",
     "english": "Love Wins All S2",
     "vietnamese": "Tình Yêu Thiên Vị S2",
-    "status": "upcoming",
+    "status": "airing",
     "platform": "Youku",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-5-v2.jpg",
     "tags": [
@@ -283,8 +314,17 @@
     "rating": 4,
     "id": "tinh-yeu-thien-vi-s2",
     "year": "20-10-2026",
-    "vietnameseWatchUrls": [],
-    "vietnameseWatchUrl": "",
+    "vietnameseWatchUrls": [
+      {
+        "label": "Auto sub",
+        "url": "https://dailymotion.com/playlist/xdwg62"
+      },
+      {
+        "label": "Chỉ 720p",
+        "url": "https://bili.im/44jfO8i"
+      }
+    ],
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xdwg62",
     "chineseWatchUrls": [
       {
         "label": "Cần Vip để xem sub",
