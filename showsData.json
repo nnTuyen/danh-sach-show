@@ -124,7 +124,7 @@
     "chinese": "술래게임",
     "english": "Deadly Tag",
     "country": "korea",
-    "status": "airing",
+    "status": "completed",
     "platform": "Disney+",
     "time": "T5",
     "rating": 3,
@@ -310,7 +310,7 @@
     ],
     "country": "china",
     "description": "Show tập trung vào khái niệm \"thiên vị\" trong tình yêu: khi một người không chỉ được chọn vì phù hợp, mà còn vì trở thành ngoại lệ đặc biệt trong mắt đối phương. Tên Anh \"Preference of Love\" là bản dịch sát nghĩa, còn tên Việt \"Tình Yêu Thiên Vị\" giữ đúng sắc thái gốc.",
-    "time": "T3 20-10",
+    "time": "T3 T4",
     "rating": 4,
     "id": "tinh-yeu-thien-vi-s2",
     "year": "20-10-2026",
@@ -322,6 +322,10 @@
       {
         "label": "Chỉ 720p",
         "url": "https://bili.im/44jfO8i"
+      },
+      {
+        "label": "Thuyết minh + Sub",
+        "url": "https://www.bilibili.tv/vi/video/4801344570661888"
       }
     ],
     "vietnameseWatchUrl": "https://dailymotion.com/playlist/xdwg62",
@@ -336,7 +340,7 @@
       }
     ],
     "chineseWatchUrl": "https://www.youku.tv/v/v_show/id_XNjU3MDEzNTE5Mg==.html",
-    "detailNotes": ""
+    "detailNotes": "Nam:\nNam 1 - Hoàng Tư Dương (黄思洋), 21t\nNam 2- Kim Chấn Vũ (金震宇), 24t\nNam3 - Cao Vũ Hằng (高宇恒), 22t\nNam 4 - Vương Thịnh (王晟), 24t\nNam 5 - Trịnh Thủ Đống (郑守栋), \nNam 6 - Lương Vịnh Phong (梁泳枫), 25t\nNam 7 - Lý Tông Đạo (李宗道), 27t\nNam 8 - Vương Thiên Tình (王天晴), 24t\n\nNữ:\nNữ 1 - Nhậm Thuần Hy (任淳熙)\nNữ 2 - Lưu Dư Ninh - Ally (刘予宁)\nNữ 3 - Thái Tử Y (蔡子伊)\nNữ 4 - Lưu Hân Nhiễm (刘欣橪)\nNữ 5 - Trương Nghệ (张艺), 23t\nNữ 6 - Tiền Thi Hàm - Annie (钱诗涵), 25t\nNữ 7 - Hồ Khả Nhi (胡可儿), 21t\nNữ 8 - Lưu Lạc Di (刘乐怡), 24t"
   },
   {
     "chinese": "妈妈我要恋爱啦",
