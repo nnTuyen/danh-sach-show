@@ -1,5 +1,32 @@
 [
   {
+    "vietnamese": "I am solo, Love Forever S17",
+    "chinese": "나는 SOLO 그 후 사랑은 계속된다",
+    "english": "I am solo, Love Forever S17",
+    "country": "korea",
+    "status": "airing",
+    "platform": "SBS",
+    "time": "T6",
+    "rating": 3,
+    "year": "23-10-2026",
+    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-114.jpg",
+    "vietnameseWatchUrls": [
+      {
+        "label": "Auto sub",
+        "url": "https://bili.im/7kFSPPV"
+      }
+    ],
+    "vietnameseWatchUrl": "https://bili.im/7kFSPPV",
+    "chineseWatchUrls": [],
+    "chineseWatchUrl": "",
+    "detailNotes": "Nữ:\nJang Mi, \nJak-Yak\nTuLip, 1992, Người mẫu tại Hàn Quốc.\nBaekHap, 1990,\nGukHwa, \n\nNam:\n S1 YH, 1984, Ca sĩ opera.\nS7 YH, 1985, Chuyên gia tài chính độc lập (INFP), đô vật chuyên nghiệp.\nS7 YSik, 1980, Nhân viên vận hành studio thiết kế, giảng viên thiết kế mỹ thuật.\nS14 KS, 1982, Luật sư chuyên về quan hệ lao động, có 8 năm kinh nghiệm.",
+    "description": "Mùa 17, mùa đặc biệt cho Người độc thân Quốc tế.",
+    "tags": [
+      "normal"
+    ],
+    "id": "i-am-solo-love-forever-s17"
+  },
+  {
     "vietnamese": "Con tôi hẹn hò S3",
     "chinese": "내 새끼의 연애 3",
     "english": "When Our Kids Fall In Love S3",
@@ -1027,15 +1054,19 @@
     "description": "Tình Yêu Thiên Vị – nơi những chàng trai cô gái trẻ trung vừa phải sinh tồn nơi hoang dã, vừa bước vào cuộc chơi tình cảm đầy kịch tính. Liệu họ sẽ chọn bánh mì hay hoa hồng?",
     "vietnameseWatchUrls": [
       {
-        "url": "https://rophim1.vip/phim/tinh-yeu-thien-vi",
-        "label": "Rophim - Sub chuẩn"
+        "label": "Sub chuẩn",
+        "url": "https://rumble.com/playlists/VpDU0ppVEwQ"
       }
     ],
-    "vietnameseWatchUrl": "https://rophim1.vip/phim/tinh-yeu-thien-vi",
+    "vietnameseWatchUrl": "https://rumble.com/playlists/VpDU0ppVEwQ",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-36.png",
     "rating": 5,
     "year": "2025",
-    "id": "tinh-yeu-thien-vi"
+    "id": "tinh-yeu-thien-vi",
+    "time": "",
+    "chineseWatchUrls": [],
+    "chineseWatchUrl": "",
+    "detailNotes": ""
   },
   {
     "chinese": "未知的心跳",
