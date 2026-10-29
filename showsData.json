@@ -219,14 +219,14 @@
       }
     ],
     "vietnameseWatchUrl": "https://www.bilibili.tv/vi/video/4800351518202880",
-    "hotOrder": 2,
-    "id": "nguoi-yeu-mot-nua-than-thuoc-s5"
+    "id": "nguoi-yeu-mot-nua-than-thuoc-s5",
+    "hotOrder": 2
   },
   {
     "chinese": "心动的信号9",
     "english": "Heart Signal 9",
     "vietnamese": "Tín Hiệu Con Tim S9",
-    "status": "airing",
+    "status": "completed",
     "platform": "Tencent Video",
     "time": "Thứ 2 Thứ 3",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-1-v3.jpg",
@@ -272,8 +272,8 @@
       }
     ],
     "vietnameseWatchUrl": "https://rumble.com/playlists/cjuaI6B46zo",
-    "hotOrder": 1,
-    "id": "tin-hieu-con-tim-s9"
+    "id": "tin-hieu-con-tim-s9",
+    "hotOrder": 1
   },
   {
     "chinese": "日落时分说爱你2",
@@ -344,7 +344,7 @@
     "vietnameseWatchUrls": [
       {
         "label": "Auto sub",
-        "url": "https://dailymotion.com/playlist/xdwg62"
+        "url": "https://dzen.ru/suite/aced8c9a-facb-439f-80f3-13af85531c78?share_to=link"
       },
       {
         "label": "Chỉ 720p",
@@ -355,7 +355,7 @@
         "url": "https://www.bilibili.tv/vi/video/4801344570661888"
       }
     ],
-    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xdwg62",
+    "vietnameseWatchUrl": "https://dzen.ru/suite/aced8c9a-facb-439f-80f3-13af85531c78?share_to=link",
     "chineseWatchUrls": [
       {
         "label": "Cần Vip để xem sub",
@@ -367,7 +367,8 @@
       }
     ],
     "chineseWatchUrl": "https://www.youku.tv/v/v_show/id_XNjU3MDEzNTE5Mg==.html",
-    "detailNotes": "Nam:\nNam 1 - Hoàng Tư Dương (黄思洋), 21t\nNam 2- Kim Chấn Vũ (金震宇), 24t\nNam3 - Cao Vũ Hằng (高宇恒), 22t\nNam 4 - Vương Thịnh (王晟), 24t\nNam 5 - Trịnh Thủ Đống (郑守栋), \nNam 6 - Lương Vịnh Phong (梁泳枫), 25t\nNam 7 - Lý Tông Đạo (李宗道), 27t\nNam 8 - Vương Thiên Tình (王天晴), 24t\n\nNữ:\nNữ 1 - Nhậm Thuần Hy (任淳熙)\nNữ 2 - Lưu Dư Ninh - Ally (刘予宁)\nNữ 3 - Thái Tử Y (蔡子伊)\nNữ 4 - Lưu Hân Nhiễm (刘欣橪)\nNữ 5 - Trương Nghệ (张艺), 23t\nNữ 6 - Tiền Thi Hàm - Annie (钱诗涵), 25t\nNữ 7 - Hồ Khả Nhi (胡可儿), 21t\nNữ 8 - Lưu Lạc Di (刘乐怡), 24t"
+    "detailNotes": "Nam:\nNam 1 - Hoàng Tư Dương (黄思洋), 21t\nNam 2- Kim Chấn Vũ (金震宇), 24t\nNam3 - Cao Vũ Hằng (高宇恒), 22t\nNam 4 - Vương Thịnh (王晟), 24t\nNam 5 - Trịnh Thủ Đống (郑守栋), \nNam 6 - Lương Vịnh Phong (梁泳枫), 25t\nNam 7 - Lý Tông Đạo (李宗道), 27t\nNam 8 - Vương Thiên Tình (王天晴), 24t\n\nNữ:\nNữ 1 - Nhậm Thuần Hy (任淳熙)\nNữ 2 - Lưu Dư Ninh - Ally (刘予宁)\nNữ 3 - Thái Tử Y (蔡子伊)\nNữ 4 - Lưu Hân Nhiễm (刘欣橪)\nNữ 5 - Trương Nghệ (张艺), 23t\nNữ 6 - Tiền Thi Hàm - Annie (钱诗涵), 25t\nNữ 7 - Hồ Khả Nhi (胡可儿), 21t\nNữ 8 - Lưu Lạc Di (刘乐怡), 24t",
+    "hotOrder": 3
   },
   {
     "chinese": "妈妈我要恋爱啦",
@@ -1503,8 +1504,8 @@
     "chineseWatchUrls": [],
     "chineseWatchUrl": "",
     "detailNotes": "",
-    "hotOrder": 4,
-    "id": "nhip-dap-trai-tim-s5"
+    "id": "nhip-dap-trai-tim-s5",
+    "hotOrder": 4
   },
   {
     "chinese": "心动的信号 1-8",
@@ -3092,7 +3093,6 @@
       }
     ],
     "vietnameseWatchUrl": "https://kisskh.co/Drama/The-Community-2--Invisible-Hand/Episode-2?id=13709&ep=223879&page=0&pageSize=100",
-    "hotOrder": 3,
     "id": "cong-dong-2-ban-tay-vo-hinh",
     "chineseWatchUrls": [],
     "chineseWatchUrl": "",
