@@ -624,10 +624,8 @@ div.spotlight-poster {
   justify-content: center;
   margin-top: 10px;
 }
-/* Was `transition: all` + `.active { width: 22px }`: animating `width` is a
-     LAYOUT property, so every slide change re-laid out the whole dots row.
-     The pill is now drawn with scaleX (8px -> 22px = 2.75x) which the
-     compositor can animate without touching layout. */
+/* Scale uniformly so the active indicator stays circular without animating
+   width (a layout property) on every slide change. */
   .spotlight-dot {
   width: 8px;
   height: 8px;
@@ -639,7 +637,7 @@ div.spotlight-poster {
   transition: background-color var(--transition-fast), transform var(--transition-fast);
 }
 .spotlight-dot.active {
-  transform: scaleX(2.75);
+  transform: scale(1.25);
   background: var(--primary-pink);
 }
 
