@@ -1,5 +1,32 @@
 [
   {
+    "vietnamese": "러브캐처2",
+    "chinese": "Love Catcher S2",
+    "english": "Love Catcher S2",
+    "country": "korea",
+    "status": "completed",
+    "platform": "Mnet",
+    "time": "",
+    "rating": 5,
+    "year": "22-08-2019",
+    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-115.png",
+    "vietnameseWatchUrls": [
+      {
+        "label": "Auto sub",
+        "url": "https://dzen.ru/suite/0be673f7-62ce-4198-bc16-c64bf637b8f0?share_to=link"
+      }
+    ],
+    "vietnameseWatchUrl": "https://dzen.ru/suite/0be673f7-62ce-4198-bc16-c64bf637b8f0?share_to=link",
+    "chineseWatchUrls": [],
+    "chineseWatchUrl": "",
+    "detailNotes": "",
+    "description": "",
+    "tags": [
+      "normal"
+    ],
+    "id": "2"
+  },
+  {
     "vietnamese": "I am solo, Love Forever S17",
     "chinese": "나는 SOLO 그 후 사랑은 계속된다",
     "english": "I am solo, Love Forever S17",
