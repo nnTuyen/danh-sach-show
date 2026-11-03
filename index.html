@@ -56,7 +56,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Main Stylesheet (v= date bump to force fresh load, avoid stale cache) -->
-  <link rel="stylesheet" href="style.css?v=20261029a">
+  <link rel="stylesheet" href="style.css?v=20261103a">
 
   <!-- PWA manifest (service worker removed; manifest kept for future use) -->
   <link rel="manifest" href="manifest.json">
@@ -423,6 +423,10 @@
             </button>
             <button type="button" class="btn-secondary" id="btnModalFavorite">
               <i class="fa-regular fa-heart"></i> Lưu vào Yêu thích
+            </button>
+            <!-- Admin shortcut: jump straight to this show's edit form -->
+            <button type="button" class="btn-secondary btn-modal-edit" id="btnModalEditShow" title="Chỉnh sửa thông tin show này" hidden>
+              <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa show
             </button>
           </div>
         </div>
@@ -926,7 +930,7 @@
   </div>
 
   <!-- Main Application Script -->
-  <script src="app.js?v=20261017e"></script>
+  <script src="app.js?v=20261103a"></script>
 </body>
 
 </html>

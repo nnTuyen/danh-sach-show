@@ -2374,6 +2374,8 @@ function renderShowDetail(show, defaultTab = 'tab-watch') {
   if (descEl) descEl.textContent = show.description || 'Chưa có thông tin giới thiệu cho show này.';
 
   updateModalFavoriteButton(show);
+  const modalEditBtn = document.getElementById('btnModalEditShow');
+  if (modalEditBtn) modalEditBtn.hidden = !IS_ADMIN;
   switchModalTab(defaultTab, { instant: true });
 
   freezeModalHeight(modal);
@@ -3388,15 +3390,48 @@ function pickRandomShow() {
 // ============================================================
 // SETTINGS: SORTED A-Z, DYNAMIC MULTI-LINKS & EXPAND EDITOR (REQUIREMENTS 4 & 5)
 // ============================================================
-function openSettingsModal() {
+function getShowIndexInState(show) {
+  if (!show) return -1;
+  const byRef = state.shows.indexOf(show);
+  if (byRef !== -1) return byRef;
+  if (show.id) {
+    const byId = state.shows.findIndex(s => s.id && s.id === show.id);
+    if (byId !== -1) return byId;
+  }
+  return state.shows.findIndex(s =>
+    s.vietnamese === show.vietnamese &&
+    (s.chinese || '') === (show.chinese || '') &&
+    (s.english || '') === (show.english || '')
+  );
+}
+
+function openSettingsModal(options = {}) {
   const modal = document.getElementById('settingsModal');
   if (!modal) return;
+  const editIndex = Number.isInteger(options.editIndex) ? options.editIndex : null;
+  const editShow = editIndex !== null ? state.shows[editIndex] : null;
+
   stagedSpotlightSlugs = [...state.spotlightSlugs];
+  // Clear the edit search so the requested show is always in the select.
+  if (editShow) {
+    const editSearch = document.getElementById('editSearchInput');
+    if (editSearch) editSearch.value = '';
+  }
   populateSettingsSelects();
   renderStagedPins();
   refreshFavBackupUI();
   // Viewers must never land on an admin tab (e.g. a stale active state).
   if (!IS_ADMIN) switchSettingsTab('stab-fav');
+  else if (editShow) {
+    // Jump straight to this show's edit form. Keep unsaved work when the same
+    // show is already loaded and dirty; otherwise (re)load the requested show.
+    const preserveDirty = state.editFormIdx === editIndex && isEditFormDirty();
+    if (!preserveDirty) {
+      state.editFormIdx = editIndex;
+      populateSettingsSelects({ reloadEditForm: true });
+    }
+    switchSettingsTab('stab-edit');
+  }
   const restoreBox = document.getElementById('favRestoreBox');
   if (restoreBox) restoreBox.style.display = 'none';
   const restoreText = document.getElementById('favRestoreText');
@@ -3408,6 +3443,26 @@ function openSettingsModal() {
   lockPageScroll();
   focusModalEntry(modal);
   focusModalEntryWhenReady(modal);
+}
+
+// "Chỉnh sửa show" in the detail modal (admin only): close the detail view and
+// open the settings modal directly on this show's edit form.
+function openShowEditorFromDetail() {
+  if (!IS_ADMIN) return;
+  const show = state.activeShow;
+  if (!show) return;
+  const idx = getShowIndexInState(show);
+  if (idx < 0) {
+    showToast('Không tìm thấy show này trong dữ liệu để chỉnh sửa.', 'fa-triangle-exclamation');
+    return;
+  }
+  if (state.editFormIdx !== null && state.editFormIdx !== idx && isEditFormDirty()) {
+    const pending = state.shows[state.editFormIdx];
+    const pendingName = pending && pending.vietnamese ? `"${pending.vietnamese}"` : 'một show khác';
+    if (!window.confirm(`Bạn có thay đổi chưa lưu cho ${pendingName}. Bỏ các thay đổi đó để chuyển sang sửa show "${show.vietnamese}"?`)) return;
+  }
+  openSettingsModal({ editIndex: idx });
+  closeShowDetail();
 }
 
 function closeSettingsModal() {
@@ -4321,6 +4376,9 @@ function initEventListeners() {
     });
   }
 
+  const modalEditBtn = document.getElementById('btnModalEditShow');
+  if (modalEditBtn) modalEditBtn.addEventListener('click', openShowEditorFromDetail);
+
   // Settings Modal Open/Close & Tabs
   const btnOpenSettings = document.getElementById('btnOpenSettings');
   if (btnOpenSettings) btnOpenSettings.addEventListener('click', openSettingsModal);
@@ -4611,7 +4669,7 @@ function initSheetSwipe() {
 
 // App Entry Point
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('dating-hub app.js?v=20261017e');
+  console.log('dating-hub app.js?v=20261103a');
   initTheme();
   applyAdminGate();
   initFavorites();

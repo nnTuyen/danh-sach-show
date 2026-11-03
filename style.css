@@ -1892,6 +1892,24 @@ div.spotlight-poster {
   column-gap: 16px;
 }
 
+/* Admin-only shortcut in the detail modal footer, next to Share / Favorite */
+.btn-modal-edit[hidden] {
+  display: none;
+}
+
+.btn-modal-edit {
+  padding: 8px 16px;
+  color: var(--primary-pink);
+  background: rgba(255, 46, 126, 0.1);
+  border-color: rgba(255, 46, 126, 0.35);
+}
+
+.btn-modal-edit:hover {
+  color: #fff;
+  background: var(--primary-gradient);
+  border-color: transparent;
+}
+
 .modal-tabs {
   display: flex;
   align-items: center;
@@ -2938,6 +2956,12 @@ div.spotlight-poster {
 
   .modal-body {
     padding: 14px;
+  }
+
+  /* Mobile detail modal is already tight; keep the admin edit shortcut
+     desktop-only so the footer stays on one comfortable line. */
+  #btnModalEditShow {
+    display: none;
   }
 
   /* Mobile bottom-sheet detail modal (like old version: pure slide-up,
