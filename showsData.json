@@ -151,14 +151,27 @@
     "chinese": "데블스 플랜 3",
     "english": "The Devil's Plan S3",
     "country": "korea",
-    "status": "upcoming",
+    "status": "airing",
     "platform": "Netflix",
-    "time": "T3 10-11",
+    "time": "T3",
     "rating": 5,
     "year": "10-11-2026",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-112.jpg",
-    "vietnameseWatchUrls": [],
-    "vietnameseWatchUrl": "",
+    "vietnameseWatchUrls": [
+      {
+        "label": "Sub chuẩn",
+        "url": "https://sofaflix.hair/phim/ke-hoach-cua-quy-du-phan-3"
+      },
+      {
+        "label": "Nguồn C",
+        "url": "https://phim.nguonc.com/phim/ke-hoach-cua-quy-du-phan-3"
+      },
+      {
+        "label": "Sub chuẩn",
+        "url": "https://mamphim.space/phim/ke-hoach-cua-quy-du-phan-3.09feFR8S"
+      }
+    ],
+    "vietnameseWatchUrl": "https://sofaflix.hair/phim/ke-hoach-cua-quy-du-phan-3",
     "chineseWatchUrls": [
       {
         "label": "Trailer",
@@ -399,10 +412,6 @@
       {
         "label": "Auto sub",
         "url": "https://dzen.ru/suite/aced8c9a-facb-439f-80f3-13af85531c78?share_to=link"
-      },
-      {
-        "label": "Chỉ 720p",
-        "url": "https://bili.im/44jfO8i"
       },
       {
         "label": "Thuyết minh + Sub",

@@ -387,7 +387,9 @@ const FIXED_DOMAIN_LOGOS = {
   'bilibili.tv': './images/logo-bilibili.ico',
   'bili.im': './images/logo-bilibili.ico',
   'rophim1.vip': './images/logo-rophim.ico',
-  'mintplay-vn.vercel.app': './images/logo-mintplay.png'
+  'mintplay-vn.vercel.app': './images/logo-mintplay.png',
+  'sofaflix.hair': './images/logo-sofaflix.ico',
+  'nguonc.com': './images/logo-nguonc.png'
 };
 
 function getWebsiteFaviconHtml(url) {
