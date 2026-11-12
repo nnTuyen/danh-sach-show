@@ -348,8 +348,8 @@
     "vietnamese": "Hãy nói \"Anh yêu em\" lúc hoàng hôn S2",
     "status": "upcoming",
     "platform": "Tencent Video",
-    "time": "Tháng 11",
-    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-2.jpg",
+    "time": "Thứ 2 16-11",
+    "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-2-v2.jpg",
     "chineseWatchUrl": "https://v.qq.com/x/cover/mzc00200qh3fqb7.html",
     "tags": [
       "normal"
@@ -358,12 +358,16 @@
     "description": "Show hướng tới không khí lãng mạn, chậm rãi và trưởng thành hơn, lấy hình ảnh \"nói yêu lúc hoàng hôn\" làm điểm tựa cảm xúc. Nội dung phù hợp nhóm khán giả thích dating show thiên về trò chuyện, quan sát lựa chọn của người tham gia và những khoảnh khắc bày tỏ tình cảm trực tiếp. Tên Anh \"Say I Love You at Sunset\" là bản dịch sát nghĩa, chưa thấy tên quốc tế phổ biến hơn.",
     "chineseWatchUrls": [
       {
-        "url": "https://v.qq.com/x/cover/mzc00200qh3fqb7.html",
-        "label": "Nơi chiếu tiếng Trung"
+        "label": "Nơi chiếu tiếng Trung",
+        "url": "https://v.qq.com/x/cover/mzc00200qh3fqb7.html"
       }
     ],
-    "year": "2026",
-    "id": "hay-noi-anh-yeu-em-luc-hoang-hon-s2"
+    "year": "16-11-2026",
+    "id": "hay-noi-anh-yeu-em-luc-hoang-hon-s2",
+    "rating": 4,
+    "vietnameseWatchUrls": [],
+    "vietnameseWatchUrl": "",
+    "detailNotes": ""
   },
   {
     "chinese": "有秘密的我们3",
