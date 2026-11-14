@@ -81,18 +81,27 @@
     "id": "i-am-solo-love-forever-s17"
   },
   {
-    "vietnamese": "Con tôi hẹn hò S3",
-    "chinese": "내 새끼의 연애 3",
+    "vietnamese": "Tình yêu của con tôi S3",
+    "chinese": "내새끼의연애 3",
     "english": "When Our Kids Fall In Love S3",
     "country": "korea",
-    "status": "upcoming",
+    "status": "airing",
     "platform": "TvN",
-    "time": "11-11",
+    "time": "T4",
     "rating": 5,
     "year": "11-11-2026",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-116.jpg",
-    "vietnameseWatchUrls": [],
-    "vietnameseWatchUrl": "",
+    "vietnameseWatchUrls": [
+      {
+        "label": "Auto sub",
+        "url": "https://dai.ly/xbwhory"
+      },
+      {
+        "label": "Auto sub",
+        "url": "https://bili.im/jf8hzJc"
+      }
+    ],
+    "vietnameseWatchUrl": "https://dai.ly/xbwhory",
     "chineseWatchUrls": [
       {
         "label": "Trailer",
@@ -100,7 +109,7 @@
       }
     ],
     "chineseWatchUrl": "https://www.youtube.com/watch?v=qExypOsvPgM",
-    "detailNotes": "",
+    "detailNotes": "Nam:\nNam 1 - Choi Sang Mun (최상문), Con trai của Choi Dae Cheol\nNam 2 - Jung Min Jae (정민재), Con trai của Jung Hee Tae\nNam 3 - Lee Jun Su (이준수), Con trai của Lee Jong Hyuk\n\nNữ:\nNữ 1 - Jeon Ji Woo (전지우), Con gái của Jeon Hee Chul\nNữ 2 - Im Hye In (임혜인), Con gái của Im Hyuk Pil\nNữ 3 - Lee Jae Ah (이재아), Con gái của Lee Dong Gook\nNữ 4- Lee Jae Si (이재시), Con gái của Lee Dong Gook, chị gái Lee Jae Ah",
     "description": "Mùa 3 của show cùng theo dõi những đứa con đáng yêu bắt đầu yêu đương.",
     "tags": [
       "normal"
