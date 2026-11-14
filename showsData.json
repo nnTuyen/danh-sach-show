@@ -6,19 +6,19 @@
     "country": "korea",
     "status": "upcoming",
     "platform": "Wave",
-    "time": "Tháng 11",
+    "time": "Thứ 6 27-11",
     "rating": 5,
-    "year": "2026",
+    "year": "27-11-2026",
     "image": "",
     "vietnameseWatchUrls": [],
     "vietnameseWatchUrl": "",
     "chineseWatchUrls": [
       {
-        "label": "Trailer",
-        "url": "https://www.youtube.com/playlist?list=PLO8hvrU8UuxE"
+        "label": "Teaser",
+        "url": "https://www.youtube.com/watch?v=GxmW7d0ERp4"
       }
     ],
-    "chineseWatchUrl": "https://www.youtube.com/playlist?list=PLO8hvrU8UuxE",
+    "chineseWatchUrl": "https://www.youtube.com/watch?v=GxmW7d0ERp4",
     "detailNotes": "",
     "description": "Một chương trình thực tế về tình yêu, nơi các anh chị em cùng nhau giúp đỡ và tìm kiếm bạn đời cho nhau.",
     "tags": [
@@ -93,6 +93,10 @@
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-116.jpg",
     "vietnameseWatchUrls": [
       {
+        "label": "Sub chuẩn",
+        "url": "https://mintplay-vn.vercel.app/video/when-our-kids-fall-in-love-3-vietsub-tap-1?playlist=when-our-kids-fall-in-love-3-vietsub"
+      },
+      {
         "label": "Auto sub",
         "url": "https://dailymotion.com/playlist/xe8652"
       },
@@ -101,7 +105,7 @@
         "url": "https://bili.im/jf8hzJc"
       }
     ],
-    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xe8652",
+    "vietnameseWatchUrl": "https://mintplay-vn.vercel.app/video/when-our-kids-fall-in-love-3-vietsub-tap-1?playlist=when-our-kids-fall-in-love-3-vietsub",
     "chineseWatchUrls": [
       {
         "label": "Trailer",
