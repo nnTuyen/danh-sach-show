@@ -359,7 +359,7 @@
     "chinese": "日落时分说爱你2",
     "english": "Forever by Your Side S2",
     "vietnamese": "Hãy nói \"Anh yêu em\" lúc hoàng hôn S2",
-    "status": "upcoming",
+    "status": "airing",
     "platform": "Tencent Video",
     "time": "Thứ 2 16-11",
     "image": "https://cdn.jsdelivr.net/gh/nnTuyen/danh-sach-show@main/images/show-2-v2.jpg",
@@ -378,8 +378,13 @@
     "year": "16-11-2026",
     "id": "hay-noi-anh-yeu-em-luc-hoang-hon-s2",
     "rating": 4,
-    "vietnameseWatchUrls": [],
-    "vietnameseWatchUrl": "",
+    "vietnameseWatchUrls": [
+      {
+        "label": "Cần có Vip",
+        "url": "https://wetv.vip/vi/play/rqrl3m2fgxs4miy/u4102ckfbqd"
+      }
+    ],
+    "vietnameseWatchUrl": "https://wetv.vip/vi/play/rqrl3m2fgxs4miy/u4102ckfbqd",
     "detailNotes": "Nữ:\nNữ 1 - Ngô Kiện Lam (吴健岚), 50t\nNữ 2 - Trương Đình Đình (张婷婷), 50t\nNữ 3 - Thái Vũ Phàm (蔡雨帆), 47t\nNữ 4 - Phùng Nhất Ly (冯一骊), 48t\n\nNam:\nNam 1 - Tôn Á Châu (孙亚洲), 55t\nNam 2 - Liêu Vĩ Hoành (廖伟宏), 50t\nNam 3 - Lục Tỷ (陆玺), 48t\nNam 4 - Tống Ninh (宋宁), 52t"
   },
   {
