@@ -380,12 +380,24 @@
     "rating": 4,
     "vietnameseWatchUrls": [
       {
+        "label": "Auto sub",
+        "url": "https://dailymotion.com/playlist/xe9if2"
+      },
+      {
+        "label": "Chỉ 720p",
+        "url": "https://bili.im/5xSpirG"
+      },
+      {
+        "label": "Auto sub",
+        "url": "https://dzen.ru/suite/60d24428-c8a3-471d-bb93-41208afc736b?share_to=link"
+      },
+      {
         "label": "Cần có Vip",
         "url": "https://wetv.vip/vi/play/rqrl3m2fgxs4miy/u4102ckfbqd"
       }
     ],
-    "vietnameseWatchUrl": "https://wetv.vip/vi/play/rqrl3m2fgxs4miy/u4102ckfbqd",
-    "detailNotes": "Nữ:\nNữ 1 - Ngô Kiện Lam (吴健岚), 50t\nNữ 2 - Trương Đình Đình (张婷婷), 50t\nNữ 3 - Thái Vũ Phàm (蔡雨帆), 47t\nNữ 4 - Phùng Nhất Ly (冯一骊), 48t\n\nNam:\nNam 1 - Tôn Á Châu (孙亚洲), 55t\nNam 2 - Liêu Vĩ Hoành (廖伟宏), 50t\nNam 3 - Lục Tỷ (陆玺), 48t\nNam 4 - Tống Ninh (宋宁), 52t"
+    "vietnameseWatchUrl": "https://dailymotion.com/playlist/xe9if2",
+    "detailNotes": "Nữ:\nNữ 1 - Ngô Kiện Lam - Amina (吴健岚), 50t, Khởi nghiệp AI\nNữ 2 - Trương Đình Đình - Đại Phúc (张婷婷), 50t, Nhà sản xuất phim\nNữ 3 - Thái Vũ Phàm - Ivy (蔡雨帆), 47t\nNữ 4 - Phùng Nhất Ly - Tam Mã (冯一骊), 48t\n\nNam:\nNam 1 - Tôn Á Châu (孙亚洲), 55t, Tổng giám đốc trung tâm thương mại.\nNam 2 - Liêu Vĩ Hoành - Mason (廖伟宏), 50t\nNam 3 - Lục Tỷ - Tony (陆玺), 48t\nNam 4 - Tống Ninh (宋宁), 52t"
   },
   {
     "chinese": "有秘密的我们3",
