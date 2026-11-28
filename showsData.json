@@ -4,14 +4,31 @@
     "chinese": "연애남매2",
     "english": "My Sibling's Romance S2",
     "country": "korea",
-    "status": "upcoming",
-    "platform": "Wave",
-    "time": "Thứ 6 27-11",
+    "status": "airing",
+    "platform": "Kocowa",
+    "time": "23h T6",
     "rating": 5,
     "year": "27-11-2026",
     "image": "",
-    "vietnameseWatchUrls": [],
-    "vietnameseWatchUrl": "",
+    "vietnameseWatchUrls": [
+      {
+        "label": "Sub chuẩn",
+        "url": "https://www.bilibili.tv/vi/video/4801772179168256?bstar_from=bstar-web.header.history.all"
+      },
+      {
+        "label": "Chỉ 720p",
+        "url": "https://bili.im/MGzX0af"
+      },
+      {
+        "label": "Auto sub",
+        "url": "https://dzen.ru/suite/ca352a00-6ac2-48c8-9ddc-2c8a6fc1c3e4?share_to=link"
+      },
+      {
+        "label": "Auto sub",
+        "url": "https://ok.ru/video/c77737995"
+      }
+    ],
+    "vietnameseWatchUrl": "https://www.bilibili.tv/vi/video/4801772179168256?bstar_from=bstar-web.header.history.all",
     "chineseWatchUrls": [
       {
         "label": "Teaser",
@@ -19,7 +36,7 @@
       }
     ],
     "chineseWatchUrl": "https://www.youtube.com/watch?v=GxmW7d0ERp4",
-    "detailNotes": "",
+    "detailNotes": "Nam:\nIn Joong, Sinh viên đại học, đồng thời làm nhân viên cửa hàng quần áo.\nJin Sung, Đang theo học ngành Khoa học và Kỹ thuật Vật liệu tại Đại học Hàn Quốc.\nDong Su, Vận hành máy móc hạng nặng, đồng thời cùng gia đình điều hành trang trại chăn nuôi bò.\nJi Hwan, Sinh viên đại học, chuyên ngành Giáo dục Thể chất.\n\nNữ:\nMin-seo, Huấn luyện viên Barre.\nYe In, Bác sĩ Y học cổ truyền Hàn Quốc.\nJwa Hyeon, Giảng viên dạy học trực tuyến.\nYu Ra, Sinh viên ngành Nha khoa.",
     "description": "Một chương trình thực tế về tình yêu, nơi các anh chị em cùng nhau giúp đỡ và tìm kiếm bạn đời cho nhau.",
     "tags": [
       "normal"
